@@ -1,5 +1,12 @@
+import { useStore } from '@tanstack/react-store';
+import { Link, Outlet, createRootRoute, useRouter } from '@tanstack/react-router';
+
+import { useTheme } from '@/components/theme-provider';
+import { ModeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
-import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
+import { ButtonGroup } from '@/components/ui/button-group';
+import { Toaster } from '@/components/ui/sonner';
+import { authActions, authStore } from '@/stores/authStore';
 
 const navbarPages = [
   {
@@ -15,37 +22,76 @@ const navbarPages = [
     text: 'Check my profile',
   },
   {
-    route: '/login',
-    text: 'Login',
+    route: '/profile',
+    text: 'Check my profile with params',
+    search: {
+      name: 'damn',
+      is_active: true,
+      categories: ['S', 'G'],
+    },
+  },
+   {
+    route: '/clients',
+    text: 'Query clients',
+  },
+   {
+    route: '/settings',
+    text: 'My settings',
+  },
+   {
+    route: '/dashboard',
+    text: 'Dashboard',
   },
 ];
 
 export const Route = createRootRoute({
-  component: () => (
+  component: RootComponent,
+});
+
+function RootComponent() {
+  const isAuthenticated = useStore(authStore, (s) => s.accessToken);
+  const { theme } = useTheme();
+  const router = useRouter();
+
+  return (
     <>
       <h1 className='text-3xl'>Printcopy tienda web</h1>
-      <ul>
-        {navbarPages.map((page, index) => (
-          <li key={index}>
-            <Link to={page.route}>
-              <Button variant='outline'>{page.text}</Button>
-            </Link>
-          </li>
-        ))}
-        <li>
-          <Link
-            to='/profile'
-            search={{
-              name: 'damn',
-              is_active: true,
-              categories: ['S', 'G'],
+      <nav className='flex gap-5'>
+        <ButtonGroup>
+          {navbarPages.map((page, index) => (
+            <Button key={index} variant='outline'>
+              <Link to={page.route} search={page?.search}>
+                {page.text}
+              </Link>
+            </Button>
+          ))}
+        </ButtonGroup>
+        {isAuthenticated ? (
+          <Button
+            variant='outline'
+            onClick={async () => {
+              await fetch('http://localhost:8000/api/v1/logout/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+              });
+              authActions.clear();
+              router.navigate({ to: '/login' });
             }}
           >
-            <Button variant='outline'>Check my profile with params</Button>
-          </Link>
-        </li>
-      </ul>
+            Logout
+          </Button>
+        ) : (
+          <Button asChild variant='outline'>
+            <Link to='/login'>Login</Link>
+          </Button>
+        )}
+
+        <ModeToggle />
+      </nav>
+
       <Outlet />
+      <Toaster position='top-center' richColors closeButton theme={theme} />
     </>
-  ),
-});
+  );
+}

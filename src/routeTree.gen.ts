@@ -11,9 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PrivateRouteImport } from './routes/_private'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CatalogoIndexRouteImport } from './routes/catalogo/index'
 import { Route as CatalogoIdRouteImport } from './routes/catalogo/$id'
+import { Route as PrivateSettingsRouteImport } from './routes/_private/settings'
+import { Route as PrivateDashboardRouteImport } from './routes/_private/dashboard'
+import { Route as PrivateClientsRouteImport } from './routes/_private/clients'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
@@ -23,6 +27,10 @@ const ProfileRoute = ProfileRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivateRoute = PrivateRouteImport.update({
+  id: '/_private',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -40,11 +48,29 @@ const CatalogoIdRoute = CatalogoIdRouteImport.update({
   path: '/catalogo/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivateSettingsRoute = PrivateSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateDashboardRoute = PrivateDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateClientsRoute = PrivateClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => PrivateRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/clients': typeof PrivateClientsRoute
+  '/dashboard': typeof PrivateDashboardRoute
+  '/settings': typeof PrivateSettingsRoute
   '/catalogo/$id': typeof CatalogoIdRoute
   '/catalogo': typeof CatalogoIndexRoute
 }
@@ -52,27 +78,61 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/clients': typeof PrivateClientsRoute
+  '/dashboard': typeof PrivateDashboardRoute
+  '/settings': typeof PrivateSettingsRoute
   '/catalogo/$id': typeof CatalogoIdRoute
   '/catalogo': typeof CatalogoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_private': typeof PrivateRouteWithChildren
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/_private/clients': typeof PrivateClientsRoute
+  '/_private/dashboard': typeof PrivateDashboardRoute
+  '/_private/settings': typeof PrivateSettingsRoute
   '/catalogo/$id': typeof CatalogoIdRoute
   '/catalogo/': typeof CatalogoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/profile' | '/catalogo/$id' | '/catalogo'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/clients'
+    | '/dashboard'
+    | '/settings'
+    | '/catalogo/$id'
+    | '/catalogo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/profile' | '/catalogo/$id' | '/catalogo'
-  id: '__root__' | '/' | '/login' | '/profile' | '/catalogo/$id' | '/catalogo/'
+  to:
+    | '/'
+    | '/login'
+    | '/profile'
+    | '/clients'
+    | '/dashboard'
+    | '/settings'
+    | '/catalogo/$id'
+    | '/catalogo'
+  id:
+    | '__root__'
+    | '/'
+    | '/_private'
+    | '/login'
+    | '/profile'
+    | '/_private/clients'
+    | '/_private/dashboard'
+    | '/_private/settings'
+    | '/catalogo/$id'
+    | '/catalogo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PrivateRoute: typeof PrivateRouteWithChildren
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   CatalogoIdRoute: typeof CatalogoIdRoute
@@ -93,6 +153,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_private': {
+      id: '/_private'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PrivateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -116,11 +183,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_private/settings': {
+      id: '/_private/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof PrivateSettingsRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/dashboard': {
+      id: '/_private/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof PrivateDashboardRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/clients': {
+      id: '/_private/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof PrivateClientsRouteImport
+      parentRoute: typeof PrivateRoute
+    }
   }
 }
 
+interface PrivateRouteChildren {
+  PrivateClientsRoute: typeof PrivateClientsRoute
+  PrivateDashboardRoute: typeof PrivateDashboardRoute
+  PrivateSettingsRoute: typeof PrivateSettingsRoute
+}
+
+const PrivateRouteChildren: PrivateRouteChildren = {
+  PrivateClientsRoute: PrivateClientsRoute,
+  PrivateDashboardRoute: PrivateDashboardRoute,
+  PrivateSettingsRoute: PrivateSettingsRoute,
+}
+
+const PrivateRouteWithChildren =
+  PrivateRoute._addFileChildren(PrivateRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PrivateRoute: PrivateRouteWithChildren,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   CatalogoIdRoute: CatalogoIdRoute,

@@ -2,7 +2,7 @@ import { authStore } from '@/stores/authStore';
 import { redirect } from '@tanstack/react-router';
 
 const authGuard = async () => {
-  const { accessToken } = authStore.state
+  const { accessToken } = authStore.state;
 
   const res = await fetch('http://localhost:8000/api/v1/system/me', {
     headers: {

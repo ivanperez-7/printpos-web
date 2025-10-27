@@ -15,7 +15,6 @@ const initialState: AuthState = {
 
 export const authStore = new Store<AuthState>(initialState)
 
-// Optional: export actions so you can mutate easily
 export const authActions: AuthActions = {
   setAccessToken: (token) => {
     authStore.setState((prev) => ({ ...prev, accessToken: token }))

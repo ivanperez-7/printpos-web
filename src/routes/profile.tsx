@@ -2,16 +2,16 @@ import { authGuard } from '@/lib/auth';
 import { createFileRoute } from '@tanstack/react-router';
 
 type SearchFilters = {
-  name: string;
-  is_active: boolean;
-  categories: string[];
+  name?: string;
+  is_active?: boolean;
+  categories?: string[];
 };
 
 export const Route = createFileRoute('/profile')({
   validateSearch: (search: Record<string, unknown>): SearchFilters => ({
-    name: search.name as string,
-    is_active: search.is_active as boolean,
-    categories: search.categories as string[],
+    name: search?.name as string,
+    is_active: search?.is_active as boolean,
+    categories: search?.categories as string[],
   }),
   beforeLoad: authGuard,
   component: RouteComponent,
