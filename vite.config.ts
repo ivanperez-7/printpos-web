@@ -16,8 +16,7 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     viteReact(),
-    tailwindcss(),
-    mkcert()
+    tailwindcss()
   ],
   resolve: {
     alias: {
