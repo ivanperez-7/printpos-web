@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import mkcert from 'vite-plugin-mkcert'
 
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { fileURLToPath, URL } from 'node:url'
@@ -16,6 +17,7 @@ export default defineConfig({
     }),
     viteReact(),
     tailwindcss(),
+    mkcert()
   ],
   resolve: {
     alias: {
