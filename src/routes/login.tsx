@@ -1,4 +1,5 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { authActions } from '@/stores/authStore';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/login')({
@@ -6,28 +7,41 @@ export const Route = createFileRoute('/login')({
 });
 
 function RouteComponent() {
-  const [user, setUser] = useState('');
-  const [psswd, setPsswd] = useState('');
+  const [username, setUser] = useState('');
+  const [password, setPsswd] = useState('');
 
-  const onSubmit = async () => {
-    const res = await fetch('http://localhost:8000/api/v1/token/', {
+  const router = useRouter();
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    fetch('http://localhost:8000/api/v1/token/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ username: user, password: psswd }),
+      body: JSON.stringify({ username, password }),
+    }).then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        alert('Login failed');
+      }
+    }).then((data) => {
+      if (data) {
+        authActions.setAccessToken(data.access);
+        router.navigate({ to: '/' });
+      }
     });
-    if (res.ok) throw redirect({ to: '/' });
   };
 
   return (
     <div>
       Hello "/login"!
-      <form>
+      <form onSubmit={onSubmit}>
         <label>username</label>
-        <input type='text' value={user} onChange={(e) => setUser(e.target.value)} />
+        <input type='text' value={username} onChange={(e) => setUser(e.target.value)} />
         <label>password</label>
-        <input type='text' value={psswd} onChange={(e) => setPsswd(e.target.value)} />
-        <button onClick={onSubmit}>login</button>
+        <input type='text' value={password} onChange={(e) => setPsswd(e.target.value)} />
+        <button type='submit'>login</button>
       </form>
     </div>
   );

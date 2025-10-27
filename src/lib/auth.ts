@@ -1,7 +1,13 @@
+import { authStore } from '@/stores/authStore';
 import { redirect } from '@tanstack/react-router';
 
 const authGuard = async () => {
+  const { accessToken } = authStore.state
+
   const res = await fetch('http://localhost:8000/api/v1/system/me', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
     credentials: 'include',
   });
   if (res.status === 401) {
@@ -10,7 +16,7 @@ const authGuard = async () => {
       method: 'POST',
       credentials: 'include',
     });
-    if (!refreshRes.ok) throw redirect({ to: '/' });
+    if (!refreshRes.ok) throw redirect({ to: '/login' });
   }
 };
 
