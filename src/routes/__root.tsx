@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { Toaster } from '@/components/ui/sonner';
 import { authActions, authStore } from '@/stores/authStore';
+import { CustomLink } from '@/components/custom-link';
 
 const navbarPages = [
   {
@@ -30,15 +31,15 @@ const navbarPages = [
       categories: ['S', 'G'],
     },
   },
-   {
+  {
     route: '/clients',
     text: 'Query clients',
   },
-   {
+  {
     route: '/settings',
     text: 'My settings',
   },
-   {
+  {
     route: '/dashboard',
     text: 'Dashboard',
   },
@@ -59,11 +60,7 @@ function RootComponent() {
       <nav className='flex gap-5'>
         <ButtonGroup>
           {navbarPages.map((page, index) => (
-            <Button key={index} variant='outline'>
-              <Link to={page.route} search={page?.search}>
-                {page.text}
-              </Link>
-            </Button>
+            <CustomLink key={index} to={page.route} content={page.text} />
           ))}
         </ButtonGroup>
         {isAuthenticated ? (
@@ -72,7 +69,10 @@ function RootComponent() {
             onClick={async () => {
               await fetch('http://localhost:8000/api/v1/logout/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${authStore.state.accessToken}`,
+                },
                 credentials: 'include',
               });
               authActions.clear();

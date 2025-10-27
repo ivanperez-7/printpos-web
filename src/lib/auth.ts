@@ -1,4 +1,4 @@
-import { authStore } from '@/stores/authStore';
+import { authActions, authStore } from '@/stores/authStore';
 import { redirect } from '@tanstack/react-router';
 
 const authGuard = async () => {
@@ -16,7 +16,16 @@ const authGuard = async () => {
       method: 'POST',
       credentials: 'include',
     });
-    if (!refreshRes.ok) throw redirect({ to: '/login' });
+    if (!refreshRes.ok)
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+        mask: { to: '/login', search: { redirect: undefined } },
+      });
+    else {
+      const data = await refreshRes.json();
+      authActions.setAccessToken(data.access);
+    }
   }
 };
 

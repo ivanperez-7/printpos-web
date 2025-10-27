@@ -26,11 +26,19 @@ const loginSchema = z.object({
 });
 
 export const Route = createFileRoute('/login')({
+  validateSearch: ({
+    redirect,
+  }): {
+    redirect?: string;
+  } => ({
+    redirect: redirect as string,
+  }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const [loading, setLoading] = useState(false);
+  const { redirect } = Route.useSearch();
   const router = useRouter();
 
   const form = useForm({
@@ -61,7 +69,9 @@ function RouteComponent() {
 
         const data = await res.json();
         authActions.setAccessToken(data.access);
-        router.navigate({ to: '/' });
+
+        if (redirect) router.history.push(redirect);
+        else router.navigate({ to: '/' });
       } catch {
         toast.error('Error al conectar con el servidor.');
       } finally {
