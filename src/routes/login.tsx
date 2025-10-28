@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { authActions } from '@/stores/authStore';
+import { ENDPOINTS } from '@/api/endpoints';
 
 const loginSchema = z.object({
   username: z
@@ -55,7 +56,7 @@ function RouteComponent() {
       setLoading(true);
 
       try {
-        const res = await fetch('http://localhost:8000/api/v1/token/', {
+        const res = await fetch(ENDPOINTS.auth.login, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

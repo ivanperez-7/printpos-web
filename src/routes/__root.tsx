@@ -8,6 +8,7 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import { Toaster } from '@/components/ui/sonner';
 import { authActions, authStore } from '@/stores/authStore';
 import { CustomLink } from '@/components/custom-link';
+import { ENDPOINTS } from '@/api/endpoints';
 
 const navbarPages = [
   {
@@ -67,7 +68,7 @@ function RootComponent() {
           <Button
             variant='outline'
             onClick={async () => {
-              await fetch('http://localhost:8000/api/v1/logout/', {
+              await fetch(ENDPOINTS.auth.logout, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

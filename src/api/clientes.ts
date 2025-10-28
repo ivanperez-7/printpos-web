@@ -1,5 +1,6 @@
 import { authStore } from '@/stores/authStore';
 import * as z from 'zod';
+import { ENDPOINTS } from './endpoints';
 
 export const clientSchema = z.object({
   nombre: z.string().min(10, 'El nombre debe tener al menos 10 caracteres.'),
@@ -17,7 +18,7 @@ export type Cliente = z.infer<typeof clientSchema>;
 export async function fetchAllClientes(): Promise<Cliente[]> {
   const { accessToken } = authStore.state;
 
-  const response = await fetch(`http://localhost:8000/api/v1/clientes/`, {
+  const response = await fetch(ENDPOINTS.clients.list, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

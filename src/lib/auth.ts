@@ -1,3 +1,4 @@
+import { ENDPOINTS } from '@/api/endpoints';
 import { authActions, authStore } from '@/stores/authStore';
 import { redirect } from '@tanstack/react-router';
 
@@ -13,7 +14,7 @@ function isTokenExpired(token: string): boolean {
 
 async function tryRefresh(): Promise<boolean> {
   try {
-    const res = await fetch('http://localhost:8000/api/v1/token/refresh/', {
+    const res = await fetch(ENDPOINTS.auth.refresh, {
       method: 'POST',
       credentials: 'include',
     });

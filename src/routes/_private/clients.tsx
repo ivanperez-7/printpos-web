@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { getCookie } from '@/lib/utils';
 import { authStore } from '@/stores/authStore';
+import { ENDPOINTS } from '@/api/endpoints';
 
 export const Route = createFileRoute('/_private/clients')({
   component: RouteComponent,
@@ -48,7 +49,7 @@ function RouteComponent() {
       setLoading(true);
 
       try {
-        const res = await fetch('http://localhost:8000/api/v1/clientes/', {
+        const res = await fetch(ENDPOINTS.clients.list, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import { authStore } from '@/stores/authStore';
+import { ENDPOINTS } from './endpoints';
 
 type Producto = {
   id: number;
@@ -10,7 +11,7 @@ type Producto = {
 };
 
 export async function fetchProductoById(id: number): Promise<Producto> {
-  const response = await fetch(`http://localhost:8000/api/v1/productos/productos/${id}/`, {
+  const response = await fetch(ENDPOINTS.products.detail(id), {
     headers: {
       Authorization: `Bearer ${authStore.state.accessToken}`,
       'Content-Type': 'application/json',
