@@ -13,7 +13,7 @@ export const Route = createFileRoute('/profile')({
     is_active: search?.is_active as boolean,
     categories: search?.categories as string[],
   }),
-  beforeLoad: authGuard,
+  beforeLoad: async () => await authGuard(),
   component: RouteComponent,
 });
 
