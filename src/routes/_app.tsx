@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { authActions, authStore } from '@/stores/authStore';
 import { CustomLink } from '@/components/custom-link';
 import { ENDPOINTS } from '@/api/endpoints';
+import { authGuard } from '@/lib/auth';
 
 const navbarPages = [
   {
@@ -43,6 +44,7 @@ const navbarPages = [
 ];
 
 export const Route = createFileRoute('/_app')({
+  beforeLoad: async () => await authGuard(),
   component: RouteComponent,
 });
 

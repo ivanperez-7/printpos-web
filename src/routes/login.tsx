@@ -1,25 +1,19 @@
+import { Button } from '@/components/ui/button';
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { PackageOpen } from 'lucide-react';
 import { useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import * as z from 'zod';
 
-import { Button } from '@/components/ui/button';
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
-} from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
-import { authActions } from '@/stores/authStore';
 import { ENDPOINTS } from '@/api/endpoints';
 import { useTheme } from '@/components/theme-provider';
+import { authActions } from '@/stores/authStore';
 
-const loginSchema = z.object({
+export const loginSchema = z.object({
   username: z
     .string()
     .min(4, 'Username must be at least 4 characters.')
@@ -84,68 +78,86 @@ function RouteComponent() {
   });
 
   return (
-    <>
-      <div className='w-full max-w-md mx-auto mt-10'>
-        <form
-          id='login-form'
-          onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit();
-          }}
-        >
-          <FieldSet>
-            <FieldGroup>
-              <form.Field
-                name='username'
-                children={(field) => (
-                  <Field>
-                    <FieldLabel htmlFor={field.name}>Username</FieldLabel>
-                    <Input
-                      id={field.name}
-                      type='text'
-                      placeholder='tu_usuario'
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                    <FieldDescription>Debe tener entre 5 y 32 caracteres.</FieldDescription>
-                    {field.state.meta.errors[0] && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                )}
-              />
-
-              <form.Field
-                name='password'
-                children={(field) => (
-                  <Field>
-                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                    <Input
-                      id={field.name}
-                      type='password'
-                      placeholder='********'
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                    <FieldDescription>Debe tener al menos 8 caracteres.</FieldDescription>
-                    {field.state.meta.errors[0] && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-          </FieldSet>
-
-          <Button
-            type='submit'
-            form='login-form'
-            className='w-full mt-4 bg-green-600 hover:bg-green-700 dark:text-white'
-            disabled={loading || !form.state.canSubmit}
+    <div className='bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10'>
+      <div className='w-full max-w-sm'>
+        <div className='flex flex-col gap-6'>
+          <form
+            id='login-form'
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit();
+            }}
           >
-            {loading ? <Spinner /> : 'Iniciar sesión'}
-          </Button>
-        </form>
+            <FieldSet>
+              <FieldGroup>
+                <div className='flex flex-col items-center gap-2 text-center'>
+                  <a className='flex flex-col items-center gap-2 font-medium'>
+                    <div className='flex size-8 items-center justify-center rounded-md'>
+                      <PackageOpen className='size-6' />
+                    </div>
+                  </a>
+                  <h1 className='text-xl font-bold'>Bienvenido de vuelta</h1>
+                  <FieldDescription>
+                    ¿Aún no tiene acceso? <a href='#'>Regístrese.</a>
+                  </FieldDescription>
+                </div>
+
+                <form.Field
+                  name='username'
+                  children={(field) => (
+                    <Field>
+                      <FieldLabel htmlFor={field.name}>Usuario</FieldLabel>
+                      <Input
+                        tabIndex={1}
+                        id={field.name}
+                        type='text'
+                        placeholder='tu_usuario'
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                />
+
+                <form.Field
+                  name='password'
+                  children={(field) => (
+                    <Field>
+                      <div className='flex items-center'>
+                        <FieldLabel htmlFor='password'>Contraseña</FieldLabel>
+                        <a href='#' className='ml-auto text-sm underline-offset-2 hover:underline'>
+                          ¿Olvidó su contraseña?
+                        </a>
+                      </div>
+                      <Input
+                        tabIndex={2}
+                        id={field.name}
+                        type='password'
+                        placeholder='********'
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                      />
+                    </Field>
+                  )}
+                />
+                <Field>
+                  <Button
+                    tabIndex={3}
+                    type='submit'
+                    form='login-form'
+                    disabled={loading || !form.state.canSubmit}
+                  >
+                    {loading ? <Spinner /> : 'Iniciar sesión'}
+                  </Button>
+                </Field>
+              </FieldGroup>
+            </FieldSet>
+          </form>
+        </div>
       </div>
       <Toaster position='top-center' richColors closeButton theme={theme} />
-    </>
+    </div>
   );
 }
