@@ -1,18 +1,11 @@
 import { createLink } from '@tanstack/react-router';
 import type { LinkComponent } from '@tanstack/react-router';
-import { Button } from './ui/button';
+import { SidebarMenuButton } from './ui/sidebar';
 
-const MyNavButton = (props: React.ComponentProps<'button'>) => (
-  <Button variant='outline' className='hover:bg-gray-100 dark:hover:bg-gray-800' {...props} />
-);
-
-export const TanStackLinkComponent = createLink(MyNavButton);
+export const TanStackLinkComponent = createLink(SidebarMenuButton);
 
 export const CustomLink: LinkComponent<typeof TanStackLinkComponent> = (props) => (
-  <TanStackLinkComponent
-    activeProps={{ className: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-900' }}
-    {...props}
-  >
+  <TanStackLinkComponent activeProps={{ isActive: true }} {...props}>
     {props.content}
   </TanStackLinkComponent>
 );
