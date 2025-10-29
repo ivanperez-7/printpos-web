@@ -1,7 +1,7 @@
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { authActions } from '@/stores/authStore';
 import { ENDPOINTS } from '@/api/endpoints';
+import { useTheme } from '@/components/theme-provider';
 
 const loginSchema = z.object({
   username: z
@@ -40,6 +41,7 @@ export const Route = createFileRoute('/login')({
 function RouteComponent() {
   const [loading, setLoading] = useState(false);
   const { redirect } = Route.useSearch();
+  const { theme } = useTheme();
   const router = useRouter();
 
   const form = useForm({
@@ -72,7 +74,7 @@ function RouteComponent() {
         authActions.setAccessToken(data.access);
 
         if (redirect) router.history.push(redirect);
-        else router.navigate({ to: '/' });
+        else router.navigate({ to: '/dashboard' });
       } catch {
         toast.error('Error al conectar con el servidor.');
       } finally {
@@ -143,6 +145,7 @@ function RouteComponent() {
           </Button>
         </form>
       </div>
+      <Toaster position='top-center' richColors closeButton theme={theme} />
     </>
   );
 }

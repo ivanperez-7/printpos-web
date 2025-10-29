@@ -1,7 +1,7 @@
 import { fetchProductoById } from '@/api/catalogo';
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/catalogo/$id')({
+export const Route = createFileRoute('/_app/catalogo/$id')({
   component: RouteComponent,
   loader: async ({ params }) => await fetchProductoById(Number(params.id)),
 });

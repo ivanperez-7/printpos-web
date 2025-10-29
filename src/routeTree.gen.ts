@@ -9,28 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as PrivateRouteImport } from './routes/_private'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CatalogoIndexRouteImport } from './routes/catalogo/index'
-import { Route as CatalogoIdRouteImport } from './routes/catalogo/$id'
-import { Route as PrivateSettingsRouteImport } from './routes/_private/settings'
-import { Route as PrivateDashboardRouteImport } from './routes/_private/dashboard'
-import { Route as PrivateClientsRouteImport } from './routes/_private/clients'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppClientsRouteImport } from './routes/_app/clients'
+import { Route as AppCatalogoIndexRouteImport } from './routes/_app/catalogo/index'
+import { Route as AppCatalogoIdRouteImport } from './routes/_app/catalogo/$id'
 
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrivateRoute = PrivateRouteImport.update({
-  id: '/_private',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -38,72 +33,77 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CatalogoIndexRoute = CatalogoIndexRouteImport.update({
-  id: '/catalogo/',
-  path: '/catalogo/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CatalogoIdRoute = CatalogoIdRouteImport.update({
-  id: '/catalogo/$id',
-  path: '/catalogo/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivateSettingsRoute = PrivateSettingsRouteImport.update({
+const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => PrivateRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const PrivateDashboardRoute = PrivateDashboardRouteImport.update({
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => PrivateRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const PrivateClientsRoute = PrivateClientsRouteImport.update({
+const AppClientsRoute = AppClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
-  getParentRoute: () => PrivateRoute,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCatalogoIndexRoute = AppCatalogoIndexRouteImport.update({
+  id: '/catalogo/',
+  path: '/catalogo/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCatalogoIdRoute = AppCatalogoIdRouteImport.update({
+  id: '/catalogo/$id',
+  path: '/catalogo/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/clients': typeof PrivateClientsRoute
-  '/dashboard': typeof PrivateDashboardRoute
-  '/settings': typeof PrivateSettingsRoute
-  '/catalogo/$id': typeof CatalogoIdRoute
-  '/catalogo': typeof CatalogoIndexRoute
+  '/clients': typeof AppClientsRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/profile': typeof AppProfileRoute
+  '/settings': typeof AppSettingsRoute
+  '/catalogo/$id': typeof AppCatalogoIdRoute
+  '/catalogo': typeof AppCatalogoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/clients': typeof PrivateClientsRoute
-  '/dashboard': typeof PrivateDashboardRoute
-  '/settings': typeof PrivateSettingsRoute
-  '/catalogo/$id': typeof CatalogoIdRoute
-  '/catalogo': typeof CatalogoIndexRoute
+  '/clients': typeof AppClientsRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/profile': typeof AppProfileRoute
+  '/settings': typeof AppSettingsRoute
+  '/catalogo/$id': typeof AppCatalogoIdRoute
+  '/catalogo': typeof AppCatalogoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_private': typeof PrivateRouteWithChildren
+  '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/_private/clients': typeof PrivateClientsRoute
-  '/_private/dashboard': typeof PrivateDashboardRoute
-  '/_private/settings': typeof PrivateSettingsRoute
-  '/catalogo/$id': typeof CatalogoIdRoute
-  '/catalogo/': typeof CatalogoIndexRoute
+  '/_app/clients': typeof AppClientsRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/profile': typeof AppProfileRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/catalogo/$id': typeof AppCatalogoIdRoute
+  '/_app/catalogo/': typeof AppCatalogoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
-    | '/profile'
     | '/clients'
     | '/dashboard'
+    | '/profile'
     | '/settings'
     | '/catalogo/$id'
     | '/catalogo'
@@ -111,43 +111,33 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/profile'
     | '/clients'
     | '/dashboard'
+    | '/profile'
     | '/settings'
     | '/catalogo/$id'
     | '/catalogo'
   id:
     | '__root__'
     | '/'
-    | '/_private'
+    | '/_app'
     | '/login'
-    | '/profile'
-    | '/_private/clients'
-    | '/_private/dashboard'
-    | '/_private/settings'
-    | '/catalogo/$id'
-    | '/catalogo/'
+    | '/_app/clients'
+    | '/_app/dashboard'
+    | '/_app/profile'
+    | '/_app/settings'
+    | '/_app/catalogo/$id'
+    | '/_app/catalogo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PrivateRoute: typeof PrivateRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
-  ProfileRoute: typeof ProfileRoute
-  CatalogoIdRoute: typeof CatalogoIdRoute
-  CatalogoIndexRoute: typeof CatalogoIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -155,11 +145,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_private': {
-      id: '/_private'
+    '/_app': {
+      id: '/_app'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof PrivateRouteImport
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -169,66 +159,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/catalogo/': {
-      id: '/catalogo/'
-      path: '/catalogo'
-      fullPath: '/catalogo'
-      preLoaderRoute: typeof CatalogoIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/catalogo/$id': {
-      id: '/catalogo/$id'
-      path: '/catalogo/$id'
-      fullPath: '/catalogo/$id'
-      preLoaderRoute: typeof CatalogoIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_private/settings': {
-      id: '/_private/settings'
+    '/_app/settings': {
+      id: '/_app/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof PrivateSettingsRouteImport
-      parentRoute: typeof PrivateRoute
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/_private/dashboard': {
-      id: '/_private/dashboard'
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof PrivateDashboardRouteImport
-      parentRoute: typeof PrivateRoute
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/_private/clients': {
-      id: '/_private/clients'
+    '/_app/clients': {
+      id: '/_app/clients'
       path: '/clients'
       fullPath: '/clients'
-      preLoaderRoute: typeof PrivateClientsRouteImport
-      parentRoute: typeof PrivateRoute
+      preLoaderRoute: typeof AppClientsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/catalogo/': {
+      id: '/_app/catalogo/'
+      path: '/catalogo'
+      fullPath: '/catalogo'
+      preLoaderRoute: typeof AppCatalogoIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/catalogo/$id': {
+      id: '/_app/catalogo/$id'
+      path: '/catalogo/$id'
+      fullPath: '/catalogo/$id'
+      preLoaderRoute: typeof AppCatalogoIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-interface PrivateRouteChildren {
-  PrivateClientsRoute: typeof PrivateClientsRoute
-  PrivateDashboardRoute: typeof PrivateDashboardRoute
-  PrivateSettingsRoute: typeof PrivateSettingsRoute
+interface AppRouteChildren {
+  AppClientsRoute: typeof AppClientsRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppCatalogoIdRoute: typeof AppCatalogoIdRoute
+  AppCatalogoIndexRoute: typeof AppCatalogoIndexRoute
 }
 
-const PrivateRouteChildren: PrivateRouteChildren = {
-  PrivateClientsRoute: PrivateClientsRoute,
-  PrivateDashboardRoute: PrivateDashboardRoute,
-  PrivateSettingsRoute: PrivateSettingsRoute,
+const AppRouteChildren: AppRouteChildren = {
+  AppClientsRoute: AppClientsRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppCatalogoIdRoute: AppCatalogoIdRoute,
+  AppCatalogoIndexRoute: AppCatalogoIndexRoute,
 }
 
-const PrivateRouteWithChildren =
-  PrivateRoute._addFileChildren(PrivateRouteChildren)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PrivateRoute: PrivateRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
-  ProfileRoute: ProfileRoute,
-  CatalogoIdRoute: CatalogoIdRoute,
-  CatalogoIndexRoute: CatalogoIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

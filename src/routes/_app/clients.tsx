@@ -20,7 +20,7 @@ import { getCookie } from '@/lib/utils';
 import { authStore } from '@/stores/authStore';
 import { ENDPOINTS } from '@/api/endpoints';
 
-export const Route = createFileRoute('/_private/clients')({
+export const Route = createFileRoute('/_app/clients')({
   component: RouteComponent,
   loader: async () => await fetchAllClientes(),
 });

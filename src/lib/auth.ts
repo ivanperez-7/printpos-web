@@ -35,7 +35,7 @@ async function tryRefresh(): Promise<boolean> {
 export async function authGuard() {
   const token = authStore.state.accessToken;
 
-  if (token && !isTokenExpired(token)) return; // all good, continue
+  if (token && !isTokenExpired(token)) return;
 
   // If token expired or missing, try to refresh
   const refreshed = await tryRefresh();
@@ -48,4 +48,12 @@ export async function authGuard() {
     search: { redirect: location.href },
     mask: { to: '/login', search: { redirect: undefined } },
   });
+}
+
+export async function authGuardSilent() {
+  const token = authStore.state.accessToken;
+  if (token && !isTokenExpired(token)) return true;
+
+  const refreshed = await tryRefresh();
+  return !!refreshed;
 }

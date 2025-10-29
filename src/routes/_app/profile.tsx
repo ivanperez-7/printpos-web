@@ -7,7 +7,7 @@ type SearchFilters = {
   categories?: string[];
 };
 
-export const Route = createFileRoute('/profile')({
+export const Route = createFileRoute('/_app/profile')({
   validateSearch: (search: Record<string, unknown>): SearchFilters => ({
     name: search?.name as string,
     is_active: search?.is_active as boolean,
