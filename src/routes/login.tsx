@@ -4,12 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
+import axios from 'axios';
 import { PackageOpen } from 'lucide-react';
 import { useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import * as z from 'zod';
 
-import { ENDPOINTS } from '@/api/endpoints';
+import { API_BASE, ENDPOINTS } from '@/api/endpoints';
 import { useTheme } from '@/components/theme-provider';
 import { authActions } from '@/stores/authStore';
 
@@ -51,29 +52,16 @@ function RouteComponent() {
       if (loading) return;
       setLoading(true);
 
-      try {
-        const res = await fetch(ENDPOINTS.auth.login, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(value),
-        });
-
-        if (!res.ok) {
-          toast.error('No se pudo iniciar sesión. Verifica tus credenciales.');
-          return;
-        }
-
-        const data = await res.json();
-        authActions.setAccessToken(data.access);
-
-        if (redirect) router.history.push(redirect);
-        else router.navigate({ to: '/dashboard' });
-      } catch {
-        toast.error('Error al conectar con el servidor.');
-      } finally {
-        setLoading(false);
-      }
+      axios
+        .post(ENDPOINTS.auth.login, value, { baseURL: API_BASE, withCredentials: true })
+        .then((res) => res.data)
+        .then(({ access }) => {
+          authActions.setAccessToken(access);
+          if (redirect) router.history.push(redirect);
+          else router.navigate({ to: '/dashboard' });
+        })
+        .catch((error) => toast.error(error.response ? error.response.data.detail : error.message))
+        .finally(() => setLoading(false));
     },
   });
 

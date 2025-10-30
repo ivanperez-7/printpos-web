@@ -1,6 +1,7 @@
-import { ENDPOINTS } from '@/api/endpoints';
+import { API_BASE, ENDPOINTS } from '@/api/endpoints';
 import { authActions, authStore } from '@/stores/authStore';
 import { redirect } from '@tanstack/react-router';
+import axios from 'axios';
 
 function isTokenExpired(token: string): boolean {
   try {
@@ -12,25 +13,21 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-async function tryRefresh(): Promise<boolean> {
-  try {
-    const res = await fetch(ENDPOINTS.auth.refresh, {
-      method: 'POST',
-      credentials: 'include',
-    });
-
-    if (!res.ok) return false;
-
-    const data = await res.json();
-    if (data.access) {
-      authActions.setAccessToken(data.access);
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
-  }
-}
+const tryRefresh = async (): Promise<boolean> =>
+  axios
+    .post(ENDPOINTS.auth.refresh, { withCredentials: true })
+    .then((res) => {
+      if (res.status !== 200) return false;
+      return res.data;
+    })
+    .then(({ access }) => {
+      if (access) {
+        authActions.setAccessToken(access);
+        return true;
+      }
+      return false;
+    })
+    .catch(() => false);
 
 export async function authGuard() {
   const token = authStore.state.accessToken;
@@ -57,3 +54,17 @@ export async function authGuardSilent() {
   const refreshed = await tryRefresh();
   return !!refreshed;
 }
+
+export const withAuth = axios.create({
+  baseURL: API_BASE,
+  withCredentials: true,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+withAuth.interceptors.request.use((config) => {
+  const token = authStore.state.accessToken;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});

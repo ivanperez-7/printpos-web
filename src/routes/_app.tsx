@@ -1,5 +1,6 @@
 import { Outlet, createFileRoute, useRouter } from '@tanstack/react-router';
 
+import { ENDPOINTS } from '@/api/endpoints';
 import { AppSidebar } from '@/components/app-sidebar';
 import { useTheme } from '@/components/theme-provider';
 import {
@@ -13,9 +14,9 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
-import { authGuard } from '@/lib/auth';
-import { authActions, authStore } from '@/stores/authStore';
-import { ENDPOINTS } from '@/api/endpoints';
+import { authGuard, withAuth } from '@/lib/auth';
+import { authActions } from '@/stores/authStore';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async () => await authGuard(),
@@ -29,15 +30,15 @@ function RouteComponent() {
   return (
     <SidebarProvider>
       <AppSidebar
-        onLogOut={async () => {
-          await fetch(ENDPOINTS.auth.logout, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authStore.state.accessToken}` },
-            credentials: 'include',
-          });
-          authActions.clear();
-          router.navigate({ to: '/login' });
-        }}
+        onLogOut={async () =>
+          withAuth
+            .post(ENDPOINTS.auth.logout)
+            .then(() => {
+              authActions.clear();
+              router.navigate({ to: '/login' });
+            })
+            .catch((error) => toast.error(error.message))
+        }
       />
       <SidebarInset>
         <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>

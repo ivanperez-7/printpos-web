@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { ENDPOINTS } from '@/api/endpoints';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -16,9 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
-import { getCookie } from '@/lib/utils';
-import { authStore } from '@/stores/authStore';
-import { ENDPOINTS } from '@/api/endpoints';
+import { withAuth } from '@/lib/auth';
 
 export const Route = createFileRoute('/_app/clients')({
   component: RouteComponent,
@@ -48,30 +47,16 @@ function RouteComponent() {
       if (loading) return;
       setLoading(true);
 
-      try {
-        const res = await fetch(ENDPOINTS.clients.list, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authStore.state.accessToken}`,
-            'X-CSRFToken': getCookie('csrftoken'),
-          },
-          credentials: 'include',
-          body: JSON.stringify(value),
-        });
-
-        if (!res.ok) {
-          toast.error('No se pudo crear el cliente.');
-          return;
-        }
-
-        toast.success('Cliente registrado correctamente.');
-        form.reset();
-      } catch {
-        toast.error('Error al conectar con el servidor.');
-      } finally {
-        setLoading(false);
-      }
+      withAuth
+        .post(ENDPOINTS.clients.list, value)
+        .then((res) => {
+          if (res.status === 201) {
+            toast.success('Cliente registrado correctamente.');
+            form.reset();
+          }
+        })
+        .catch((error) => toast.error(error.message))
+        .finally(() => setLoading(false));
     },
   });
 

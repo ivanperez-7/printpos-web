@@ -1,5 +1,6 @@
-import { authStore } from '@/stores/authStore';
+import { withAuth } from '@/lib/auth';
 import { ENDPOINTS } from './endpoints';
+import { toast } from 'sonner';
 
 type Producto = {
   id: number;
@@ -10,17 +11,12 @@ type Producto = {
   is_active: true;
 };
 
-export async function fetchProductoById(id: number): Promise<Producto> {
-  const response = await fetch(ENDPOINTS.products.detail(id), {
-    headers: {
-      Authorization: `Bearer ${authStore.state.accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-  });
-  if (!response.ok) {
-    throw new Error('Network response was not ok, status: ' + response.status);
-  }
-  const producto: Producto = await response.json();
-  return producto;
-}
+export const fetchProductoById = async (id: number): Promise<Producto> =>
+  withAuth
+    .get(ENDPOINTS.products.detail(id))
+    .then((res) => res.data)
+    .then((data) => data as Producto)
+    .catch((error) => {
+      toast.error(error.message);
+      throw error
+    });

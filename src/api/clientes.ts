@@ -1,4 +1,5 @@
-import { authStore } from '@/stores/authStore';
+import { withAuth } from '@/lib/auth';
+import { toast } from 'sonner';
 import * as z from 'zod';
 import { ENDPOINTS } from './endpoints';
 
@@ -15,18 +16,12 @@ export const clientSchema = z.object({
 
 export type Cliente = z.infer<typeof clientSchema>;
 
-export async function fetchAllClientes(): Promise<Cliente[]> {
-  const { accessToken } = authStore.state;
-
-  const response = await fetch(ENDPOINTS.clients.list, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    credentials: 'include',
-  });
-  if (!response.ok) {
-    throw new Error('Network response was not ok, status: ' + response.status);
-  }
-  const clientes: Cliente[] = await response.json();
-  return clientes;
-}
+export const fetchAllClientes = async (): Promise<Cliente[]> =>
+  withAuth
+    .get(ENDPOINTS.clients.list)
+    .then((res) => res.data)
+    .then((data) => data as Cliente[])
+    .catch((error) => {
+      toast.error(error.message);
+      return [];
+    });
