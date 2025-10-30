@@ -14,7 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import { authGuard } from '@/lib/auth';
-import { authActions } from '@/stores/authStore';
+import { authActions, authStore } from '@/stores/authStore';
+import { ENDPOINTS } from '@/api/endpoints';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async () => await authGuard(),
@@ -29,9 +30,9 @@ function RouteComponent() {
     <SidebarProvider>
       <AppSidebar
         onLogOut={async () => {
-          await fetch('http://localhost:8000/api/v1/logout/', {
+          await fetch(ENDPOINTS.auth.logout, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authStore.state.accessToken}` },
             credentials: 'include',
           });
           authActions.clear();
