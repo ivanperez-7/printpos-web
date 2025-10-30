@@ -11,6 +11,7 @@ export const ENDPOINTS = {
     detail: (id: string | number) => `/clientes/${id}/`,
   },
   products: {
+    list: '/productos/productos/',
     detail: (id: string | number) => `/productos/productos/${id}/`,
   },
 } as const;

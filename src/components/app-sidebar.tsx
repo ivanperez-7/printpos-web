@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-import { VersionSwitcher } from '@/components/version-switcher';
 import {
   Sidebar,
   SidebarContent,
@@ -12,61 +11,45 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
-import { CustomLink } from './custom-link';
+import navigation from '@/lib/navigation';
+import { GalleryVerticalEnd } from 'lucide-react';
+import { CustomSidebarLink } from './custom-link';
 import { NavFooter } from './nav-footer';
 
-const data = [
-  {
-    title: 'Inventario',
-    items: [
-      {
-        route: '/catalogo',
-        title: 'Nuestros productos',
-      },
-      {
-        route: '/profile',
-        title: 'Check my profile',
-      },
-    ],
-  },
-  {
-    title: 'Configuraciones',
-    items: [
-      {
-        route: '/clients',
-        title: 'Query clients',
-      },
-      {
-        route: '/settings',
-        title: 'My settings',
-      },
-      {
-        route: '/dashboard',
-        title: 'Dashboard',
-      },
-    ],
-  },
-];
-
 export function AppSidebar({
-  onLogOut,
+  onLogout,
   ...props
-}: { onLogOut: React.MouseEventHandler<HTMLDivElement> } & React.ComponentProps<typeof Sidebar>) {
+}: { onLogout: React.MouseEventHandler<HTMLDivElement> } & React.ComponentProps<typeof Sidebar>) {
+  const { setOpenMobile } = useSidebar();
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <VersionSwitcher />
+        <div className='flex gap-2 m-2 items-center'>
+          <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+            <GalleryVerticalEnd className='size-4' />
+          </div>
+          <div className='flex flex-col gap-1 leading-none text-sm'>
+            <span className='font-medium'>Manejador de inventario</span>
+            <span className=''>Printcopy</span>
+          </div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        {data.map((item) => (
-          <SidebarGroup key={item.title}>
-            <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
+        {navigation.map((section) => (
+          <SidebarGroup key={section.title}>
+            <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {item.items.map((item) => (
+                {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <CustomLink to={item.route} content={item.title} />
+                    <CustomSidebarLink
+                      to={item.route}
+                      content={item.title}
+                      onClick={() => setOpenMobile(false)}
+                    />
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -75,7 +58,7 @@ export function AppSidebar({
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavFooter user={{ name: 'hm', email: 'hm' }} onLogOut={onLogOut} />
+        <NavFooter user={{ name: 'hm', email: 'hm' }} onLogout={onLogout} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

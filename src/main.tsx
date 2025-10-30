@@ -13,7 +13,7 @@ import { ThemeProvider } from './components/theme-provider.tsx'
 const router = createRouter({
   routeTree,
   context: {},
-  defaultPreload: false,
+  defaultPreload: 'intent',
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,

@@ -1,6 +1,6 @@
 import { clientSchema, fetchAllClientes } from '@/api/clientes';
 import { useForm } from '@tanstack/react-form';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,12 +21,13 @@ import { withAuth } from '@/lib/auth';
 
 export const Route = createFileRoute('/_app/clients')({
   component: RouteComponent,
-  loader: async () => await fetchAllClientes(),
+  loader: fetchAllClientes,
 });
 
 function RouteComponent() {
   const [loading, setLoading] = useState(false);
   const clientes = Route.useLoaderData();
+  const router = useRouter();
 
   const form = useForm({
     defaultValues: {
@@ -53,6 +54,7 @@ function RouteComponent() {
           if (res.status === 201) {
             toast.success('Cliente registrado correctamente.');
             form.reset();
+            router.invalidate();
           }
         })
         .catch((error) => toast.error(error.message))
@@ -61,10 +63,11 @@ function RouteComponent() {
   });
 
   return (
-    <div>
+    <>
+      <h1 className='font-bold text-3xl mb-2'>Mis clientes</h1>
       <div>
         Actualmente existen {clientes.length} clientes en el sistema:
-        <ul className='list-disc ml-6 text-gray-600'>
+        <ul className='list-disc ml-6 text-gray-600 dark:text-gray-400'>
           {clientes.map((cliente) => (
             <li key={cliente.nombre}>{cliente.nombre}</li>
           ))}
@@ -80,7 +83,7 @@ function RouteComponent() {
           e.preventDefault();
           form.handleSubmit();
         }}
-        className='max-w-md mx-auto mt-10 space-y-6'
+        className='max-w-md mx-auto mt-5 space-y-6'
       >
         <FieldSet>
           <FieldGroup>
@@ -212,6 +215,6 @@ function RouteComponent() {
           {loading ? <Spinner /> : 'Registrar cliente'}
         </Button>
       </form>
-    </div>
+    </>
   );
 }

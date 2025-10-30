@@ -3,6 +3,7 @@ import { Outlet, createFileRoute, useRouter } from '@tanstack/react-router';
 import { ENDPOINTS } from '@/api/endpoints';
 import { AppSidebar } from '@/components/app-sidebar';
 import { useTheme } from '@/components/theme-provider';
+import { ModeToggle } from '@/components/theme-toggle';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,19 +28,19 @@ function RouteComponent() {
   const { theme } = useTheme();
   const router = useRouter();
 
+  const onLogout = async () =>
+    withAuth
+      .post(ENDPOINTS.auth.logout)
+      .then(() => {
+        authActions.clear();
+        router.navigate({ to: '/login' });
+      })
+      .catch((error) => toast.error(error.message));
+
+
   return (
     <SidebarProvider>
-      <AppSidebar
-        onLogOut={async () =>
-          withAuth
-            .post(ENDPOINTS.auth.logout)
-            .then(() => {
-              authActions.clear();
-              router.navigate({ to: '/login' });
-            })
-            .catch((error) => toast.error(error.message))
-        }
-      />
+      <AppSidebar onLogout={onLogout} />
       <SidebarInset>
         <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
           <SidebarTrigger className='-ml-1' />
@@ -55,8 +56,9 @@ function RouteComponent() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <ModeToggle />
         </header>
-        <Outlet />
+        <div className='p-4'><Outlet /></div>
 
         <Toaster position='top-center' richColors closeButton theme={theme} />
       </SidebarInset>

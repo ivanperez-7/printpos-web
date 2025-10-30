@@ -15,7 +15,7 @@ function isTokenExpired(token: string): boolean {
 
 const tryRefresh = async (): Promise<boolean> =>
   axios
-    .post(ENDPOINTS.auth.refresh, { withCredentials: true })
+    .post(ENDPOINTS.auth.refresh, undefined, { baseURL: API_BASE, withCredentials: true })
     .then((res) => {
       if (res.status !== 200) return false;
       return res.data;

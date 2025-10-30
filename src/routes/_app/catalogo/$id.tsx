@@ -1,4 +1,5 @@
 import { fetchProductoById } from '@/api/catalogo';
+import { CustomLink } from '@/components/custom-link';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/catalogo/$id')({
@@ -7,14 +8,12 @@ export const Route = createFileRoute('/_app/catalogo/$id')({
 });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
   const producto = Route.useLoaderData();
-
-  console.log(producto);
 
   return (
     <div>
-      Hello "/catalogo/$id"! {id} <p>{producto.codigo}</p>
+      <CustomLink to='/catalogo' className='mb-5'>Go back pls</CustomLink>
+      <pre>{JSON.stringify(producto, null, 4)}</pre>
     </div>
   );
 }

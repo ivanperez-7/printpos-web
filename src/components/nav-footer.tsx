@@ -1,6 +1,6 @@
 'use client';
 
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
+import { BadgeCheck, Bell, ChevronRight, CreditCard, LogOut, Sparkles } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -17,14 +17,14 @@ import type { MouseEventHandler } from 'react';
 
 export function NavFooter({
   user,
-  onLogOut,
+  onLogout,
 }: {
   user: {
     name: string;
     email: string;
     avatar?: string;
   };
-  onLogOut: MouseEventHandler<HTMLDivElement>;
+  onLogout: MouseEventHandler<HTMLDivElement>;
 }) {
   const { isMobile } = useSidebar();
 
@@ -45,7 +45,7 @@ export function NavFooter({
                 <span className='truncate font-medium'>{user.name}</span>
                 <span className='truncate text-xs'>{user.email}</span>
               </div>
-              <ChevronsUpDown className='ml-auto size-4' />
+              <ChevronRight className='ml-auto size-4' />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -89,7 +89,7 @@ export function NavFooter({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onLogOut}>
+            <DropdownMenuItem onClick={onLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
