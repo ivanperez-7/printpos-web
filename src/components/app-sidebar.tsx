@@ -28,7 +28,7 @@ export function AppSidebar({
     <Sidebar {...props}>
       <SidebarHeader>
         <div className='flex gap-2 m-2 items-center'>
-          <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+          <div className='bg-blue-700 text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
             <GalleryVerticalEnd className='size-4' />
           </div>
           <div className='flex flex-col gap-1 leading-none text-sm'>
@@ -48,6 +48,7 @@ export function AppSidebar({
                     <CustomSidebarLink
                       to={item.route}
                       content={item.title}
+                      Icon={item.Icon}
                       onClick={() => setOpenMobile(false)}
                     />
                   </SidebarMenuItem>
@@ -58,7 +59,14 @@ export function AppSidebar({
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavFooter user={{ name: 'hm', email: 'hm' }} onLogout={onLogout} />
+        <NavFooter
+          user={{
+            name: localStorage.getItem('username') || 'N/A',
+            email: localStorage.getItem('email') || 'N/A',
+            avatar: localStorage.getItem('avatar') ?? undefined,
+          }}
+          onLogout={onLogout}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

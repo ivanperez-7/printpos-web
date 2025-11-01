@@ -55,8 +55,12 @@ function RouteComponent() {
       axios
         .post(ENDPOINTS.auth.login, value, { baseURL: API_BASE, withCredentials: true })
         .then((res) => res.data)
-        .then(({ access }) => {
+        .then(({ access, username, email, avatar }) => {
           authActions.setAccessToken(access);
+          localStorage.setItem('username', username)
+          localStorage.setItem('email', email)
+          localStorage.setItem('avatar', avatar)
+          
           if (redirect) router.history.push(redirect);
           else router.navigate({ to: '/dashboard' });
         })
