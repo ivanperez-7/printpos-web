@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { ENDPOINTS } from '@/api/endpoints';
+import { DataTable } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -18,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { withAuth } from '@/lib/auth';
+import { clientsColumns } from '@/lib/columns';
 
 export const Route = createFileRoute('/_app/clients')({
   component: RouteComponent,
@@ -26,7 +28,7 @@ export const Route = createFileRoute('/_app/clients')({
 
 function RouteComponent() {
   const [loading, setLoading] = useState(false);
-  const clientes = Route.useLoaderData();
+  const clientesPromise = Route.useLoaderData();
   const router = useRouter();
 
   const form = useForm({
@@ -64,14 +66,9 @@ function RouteComponent() {
 
   return (
     <>
-      <h1 className='font-bold text-3xl mb-2'>Mis clientes</h1>
-      <div>
-        Actualmente existen {clientes.length} clientes en el sistema:
-        <ul className='list-disc ml-6 text-gray-600 dark:text-gray-400'>
-          {clientes.map((cliente) => (
-            <li key={cliente.nombre}>{cliente.nombre}</li>
-          ))}
-        </ul>
+      <h1 className='font-bold text-3xl'>Mis clientes</h1>
+      <div className='container mx-auto py-6'>
+        <DataTable columns={clientsColumns} data={clientesPromise} />
       </div>
 
       <h1 className='mt-5 text-xl font-bold'>¿Registrar nuevo cliente?</h1>

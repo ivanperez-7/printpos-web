@@ -34,7 +34,7 @@ function RouteComponent() {
       <SidebarInset>
         <HeaderProvider>
           <SiteHeader />
-          <div className='p-4'>
+          <div className='p-4 md:p-7'>
             <Outlet />
           </div>
         </HeaderProvider>

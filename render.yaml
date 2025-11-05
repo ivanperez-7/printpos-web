@@ -10,7 +10,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: inventory-manager-api
-          type: web
-          property: host
+        value: localhost/api/v1
