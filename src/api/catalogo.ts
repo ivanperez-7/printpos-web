@@ -1,15 +1,7 @@
 import { withAuth } from '@/lib/auth';
 import { ENDPOINTS } from './endpoints';
 import { redirect } from '@tanstack/react-router';
-
-type Producto = {
-  id: number;
-  codigo: 'IMP. ByN 1';
-  descripcion: 'IMP. ByN 1';
-  abreviado: 'Impresiones';
-  categoria: 'S';
-  is_active: true;
-};
+import type { Producto } from '@/lib/types';
 
 export const fetchAllProductos = async () : Promise<Producto[]> => 
   withAuth

@@ -9,6 +9,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import { authGuard, withAuth } from '@/lib/auth';
 import { authActions } from '@/stores/authStore';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async () => await authGuard(),
@@ -16,21 +17,27 @@ export const Route = createFileRoute('/_app')({
 });
 
 function RouteComponent() {
+  const [loadingLogout, setLoadingLogout] = useState(false);
   const { theme } = useTheme();
   const router = useRouter();
 
-  const onLogout = async () =>
+  const onLogout = async () => {
+    if (loadingLogout) return;
+
+    setLoadingLogout(true);
     withAuth
       .post(ENDPOINTS.auth.logout)
       .then(() => {
         authActions.clear();
         router.navigate({ to: '/login' });
       })
-      .catch((error) => toast.error(error.message));
+      .catch((error) => toast.error(error.message))
+      .finally(() => setLoadingLogout(false));
+  };
 
   return (
     <SidebarProvider>
-      <AppSidebar onLogout={onLogout} />
+      <AppSidebar onLogout={onLogout} loadingLogout={loadingLogout} />
       <SidebarInset>
         <HeaderProvider>
           <SiteHeader />

@@ -7,14 +7,13 @@ export const TanStackLinkComponent = createLink(SidebarMenuButton);
 export const CustomLink = createLink(Button);
 
 type CustomSidebarLinkProps = LinkComponentProps<typeof TanStackLinkComponent> & {
-  Icon?: React.ComponentType<{ className?: string }>;
+  Icon?: React.ReactNode;
   content?: string;
   onClick?: () => void;
 };
 
 export const CustomSidebarLink: React.FC<CustomSidebarLinkProps> = ({ Icon, content, ...props }) => (
   <TanStackLinkComponent activeProps={{ isActive: true }} {...props}>
-    {Icon && <Icon  />}
-    {content}
+    {Icon} {content}
   </TanStackLinkComponent>
 );

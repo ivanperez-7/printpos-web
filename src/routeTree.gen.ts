@@ -12,10 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppSuppliersRouteImport } from './routes/_app/suppliers'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppMovementsRouteImport } from './routes/_app/movements'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
-import { Route as AppClientsRouteImport } from './routes/_app/clients'
 import { Route as AppCatalogoIndexRouteImport } from './routes/_app/catalogo/index'
 import { Route as AppCatalogoIdRouteImport } from './routes/_app/catalogo/$id'
 
@@ -33,6 +34,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSuppliersRoute = AppSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -43,14 +49,14 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMovementsRoute = AppMovementsRouteImport.update({
+  id: '/movements',
+  path: '/movements',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppClientsRoute = AppClientsRouteImport.update({
-  id: '/clients',
-  path: '/clients',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCatalogoIndexRoute = AppCatalogoIndexRouteImport.update({
@@ -67,20 +73,22 @@ const AppCatalogoIdRoute = AppCatalogoIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/clients': typeof AppClientsRoute
   '/dashboard': typeof AppDashboardRoute
+  '/movements': typeof AppMovementsRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
+  '/suppliers': typeof AppSuppliersRoute
   '/catalogo/$id': typeof AppCatalogoIdRoute
   '/catalogo': typeof AppCatalogoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/clients': typeof AppClientsRoute
   '/dashboard': typeof AppDashboardRoute
+  '/movements': typeof AppMovementsRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
+  '/suppliers': typeof AppSuppliersRoute
   '/catalogo/$id': typeof AppCatalogoIdRoute
   '/catalogo': typeof AppCatalogoIndexRoute
 }
@@ -89,10 +97,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/_app/clients': typeof AppClientsRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/movements': typeof AppMovementsRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/suppliers': typeof AppSuppliersRoute
   '/_app/catalogo/$id': typeof AppCatalogoIdRoute
   '/_app/catalogo/': typeof AppCatalogoIndexRoute
 }
@@ -101,20 +110,22 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/clients'
     | '/dashboard'
+    | '/movements'
     | '/profile'
     | '/settings'
+    | '/suppliers'
     | '/catalogo/$id'
     | '/catalogo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
-    | '/clients'
     | '/dashboard'
+    | '/movements'
     | '/profile'
     | '/settings'
+    | '/suppliers'
     | '/catalogo/$id'
     | '/catalogo'
   id:
@@ -122,10 +133,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/login'
-    | '/_app/clients'
     | '/_app/dashboard'
+    | '/_app/movements'
     | '/_app/profile'
     | '/_app/settings'
+    | '/_app/suppliers'
     | '/_app/catalogo/$id'
     | '/_app/catalogo/'
   fileRoutesById: FileRoutesById
@@ -159,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/suppliers': {
+      id: '/_app/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof AppSuppliersRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -173,18 +192,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/movements': {
+      id: '/_app/movements'
+      path: '/movements'
+      fullPath: '/movements'
+      preLoaderRoute: typeof AppMovementsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/clients': {
-      id: '/_app/clients'
-      path: '/clients'
-      fullPath: '/clients'
-      preLoaderRoute: typeof AppClientsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/catalogo/': {
@@ -205,19 +224,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppClientsRoute: typeof AppClientsRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppMovementsRoute: typeof AppMovementsRoute
   AppProfileRoute: typeof AppProfileRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppSuppliersRoute: typeof AppSuppliersRoute
   AppCatalogoIdRoute: typeof AppCatalogoIdRoute
   AppCatalogoIndexRoute: typeof AppCatalogoIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppClientsRoute: AppClientsRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppMovementsRoute: AppMovementsRoute,
   AppProfileRoute: AppProfileRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppSuppliersRoute: AppSuppliersRoute,
   AppCatalogoIdRoute: AppCatalogoIdRoute,
   AppCatalogoIndexRoute: AppCatalogoIndexRoute,
 }

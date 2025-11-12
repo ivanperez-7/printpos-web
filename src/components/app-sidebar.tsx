@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import {
   Sidebar,
   SidebarContent,
@@ -13,15 +12,20 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
-import navigation from '@/lib/navigation';
-import { GalleryVerticalEnd } from 'lucide-react';
+import { GalleryVerticalEnd, Settings } from 'lucide-react';
 import { CustomSidebarLink } from './custom-link';
 import { NavFooter } from './nav-footer';
 
+import navigation from '@/lib/navigation';
+
 export function AppSidebar({
   onLogout,
+  loadingLogout,
   ...props
-}: { onLogout: React.MouseEventHandler<HTMLDivElement> } & React.ComponentProps<typeof Sidebar>) {
+}: {
+  onLogout: React.MouseEventHandler<HTMLDivElement>;
+  loadingLogout: boolean;
+} & React.ComponentProps<typeof Sidebar>) {
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -59,6 +63,14 @@ export function AppSidebar({
         ))}
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenuItem >
+          <CustomSidebarLink
+            to='/settings'
+            content='Configuración'
+            Icon={<Settings />}
+            onClick={() => setOpenMobile(false)}
+          />
+        </SidebarMenuItem>
         <NavFooter
           user={{
             name: localStorage.getItem('username') || 'N/A',
@@ -66,6 +78,7 @@ export function AppSidebar({
             avatar: localStorage.getItem('avatar') ?? undefined,
           }}
           onLogout={onLogout}
+          loadingLogout={loadingLogout}
         />
       </SidebarFooter>
       <SidebarRail />

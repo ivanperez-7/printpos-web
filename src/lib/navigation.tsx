@@ -1,4 +1,4 @@
-import { HeartHandshake, Package2, Settings, TrendingUpDown, User } from 'lucide-react';
+import { ArrowLeftRight, BookUser, Package2, TrendingUpDown } from 'lucide-react';
 
 type NavItem = {
   route:
@@ -6,15 +6,16 @@ type NavItem = {
     | '..'
     | '/'
     | '/login'
-    | '/clients'
+    | '/movements'
     | '/dashboard'
+    | '/suppliers'
     | '/profile'
     | '/settings'
     | '/catalogo/$id'
     | '/catalogo'
     | undefined;
   title: string;
-  Icon?: React.ComponentType;
+  Icon?: React.ReactNode;
 };
 
 type NavSection = {
@@ -28,33 +29,28 @@ const navigation: NavSection[] = [
     items: [
       {
         route: '/catalogo',
-        title: 'Nuestros productos',
-        Icon: Package2,
+        title: 'Productos',
+        Icon: <Package2 />,
       },
       {
-        route: '/profile',
-        title: 'Check my profile',
-        Icon: User,
+        route: '/suppliers',
+        title: 'Proveedores',
+        Icon: <BookUser />,
       },
     ],
   },
   {
-    title: 'Configuraciones',
+    title: 'Movimientos',
     items: [
       {
-        route: '/clients',
-        title: 'Query clients',
-        Icon: HeartHandshake,
-      },
-      {
-        route: '/settings',
-        title: 'My settings',
-        Icon: Settings,
+        route: '/movements',
+        title: 'Registrar movimiento',
+        Icon: <ArrowLeftRight />,
       },
       {
         route: '/dashboard',
         title: 'Dashboard',
-        Icon: TrendingUpDown,
+        Icon: <TrendingUpDown />,
       },
     ],
   },

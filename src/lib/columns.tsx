@@ -1,6 +1,6 @@
-import { type Cliente } from '@/api/clientes';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { Cliente } from './types';
 
 export const clientsColumns: ColumnDef<Cliente>[] = [
   {
@@ -11,7 +11,7 @@ export const clientsColumns: ColumnDef<Cliente>[] = [
       return (
         <div className='flex gap-2.5 items-center'>
           <Avatar>
-            <AvatarFallback>{nombreVal[0]}</AvatarFallback>
+            <AvatarFallback>{nombreVal[0].toLocaleUpperCase()}</AvatarFallback>
           </Avatar>
           {nombreVal}
         </div>

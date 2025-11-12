@@ -1,5 +1,3 @@
-'use client';
-
 import { BadgeCheck, Bell, ChevronRight, CreditCard, LogOut, Sparkles } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,11 +11,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
+import { Spinner } from './ui/spinner';
 import type { MouseEventHandler } from 'react';
 
 export function NavFooter({
   user,
   onLogout,
+  loadingLogout,
 }: {
   user: {
     name: string;
@@ -25,6 +25,7 @@ export function NavFooter({
     avatar?: string;
   };
   onLogout: MouseEventHandler<HTMLDivElement>;
+  loadingLogout: boolean;
 }) {
   const { isMobile } = useSidebar();
 
@@ -39,7 +40,9 @@ export function NavFooter({
             >
               <Avatar className='h-8 w-8 rounded-lg'>
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+                <AvatarFallback className='rounded-lg'>
+                  {user.name[0].toLocaleUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
                 <span className='truncate font-medium'>{user.name}</span>
@@ -58,7 +61,9 @@ export function NavFooter({
               <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
                 <Avatar className='h-8 w-8 rounded-lg'>
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+                  <AvatarFallback className='rounded-lg'>
+                    {user.name[0].toLocaleUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
                   <span className='truncate font-medium'>{user.name}</span>
@@ -89,8 +94,8 @@ export function NavFooter({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onLogout}>
-              <LogOut />
+            <DropdownMenuItem disabled={loadingLogout} onClick={onLogout}>
+              {loadingLogout ? <Spinner /> : <LogOut />}
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

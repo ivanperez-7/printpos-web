@@ -57,10 +57,10 @@ function RouteComponent() {
         .then((res) => res.data)
         .then(({ access, username, email, avatar }) => {
           authActions.setAccessToken(access);
-          localStorage.setItem('username', username)
-          localStorage.setItem('email', email)
-          localStorage.setItem('avatar', avatar)
-          
+          localStorage.setItem('username', username);
+          localStorage.setItem('email', email);
+          localStorage.setItem('avatar', avatar);
+
           if (redirect) router.history.push(redirect);
           else router.navigate({ to: '/dashboard' });
         })
@@ -141,7 +141,7 @@ function RouteComponent() {
                     form='login-form'
                     disabled={loading || !form.state.canSubmit}
                   >
-                    {loading ? <Spinner /> : 'Iniciar sesión'}
+                    Iniciar sesión {loading && <Spinner />}
                   </Button>
                 </Field>
               </FieldGroup>
