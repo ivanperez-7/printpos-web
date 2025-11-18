@@ -23,7 +23,7 @@ export const Route = createFileRoute('/_app/catalogo/')({
 });
 
 function RouteComponent() {
-  const productos = Route.useLoaderData() ?? [];
+  const productos = Route.useLoaderData();
 
   const [search, setSearch] = useState('');
   const [categoria, setCategoria] = useState<string | null>(null);
@@ -31,11 +31,12 @@ function RouteComponent() {
   const [modelo, setModelo] = useState<string | null>(null);
 
   const rows = productos.map((p) => ({
-    id: p.id,
+    ...p,
     codigo: p.codigo_interno ?? p.id,
     descripcion: p.descripcion ?? '—',
-    marca: p.marca ?? p.marca_name ?? p.marca ?? '—',
-    existencia: typeof p.existencia === 'number' ? p.existencia : (p.stock ?? 0),
+    modelo: p.nombre_modelo ?? 0,
+    marca: p.marca?.nombre ?? '—',
+    existencia: p.cantidad_disponible ?? 0,
   }));
 
   const filtered = useMemo(() => {
@@ -46,7 +47,7 @@ function RouteComponent() {
         !String(r.descripcion).toLowerCase().includes(search.toLowerCase())
       )
         return false;
-      if (categoria && categoria !== 'Todas' && r.categoria !== categoria) return false;
+      if (categoria && categoria !== 'Todas' && r.descripcion !== categoria) return false;
       if (marca && marca !== 'Todas' && r.marca !== marca) return false;
       if (modelo && modelo !== 'Todas' && r.modelo !== modelo) return false;
       return true;
@@ -81,7 +82,7 @@ function RouteComponent() {
 
   return (
     <div className='space-y-4'>
-      <h1 className='font-bold text-3xl'>Productos en el catálogo</h1>
+      <h1 className='font-bold text-2xl'>Productos en el catálogo</h1>
 
       <div className='flex gap-2 items-center'>
         <div className='flex-1'>

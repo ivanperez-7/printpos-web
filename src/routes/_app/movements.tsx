@@ -1,7 +1,12 @@
-import { ENDPOINTS } from '@/api/endpoints';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
+import React, { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+
 import { fetchMovimientos } from '@/api/movimientos';
 import { DataTable } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -12,29 +17,96 @@ import {
 } from '@/components/ui/dialog';
 import { Field, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Label } from '@/components/ui/label';
 import { withAuth } from '@/lib/auth';
-import { createFileRoute } from '@tanstack/react-router';
-import { format } from 'date-fns';
-import React, { useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import type {
+  MovimientoEntradaCreate,
+  MovimientoSalidaCreate,
+  MovimientoUnified,
+  ProductoResponse,
+  TodosMovimientosResponse,
+} from '@/lib/types';
+import { humanDate, humanTime } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, Plus, RefreshCcw, Search } from 'lucide-react';
 
 export const Route = createFileRoute('/_app/movements')({
   component: RouteComponent,
   loader: async () => await fetchMovimientos(),
 });
 
-function humanDate(iso?: string) {
-  if (!iso) return '';
-  try {
-    return format(new Date(iso), 'dd/MM/yy');
-  } catch {
-    return iso;
-  }
+export function combineTodos(m: TodosMovimientosResponse): MovimientoUnified[] {
+  const entradas = (m.entradas || []).map((e) => ({
+    id: `e-${e.id}`,
+    fecha: e.creado,
+    producto: e.producto,
+    tipo: 'entrada' as const,
+    cantidad: e.cantidad,
+    usuario: e.recibido_por?.username ?? null,
+    comentarios: e.comentarios ?? null,
+    original: e,
+  }));
+
+  const salidas = (m.salidas || []).map((s) => ({
+    id: `s-${s.id}`,
+    fecha: s.creado,
+    producto: s.producto,
+    tipo: 'salida' as const,
+    cantidad: -s.cantidad, // negative to show as -2 in table
+    usuario: s.entregado_por?.username ?? null,
+    comentarios: s.comentarios ?? null,
+    original: s,
+  }));
+
+  return [...entradas, ...salidas].sort((a, b) => +new Date(b.fecha) - +new Date(a.fecha));
 }
+
+const columns: ColumnDef<MovimientoUnified>[] = [
+  {
+    accessorKey: 'fecha',
+    header: 'Fecha',
+    cell: ({ row }) => humanDate(row.getValue('fecha')),
+  },
+  {
+    accessorKey: 'fecha',
+    header: 'Hora',
+    cell: ({ row }) => humanTime(row.getValue('fecha')),
+  },
+  {
+    accessorKey: 'producto',
+    header: 'Producto',
+    cell: ({ row }) => (row.getValue('producto') as ProductoResponse).codigo_interno,
+  },
+  {
+    accessorKey: 'tipo',
+    header: 'Tipo',
+    cell: ({ row }) => (row.getValue('tipo') === 'entrada' ? 'Entrada' : 'Salida'),
+  },
+  {
+    accessorKey: 'cantidad',
+    header: 'Cantidad',
+    cell: ({ row }) =>
+      (row.getValue('cantidad') as number) > 0
+        ? `+${row.getValue('cantidad')}`
+        : `${row.getValue('cantidad')}`,
+  },
+  {
+    accessorKey: 'usuario',
+    header: 'Usuario',
+    cell: ({ row }) => row.getValue('usuario') ?? '',
+  },
+  {
+    accessorKey: 'comentarios',
+    header: 'Comentarios',
+    cell: ({ row }) => row.getValue('comentarios') ?? '',
+  },
+];
 
 function RouteComponent() {
   const { productos, movimientos } = Route.useLoaderData();
+  const router = useRouter();
 
+  const [openModal, setOpenModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filterEntrada, setFilterEntrada] = useState(true);
   const [filterSalida, setFilterSalida] = useState(true);
@@ -42,101 +114,88 @@ function RouteComponent() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const [openModal, setOpenModal] = useState(false);
-
   const filtered = useMemo(() => {
-    return movimientos
-      .filter((m) => {
-        if (!filterEntrada && m.tipo === 'entrada') return false;
-        if (!filterSalida && m.tipo === 'salida') return false;
-        if (!search) return true;
-        const q = search.toLowerCase();
-        return (
-          (m.producto.descripcion || '').toLowerCase().includes(q) ||
-          (m.producto.codigo_interno || '').toLowerCase().includes(q) ||
-          (m.comentarios || '').toLowerCase().includes(q)
-        );
-      })
-      .sort((a, b) => +new Date(b.fecha) - +new Date(a.fecha));
+    return combineTodos(movimientos).filter((m) => {
+      if (!filterEntrada && m.tipo === 'entrada') return false;
+      if (!filterSalida && m.tipo === 'salida') return false;
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        (m.producto.descripcion || '').toLowerCase().includes(q) ||
+        (m.producto.codigo_interno || '').toLowerCase().includes(q) ||
+        (m.comentarios || '').toLowerCase().includes(q)
+      );
+    });
   }, [movimientos, search, filterEntrada, filterSalida]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [totalPages]);
 
   const pageData = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const columns = useMemo(
-    () => [
-      { header: 'Fecha', accessorKey: 'fecha', cell: (row: any) => humanDate(row.fecha) },
-      {
-        header: 'Producto',
-        accessorKey: 'producto',
-        cell: (row: any) => `${row.producto.codigo_interno ?? ''} ${row.producto.descripcion ?? ''}`,
-      },
-      {
-        header: 'Tipo',
-        accessorKey: 'tipo',
-        cell: (row: any) => (row.tipo === 'entrada' ? 'Entrada' : 'Salida'),
-      },
-      {
-        header: 'Cantidad',
-        accessorKey: 'cantidad',
-        cell: (row: any) => (row.cantidad > 0 ? `+${row.cantidad}` : `${row.cantidad}`),
-      },
-      { header: 'Usuario', accessorKey: 'usuario', cell: (row: any) => row.usuario ?? '' },
-      { header: 'Comentarios', accessorKey: 'comentarios', cell: (row: any) => row.comentarios ?? '' },
-    ],
-    []
-  );
-
   async function handleRefresh() {
-    try {
-      const res = await withAuth.get('/movements/');
-      setMovimientos(res.data || []);
-      toast.success('Tabla actualizada');
-    } catch (err) {
-      toast.error('No se pudo actualizar, mostrando datos locales');
-    }
+    router.invalidate();
+    toast.success('Tabla actualizada');
   }
 
-  async function handleCreateMovement(payload: Partial<Movimiento>) {
-    // optimistic UI: add to list
-    const nuevo: Movimiento = {
-      id: `m_${Date.now()}`,
-      fecha: new Date().toISOString(),
-      producto: payload.producto as Producto,
-      tipo: (payload.tipo as Movimiento['tipo']) || 'entrada',
-      cantidad: payload.cantidad || 0,
-      usuario: payload.usuario || 'yo',
-      comentarios: payload.comentarios || null,
-    };
-    setMovimientos((s) => [nuevo, ...s]);
+  async function handleCreateMovement(
+    payload: Partial<MovimientoEntradaCreate & MovimientoSalidaCreate> & {
+      tipo?: 'entrada' | 'salida';
+    }
+  ) {
+    const tipo = payload.tipo || 'entrada';
+
+    router.invalidate();
     setOpenModal(false);
     toast.success('Movimiento registrado (optimista)');
 
-    // try to persist
+    // try to persist using dedicated endpoints if available
     try {
-      await withAuth.post('/movements/', nuevo);
+      if (tipo === 'entrada') {
+        await withAuth.post('/movimientos/entradas/', {
+          producto: (payload.producto as any)?.id ?? (payload.producto as any) ?? null,
+          cantidad: Math.abs(payload.cantidad || 0),
+          proveedor: (payload as any).proveedor ?? null,
+          numero_factura: (payload as any).numero_factura ?? null,
+          recibido_por: (payload as any).recibido_por ?? null,
+          comentarios: (payload as any).comentarios ?? null,
+          tipo_entrada: (payload as any).tipo_entrada ?? 'compra',
+        } as MovimientoEntradaCreate);
+      } else {
+        await withAuth.post('/movimientos/salidas/', {
+          producto: (payload.producto as any)?.id ?? (payload.producto as any) ?? null,
+          cantidad: Math.abs(payload.cantidad || 0),
+          tipo_salida: (payload as any).tipo_salida ?? 'project',
+          entregado_por: (payload as any).entregado_por ?? null,
+          recibido_por: (payload as any).recibido_por ?? null,
+          requiere_aprobacion: (payload as any).requiere_aprobacion ?? false,
+          comentarios: (payload as any).comentarios ?? null,
+        } as MovimientoSalidaCreate);
+      }
+
       toast.success('Movimiento guardado en servidor');
+      // refresh to get canonical data from server
+      await handleRefresh();
     } catch (err) {
-      // fine: keep optimistic but notify
+      // keep optimistic but notify
       toast.error('No se pudo guardar en servidor; movimiento sólo local');
     }
   }
 
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages]);
+
   return (
     <div className='space-y-4'>
       <header className='flex items-center justify-between'>
-        <h1 className='text-2xl font-semibold flex items-center gap-2'>
-          <span aria-hidden>📦</span> Movimientos de Inventario
-        </h1>
+        <h1 className='font-bold text-2xl'>Movimientos de inventario</h1>
 
         <div className='flex items-center gap-2'>
           <Dialog open={openModal} onOpenChange={setOpenModal}>
             <DialogTrigger asChild>
-              <Button variant='default'>+ Registrar movimiento</Button>
+              <Button variant='default'>
+                <Plus /> Registrar movimiento
+              </Button>
             </DialogTrigger>
 
             <DialogContent className='max-w-lg'>
@@ -159,42 +218,37 @@ function RouteComponent() {
           </Dialog>
 
           <Button variant='outline' onClick={handleRefresh}>
-            🔄 Actualizar tabla
+            <RefreshCcw /> Actualizar tabla
           </Button>
         </div>
       </header>
 
       <div className='flex gap-4 items-center'>
         <div className='flex-1'>
-          <Input
-            placeholder='🔍 Buscar producto...'
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <InputGroup>
+            <InputGroupInput
+              placeholder='Buscar producto...'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
         </div>
 
-        <div className='flex items-center gap-3'>
-          <label className='inline-flex items-center gap-2'>
-            <input
-              type='checkbox'
-              checked={filterEntrada}
-              onChange={(e) => setFilterEntrada(e.target.checked)}
-            />{' '}
-            Entrada
-          </label>
-          <label className='inline-flex items-center gap-2'>
-            <input
-              type='checkbox'
-              checked={filterSalida}
-              onChange={(e) => setFilterSalida(e.target.checked)}
-            />{' '}
-            Salida
-          </label>
+        <div className='flex items-center gap-2'>
+          <Checkbox checked={filterEntrada} onClick={() => setFilterEntrada((prev) => !prev)} />
+          <Label onClick={() => setFilterEntrada((prev) => !prev)}>Entradas</Label>
+        </div>
+        <div className='flex items-center gap-2'>
+          <Checkbox checked={filterSalida} onClick={() => setFilterSalida((prev) => !prev)} />
+          <Label onClick={() => setFilterSalida((prev) => !prev)}>Salidas</Label>
         </div>
       </div>
 
       <div>
-        <DataTable columns={columns as any} data={pageData as any} />
+        <DataTable columns={columns} data={pageData} />
 
         <div className='flex items-center justify-between py-2'>
           <div>
@@ -202,14 +256,14 @@ function RouteComponent() {
           </div>
 
           <div className='flex items-center gap-2'>
-            <Button variant='outline' onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              ◀
+            <Button variant='ghost' onClick={() => setPage((p) => Math.max(1, p - 1))}>
+              <ChevronLeft />
             </Button>
             <div>
               Página {page} / {totalPages}
             </div>
-            <Button variant='outline' onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-              ▶
+            <Button variant='ghost' onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+              <ChevronRight />
             </Button>
           </div>
         </div>
@@ -223,8 +277,10 @@ function AddMovementForm({
   onSubmit,
   onCancel,
 }: {
-  productos: Producto[];
-  onSubmit: (p: Partial<Movimiento>) => void;
+  productos: ProductoResponse[];
+  onSubmit: (
+    p: Partial<MovimientoEntradaCreate & MovimientoSalidaCreate> & { tipo?: 'entrada' | 'salida' }
+  ) => void;
   onCancel: () => void;
 }) {
   const [tipo, setTipo] = useState<'entrada' | 'salida'>('entrada');
@@ -238,9 +294,9 @@ function AddMovementForm({
 
   function submit(e?: React.FormEvent) {
     e?.preventDefault();
-    const producto = productos.find((p) => p.id === productoId) || (productos[0] as Producto);
-    const qty = tipo === 'entrada' ? Math.abs(cantidad) : -Math.abs(cantidad);
-    onSubmit({ producto, tipo, cantidad: qty, comentarios });
+    const productoObj = productos.find((p) => p.id === productoId) || productos[0];
+    const productoPayload = productoObj ? productoObj.id : productoId;
+    onSubmit({ producto: productoPayload as any, tipo, cantidad: Math.abs(cantidad), comentarios });
   }
 
   return (

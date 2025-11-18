@@ -54,19 +54,26 @@ export function AddProductDialog({ trigger }: { trigger: React.ReactNode }) {
       status: 'activo',
       notas: '',
     },
-    validators: { onChange: productoCreateSchema, onSubmit: productoCreateSchema },
     onSubmit: async ({ value }) => {
       if (loadingCreate) return;
       setLoadingCreate(true);
 
-      const payload = {
+      const parsed = productoCreateSchema.safeParse({
         ...value,
         categoria,
         marca,
         nombre_modelo: modelo,
         unidad,
         status: activo ? 'activo' : 'inactivo',
-      };
+      });
+
+      if (!parsed.success) {
+        toast.error('Corrige los errores en el formulario antes de guardar');
+        setLoadingCreate(false);
+        return;
+      }
+
+      const payload = parsed.data;
 
       withAuth
         .post(ENDPOINTS.products.list, payload)
@@ -74,7 +81,10 @@ export function AddProductDialog({ trigger }: { trigger: React.ReactNode }) {
           if (res.status === 201) {
             toast.success('¡Producto registrado correctamente!');
             form.reset();
-            router.invalidate();
+            // try to invalidate routes if router supports it
+            try {
+              (router as any).invalidate?.();
+            } catch {}
           }
         })
         .catch((error) => toast.error(error.message))

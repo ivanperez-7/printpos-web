@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { createFileRoute } from '@tanstack/react-router';
 import { ArrowLeft, Package, BarChart3, Edit, Scroll } from 'lucide-react';
+import { combineTodos } from '../movements';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { humanDate, humanTime } from '@/lib/utils';
 
 export const Route = createFileRoute('/_app/catalogo/$id')({
   component: RouteComponent,
@@ -14,29 +17,7 @@ export const Route = createFileRoute('/_app/catalogo/$id')({
 });
 
 function RouteComponent() {
-  const producto = Route.useLoaderData();
-
-  // Mock data for movement history - in a real app this would come from the API
-  const movimientos = [
-    {
-      fecha: '2025-10-10',
-      tipo: 'Entrada',
-      cantidad: '+10',
-      responsable: 'Admin',
-    },
-    {
-      fecha: '2025-10-25',
-      tipo: 'Salida',
-      cantidad: '-5',
-      responsable: 'Técnico 1',
-    },
-    {
-      fecha: '2025-11-05',
-      tipo: 'Salida',
-      cantidad: '-3',
-      responsable: 'Técnico 2',
-    },
-  ];
+  const { producto, movimientos } = Route.useLoaderData();
 
   return (
     <div>
@@ -64,7 +45,7 @@ function RouteComponent() {
               </div>
               <div>
                 <p className='text-sm text-muted-foreground'>Categoría</p>
-                <p className='font-semibold'>{producto.categoria}</p>
+                <p className='font-semibold'>{producto.categoria?.nombre}</p>
               </div>
               <div>
                 <p className='text-sm text-muted-foreground'>Serie/Lote</p>
@@ -74,7 +55,7 @@ function RouteComponent() {
             <div className='space-y-4'>
               <div>
                 <p className='text-sm text-muted-foreground'>Marca</p>
-                <p className='font-semibold'>{producto.marca}</p>
+                <p className='font-semibold'>{producto.marca?.nombre || 'N/A'}</p>
               </div>
               <div>
                 <p className='text-sm text-muted-foreground'>Modelo</p>
@@ -136,30 +117,43 @@ function RouteComponent() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Fecha</TableHead>
+                  <TableHead>Hora</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Cantidad</TableHead>
                   <TableHead>Responsable</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {movimientos.map((movimiento, idx) => (
+                {combineTodos(movimientos).map((movimiento, idx) => (
                   <TableRow key={idx}>
-                    <TableCell>{movimiento.fecha}</TableCell>
+                    <TableCell>{humanDate(movimiento.fecha)}</TableCell>
+                    <TableCell>{humanTime(movimiento.fecha)}</TableCell>
                     <TableCell>
-                      <Badge variant={movimiento.tipo === 'Entrada' ? 'default' : 'destructive'}>
-                        {movimiento.tipo}
+                      <Badge variant={movimiento.cantidad > 0 ? 'default' : 'destructive'}>
+                        {movimiento.cantidad > 0 ? 'Entrada' : 'Salida'}
                       </Badge>
                     </TableCell>
                     <TableCell
                       className={
-                        movimiento.cantidad.startsWith('+')
+                        movimiento.cantidad > 0
                           ? 'text-green-600 font-semibold'
                           : 'text-red-600 font-semibold'
                       }
                     >
-                      {movimiento.cantidad}
+                      {movimiento.cantidad} {producto.unidad}s
                     </TableCell>
-                    <TableCell>{movimiento.responsable}</TableCell>
+                    <TableCell>
+                      {movimiento.usuario && (
+                        <div className='flex gap-2.5 items-center'>
+                          <Avatar>
+                            <AvatarFallback>
+                              {movimiento.usuario[0].toLocaleUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {movimiento.usuario}
+                        </div>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

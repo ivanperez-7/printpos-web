@@ -17,7 +17,7 @@ function RouteComponent() {
 
   return (
     <div className='flex flex-1 flex-col'>
-      <h1 className='font-bold text-3xl mb-5'>Resumen de movimientos</h1>
+      <h1 className='font-bold text-2xl mb-5'>Resumen de movimientos</h1>
       <div className='@container/main'>
         <SectionCards />
       </div>
