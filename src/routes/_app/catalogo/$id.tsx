@@ -187,6 +187,7 @@ function RouteComponent() {
           <DataTable
             data={combineMovements(movimientos)}
             columns={columns}
+            transparent
             emptyComponent={
               <Empty className='my-0 py-0'>
                 <EmptyHeader>

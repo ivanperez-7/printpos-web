@@ -140,7 +140,7 @@ function RouteComponent() {
 
   return (
     <div className='space-y-4'>
-      <h1 className='font-bold text-2xl'>Productos en el catálogo</h1>
+      <h1 className='text-xl'>Productos en el catálogo</h1>
 
       <div className='flex flex-col gap-2 items-stretch md:flex-row md:items-center'>
         <InputGroup>
