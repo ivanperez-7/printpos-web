@@ -1,206 +1,222 @@
-import { fetchAllProductos } from '@/api/catalogo';
-import { Badge } from '@/components/ui/badge';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Package2, Plus, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
+// COMPONENTES DEL PROYECTO
 import { AddProductDialog } from '@/components/add-product-dialog';
+import { DataTable } from '@/components/data-table';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ChartArea, ChevronDown, Package2, Plus, Search } from 'lucide-react';
+
+// OTRAS UTILIDADES
+import { fetchAllProductos as fetchAllProductosAndCatalogs } from '@/api/catalogo';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ProductoResponse } from '@/lib/types';
+import { useHeader } from '@/components/site-header';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+
+const columns: ColumnDef<ProductoResponse>[] = [
+  {
+    accessorKey: 'codigo_interno',
+    header: 'Código',
+    cell: ({ row }) => (
+      <Link to='/catalogo/$id' params={{ id: String(row.original.id) }}>
+        {row.getValue('codigo_interno')}
+      </Link>
+    ),
+  },
+  {
+    accessorKey: 'descripcion',
+    header: 'Descripción',
+  },
+  {
+    accessorKey: 'equipo.marca.nombre',
+    header: 'Marca',
+  },
+  {
+    accessorKey: 'equipo.nombre',
+    header: 'Equipo',
+  },
+  {
+    accessorKey: 'cantidad_disponible',
+    header: 'Existencia',
+    cell: ({ row }) => (
+      <span>
+        {row.getValue('cantidad_disponible')} {row.original.unidad}
+      </span>
+    ),
+  },
+  {
+    id: 'status',
+    accessorKey: 'cantidad_disponible',
+    header: 'Estado',
+    cell: ({ row }) => (
+      <span className='inline-flex items-center gap-2'>
+        {statusFromStock(row.getValue('cantidad_disponible'))}
+      </span>
+    ),
+  },
+];
 
 export const Route = createFileRoute('/_app/catalogo/')({
   component: RouteComponent,
-  loader: fetchAllProductos,
+  loader: fetchAllProductosAndCatalogs,
 });
 
 function RouteComponent() {
-  const productos = Route.useLoaderData();
+  const { productos, categorias, equipos, proveedores } = Route.useLoaderData();
+  const { setContent } = useHeader();
 
   const [search, setSearch] = useState('');
-  const [categoria, setCategoria] = useState<string | null>(null);
-  const [marca, setMarca] = useState<string | null>(null);
-  const [modelo, setModelo] = useState<string | null>(null);
-
-  const rows = productos.map((p) => ({
-    ...p,
-    codigo: p.codigo_interno ?? p.id,
-    descripcion: p.descripcion ?? '—',
-    modelo: p.nombre_modelo ?? 0,
-    marca: p.marca?.nombre ?? '—',
-    existencia: p.cantidad_disponible ?? 0,
-  }));
+  const [categoria, setCategoria] = useState<number | null>();
+  const [marca, setMarca] = useState<number>(0);
+  const [modelo, setModelo] = useState<number>(0);
 
   const filtered = useMemo(() => {
-    return rows.filter((r) => {
+    return productos.filter((prod) => {
       if (
         search &&
-        !String(r.codigo).toLowerCase().includes(search.toLowerCase()) &&
-        !String(r.descripcion).toLowerCase().includes(search.toLowerCase())
+        !prod.codigo_interno.toLowerCase().includes(search.toLowerCase()) &&
+        !prod.descripcion.toLowerCase().includes(search.toLowerCase())
       )
         return false;
-      if (categoria && categoria !== 'Todas' && r.descripcion !== categoria) return false;
-      if (marca && marca !== 'Todas' && r.marca !== marca) return false;
-      if (modelo && modelo !== 'Todas' && r.modelo !== modelo) return false;
+      if (categoria && prod.categoria.id !== categoria) return false;
+      if (marca && prod.equipo.marca.id !== marca) return false;
+      if (modelo && prod.equipo.id !== modelo) return false;
       return true;
     });
-  }, [rows, search, categoria, marca, modelo]);
+  }, [productos, search, categoria, marca, modelo]);
 
-  var emptyComponent = null;
-  if (!productos.length)
-    emptyComponent = (
-      <Empty className='my-0 py-0'>
-        <EmptyHeader>
-          <EmptyMedia variant='icon'>
-            <Package2 />
-          </EmptyMedia>
-          <EmptyTitle>¡El catálogo está vacío!</EmptyTitle>
-          <EmptyDescription>Comienza a registrar tus productos para monitorearlos</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+  const marcas = useMemo(
+    () =>
+      equipos
+        .map((eq) => eq.marca)
+        .filter((marca, idx, all) => all.findIndex((t) => t.id === marca.id) === idx),
+    [equipos]
+  );
+
+  const emptyComponent = !productos.length ? (
+    <Empty className='my-0 py-0'>
+      <EmptyHeader>
+        <EmptyMedia variant='icon'>
+          <Package2 />
+        </EmptyMedia>
+        <EmptyTitle>¡El catálogo está vacío!</EmptyTitle>
+        <EmptyDescription>Comienza a registrar tus productos para monitorearlos</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  ) : (
+    <Empty className='my-0 py-0'>
+      <EmptyHeader>
+        <EmptyMedia variant='icon'>
+          <Search />
+        </EmptyMedia>
+        <EmptyTitle>No se encontró ningún producto</EmptyTitle>
+        <EmptyDescription>Pruebe a modificar los filtro de búsqueda</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+
+  useEffect(() => {
+    setContent(
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Productos</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
     );
-  else if (!filtered.length)
-    emptyComponent = (
-      <Empty className='my-0 py-0'>
-        <EmptyHeader>
-          <EmptyMedia variant='icon'>
-            <Search />
-          </EmptyMedia>
-          <EmptyTitle>No se encontró ningún producto</EmptyTitle>
-          <EmptyDescription>Pruebe a modificar los filtro de búsqueda</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    );
+    return () => setContent(null);
+  }, []);
 
   return (
     <div className='space-y-4'>
       <h1 className='font-bold text-2xl'>Productos en el catálogo</h1>
 
-      <div className='flex gap-2 items-center'>
-        <div className='flex-1'>
-          <InputGroup>
-            <InputGroupInput
-              placeholder='Buscar producto...'
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-          </InputGroup>
-        </div>
+      <div className='flex flex-col gap-2 items-stretch md:flex-row md:items-center'>
+        <InputGroup>
+          <InputGroupInput
+            placeholder='Buscar producto por código o descripción...'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+        </InputGroup>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='outline' size='sm'>
-              Categoría <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => setCategoria('Todas')}>Todas</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setCategoria('Consumible')}>
-                Consumible
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setCategoria('Repuesto')}>Repuesto</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenuPortal>
-        </DropdownMenu>
+        <Select value={String(categoria)} onValueChange={(v) => setCategoria(Number(v))}>
+          <SelectTrigger>
+            <SelectValue placeholder='Categoría' />
+          </SelectTrigger>
+          <SelectContent>
+            {categorias.map((cat) => (
+              <SelectItem key={cat.id} value={String(cat.id)}>
+                {cat.nombre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='outline' size='sm'>
-              Marca <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => setMarca('Todas')}>Todas</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setMarca('KONICA')}>KONICA</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setMarca('KATUN')}>KATUN</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setMarca('FUJI')}>FUJI</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenuPortal>
-        </DropdownMenu>
+        <Select value={String(marca)} onValueChange={(v) => setMarca(Number(v))}>
+          <SelectTrigger>
+            <SelectValue placeholder='Marca' />
+          </SelectTrigger>
+          <SelectContent>
+            {marcas.map((mar) => (
+              <SelectItem key={mar.id} value={String(mar.id)}>
+                {mar.nombre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='outline' size='sm'>
-              Modelo <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => setModelo('Todas')}>Todas</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setModelo('3300')}>3300</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setModelo('1120')}>1120</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setModelo('X400')}>X400</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenuPortal>
-        </DropdownMenu>
+        <Select value={String(modelo)} onValueChange={(v) => setModelo(Number(v))}>
+          <SelectTrigger>
+            <SelectValue placeholder='Modelo' />
+          </SelectTrigger>
+          <SelectContent>
+            {equipos
+              .filter((eq) => (marca ? eq.marca.id === marca : true))
+              .map((eq) => (
+                <SelectItem key={eq.id} value={String(eq.id)}>
+                  {eq.nombre}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Código</TableHead>
-            <TableHead>Descripción</TableHead>
-            <TableHead>Marca</TableHead>
-            <TableHead>Existencia</TableHead>
-            <TableHead>Estado</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filtered.map((r) => {
-            const st = statusFromStock(r.existencia ?? 0);
-            return (
-              <TableRow key={r.id}>
-                <TableCell>
-                  <Link to='/catalogo/$id' params={{ id: String(r.id) }}>
-                    {r.codigo}
-                  </Link>
-                </TableCell>
-                <TableCell>{r.descripcion}</TableCell>
-                <TableCell>{r.marca}</TableCell>
-                <TableCell>{r.existencia}</TableCell>
-                <TableCell>
-                  <span className='inline-flex items-center gap-2'>{st.dot}</span>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-      {emptyComponent}
+      <DataTable columns={columns} data={filtered} emptyComponent={emptyComponent} />
 
-      <div className='flex items-center justify-between py-2'>
-        {/* Dialog for adding a product */}
+      <div className='fixed bottom-4 right-3 md:bottom-8 md:right-8'>
         <AddProductDialog
           trigger={
-            <Button variant='default'>
-              <Plus /> Agregar producto
+            <Button className='rounded-full' size='icon-lg' variant='default'>
+              <Plus />
             </Button>
           }
+          categorias={categorias}
+          equipos={equipos}
+          marcas={marcas}
+          proveedores={proveedores}
         />
-
-        <Button variant='outline'>
-          <ChartArea /> Reporte
-        </Button>
       </div>
     </div>
   );
 }
 
 function statusFromStock(stock: number) {
-  if (stock === 0) return { dot: <Badge variant='destructive'>Agotado</Badge> };
-  if (stock < 10) return { dot: '🟠' };
-  return { dot: '🟢' };
+  if (stock === 0) return <Badge variant='destructive'>Agotado</Badge>;
+  if (stock < 10) return '🟠';
+  return <Badge variant='default'>Disponible</Badge>;
 }

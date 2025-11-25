@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -28,14 +29,15 @@ import type {
   TodosMovimientosResponse,
 } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Plus, RefreshCcw, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
+import { ENDPOINTS } from '@/api/endpoints';
 
 export const Route = createFileRoute('/_app/movements')({
   component: RouteComponent,
   loader: async () => await fetchMovimientos(),
 });
 
-export function combineTodos(m: TodosMovimientosResponse): MovimientoUnified[] {
+export function combineMovements(m: TodosMovimientosResponse): MovimientoUnified[] {
   const entradas = (m.entradas || []).map((e) => ({
     id: `e-${e.id}`,
     fecha: e.creado,
@@ -68,6 +70,7 @@ const columns: ColumnDef<MovimientoUnified>[] = [
     cell: ({ row }) => humanDate(row.getValue('fecha')),
   },
   {
+    id: 'hora',
     accessorKey: 'fecha',
     header: 'Hora',
     cell: ({ row }) => humanTime(row.getValue('fecha')),
@@ -104,18 +107,13 @@ const columns: ColumnDef<MovimientoUnified>[] = [
 
 function RouteComponent() {
   const { productos, movimientos } = Route.useLoaderData();
-  const router = useRouter();
 
-  const [openModal, setOpenModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filterEntrada, setFilterEntrada] = useState(true);
   const [filterSalida, setFilterSalida] = useState(true);
 
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-
   const filtered = useMemo(() => {
-    return combineTodos(movimientos).filter((m) => {
+    return combineMovements(movimientos).filter((m) => {
       if (!filterEntrada && m.tipo === 'entrada') return false;
       if (!filterSalida && m.tipo === 'salida') return false;
       if (!search) return true;
@@ -128,99 +126,10 @@ function RouteComponent() {
     });
   }, [movimientos, search, filterEntrada, filterSalida]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-
-  const pageData = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  async function handleRefresh() {
-    router.invalidate();
-    toast.success('Tabla actualizada');
-  }
-
-  async function handleCreateMovement(
-    payload: Partial<MovimientoEntradaCreate & MovimientoSalidaCreate> & {
-      tipo?: 'entrada' | 'salida';
-    }
-  ) {
-    const tipo = payload.tipo || 'entrada';
-
-    router.invalidate();
-    setOpenModal(false);
-    toast.success('Movimiento registrado (optimista)');
-
-    // try to persist using dedicated endpoints if available
-    try {
-      if (tipo === 'entrada') {
-        await withAuth.post('/movimientos/entradas/', {
-          producto: (payload.producto as any)?.id ?? (payload.producto as any) ?? null,
-          cantidad: Math.abs(payload.cantidad || 0),
-          proveedor: (payload as any).proveedor ?? null,
-          numero_factura: (payload as any).numero_factura ?? null,
-          recibido_por: (payload as any).recibido_por ?? null,
-          comentarios: (payload as any).comentarios ?? null,
-          tipo_entrada: (payload as any).tipo_entrada ?? 'compra',
-        } as MovimientoEntradaCreate);
-      } else {
-        await withAuth.post('/movimientos/salidas/', {
-          producto: (payload.producto as any)?.id ?? (payload.producto as any) ?? null,
-          cantidad: Math.abs(payload.cantidad || 0),
-          tipo_salida: (payload as any).tipo_salida ?? 'project',
-          entregado_por: (payload as any).entregado_por ?? null,
-          recibido_por: (payload as any).recibido_por ?? null,
-          requiere_aprobacion: (payload as any).requiere_aprobacion ?? false,
-          comentarios: (payload as any).comentarios ?? null,
-        } as MovimientoSalidaCreate);
-      }
-
-      toast.success('Movimiento guardado en servidor');
-      // refresh to get canonical data from server
-      await handleRefresh();
-    } catch (err) {
-      // keep optimistic but notify
-      toast.error('No se pudo guardar en servidor; movimiento sólo local');
-    }
-  }
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [totalPages]);
-
   return (
     <div className='space-y-4'>
       <header className='flex items-center justify-between'>
         <h1 className='font-bold text-2xl'>Movimientos de inventario</h1>
-
-        <div className='flex items-center gap-2'>
-          <Dialog open={openModal} onOpenChange={setOpenModal}>
-            <DialogTrigger asChild>
-              <Button variant='default'>
-                <Plus /> Registrar movimiento
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className='max-w-lg'>
-              <DialogHeader>
-                <DialogTitle>Registrar movimiento</DialogTitle>
-              </DialogHeader>
-
-              <AddMovementForm
-                productos={productos}
-                onSubmit={handleCreateMovement}
-                onCancel={() => setOpenModal(false)}
-              />
-
-              <DialogFooter>
-                <Button variant='ghost' onClick={() => setOpenModal(false)}>
-                  Cerrar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Button variant='outline' onClick={handleRefresh}>
-            <RefreshCcw /> Actualizar tabla
-          </Button>
-        </div>
       </header>
 
       <div className='flex gap-4 items-center'>
@@ -247,41 +156,28 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div>
-        <DataTable columns={columns} data={pageData} />
+      <DataTable columns={columns} data={filtered} />
 
-        <div className='flex items-center justify-between py-2'>
-          <div>
-            Mostrar {pageData.length} de {filtered.length} movimientos
-          </div>
-
-          <div className='flex items-center gap-2'>
-            <Button variant='ghost' onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              <ChevronLeft />
+      <div className='fixed bottom-4 right-3 md:bottom-8 md:right-8'>
+        <AddMovementForm
+          trigger={
+            <Button className='rounded-full' size='icon-lg' variant='default'>
+              <Plus />
             </Button>
-            <div>
-              Página {page} / {totalPages}
-            </div>
-            <Button variant='ghost' onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-              <ChevronRight />
-            </Button>
-          </div>
-        </div>
+          }
+          productos={productos}
+        />
       </div>
     </div>
   );
 }
 
 function AddMovementForm({
+  trigger,
   productos,
-  onSubmit,
-  onCancel,
 }: {
+  trigger: React.ReactNode;
   productos: ProductoResponse[];
-  onSubmit: (
-    p: Partial<MovimientoEntradaCreate & MovimientoSalidaCreate> & { tipo?: 'entrada' | 'salida' }
-  ) => void;
-  onCancel: () => void;
 }) {
   const [tipo, setTipo] = useState<'entrada' | 'salida'>('entrada');
   const [productoId, setProductoId] = useState<number | null>(productos[0]?.id ?? null);
@@ -292,76 +188,80 @@ function AddMovementForm({
     if (productos.length && productoId == null) setProductoId(productos[0].id);
   }, [productos]);
 
-  function submit(e?: React.FormEvent) {
-    e?.preventDefault();
-    const productoObj = productos.find((p) => p.id === productoId) || productos[0];
-    const productoPayload = productoObj ? productoObj.id : productoId;
-    onSubmit({ producto: productoPayload as any, tipo, cantidad: Math.abs(cantidad), comentarios });
-  }
-
   return (
-    <form onSubmit={submit} className='grid gap-3 py-2'>
-      <FieldSet>
-        <FieldGroup>
-          <Field>
-            <FieldLabel>Tipo</FieldLabel>
-            <div className='flex gap-2'>
-              <Button
-                variant={tipo === 'entrada' ? 'default' : 'outline'}
-                onClick={() => setTipo('entrada')}
-                type='button'
-              >
-                Entrada
-              </Button>
-              <Button
-                variant={tipo === 'salida' ? 'default' : 'outline'}
-                onClick={() => setTipo('salida')}
-                type='button'
-              >
-                Salida
-              </Button>
-            </div>
-          </Field>
+    <Dialog>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-          <Field>
-            <FieldLabel>Producto</FieldLabel>
-            <select
-              className='w-full rounded border px-2 py-1'
-              value={productoId ?? ''}
-              onChange={(e) => setProductoId(Number(e.target.value))}
-            >
-              {productos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.codigo_interno} {p.descripcion}
-                </option>
-              ))}
-            </select>
-          </Field>
+      <DialogContent className='max-w-lg'>
+        <DialogHeader>
+          <DialogTitle>Registrar movimiento</DialogTitle>
+        </DialogHeader>
 
-          <Field>
-            <FieldLabel>Cantidad</FieldLabel>
-            <Input
-              type='number'
-              value={cantidad}
-              onChange={(e) => setCantidad(Number(e.target.value))}
-            />
-          </Field>
+        <form onSubmit={() => {}} className='grid gap-3 py-2'>
+          <FieldSet>
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Tipo</FieldLabel>
+                <div className='flex gap-2'>
+                  <Button
+                    variant={tipo === 'entrada' ? 'default' : 'outline'}
+                    onClick={() => setTipo('entrada')}
+                    type='button'
+                  >
+                    Entrada
+                  </Button>
+                  <Button
+                    variant={tipo === 'salida' ? 'default' : 'outline'}
+                    onClick={() => setTipo('salida')}
+                    type='button'
+                  >
+                    Salida
+                  </Button>
+                </div>
+              </Field>
 
-          <Field>
-            <FieldLabel>Comentarios</FieldLabel>
-            <Input value={comentarios} onChange={(e) => setComentarios(e.target.value)} />
-          </Field>
-        </FieldGroup>
-      </FieldSet>
+              <Field>
+                <FieldLabel>Producto</FieldLabel>
+                <select
+                  className='w-full rounded border px-2 py-1'
+                  value={productoId ?? ''}
+                  disabled={productos.length === 0}
+                  onChange={(e) => setProductoId(Number(e.target.value))}
+                >
+                  {productos.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.codigo_interno} {p.descripcion}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-      <div className='flex justify-end gap-2'>
-        <Button variant='ghost' onClick={onCancel} type='button'>
-          Cancelar
-        </Button>
-        <Button type='submit' variant='default'>
-          Registrar
-        </Button>
-      </div>
-    </form>
+              <Field>
+                <FieldLabel>Cantidad</FieldLabel>
+                <Input
+                  type='number'
+                  value={cantidad}
+                  onChange={(e) => setCantidad(Number(e.target.value))}
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel>Comentarios</FieldLabel>
+                <Input value={comentarios} onChange={(e) => setComentarios(e.target.value)} />
+              </Field>
+            </FieldGroup>
+          </FieldSet>
+        </form>
+
+        <DialogFooter>
+          <Button type='submit' variant='default'>
+            Registrar
+          </Button>
+          <DialogClose asChild>
+            <Button variant='ghost'>Cerrar</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

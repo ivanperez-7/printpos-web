@@ -14,7 +14,24 @@ export const ENDPOINTS = {
     list: '/productos/productos/',
     detail: (id: string | number) => `/productos/productos/${id}/`,
   },
+  categorias: {
+    list: '/productos/categorias/',
+  },
+  equipos: {
+    list: '/productos/equipos/',
+  },
+  proveedores: {
+    list: '/productos/proveedores/'
+  },
   movimientos: {
     all: '/movimientos/main-table/',
+    entradas: {
+      list: '/movimientos/entradas/',
+      detail: (id: string | number) => `/movimientos/entradas/${id}/`,
+    },
+    salidas: {
+      list: '/movimientos/salidas/',
+      detail: (id: string | number) => `/movimientos/salidas/${id}/`,
+    }
   },
 } as const;

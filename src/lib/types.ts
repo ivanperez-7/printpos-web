@@ -1,63 +1,45 @@
 import * as z from 'zod';
 
-export const productoCreateSchema = z.object({
-  codigo_interno: z
-    .string()
-    .min(1, 'El código interno es obligatorio')
-    .max(50, 'Máximo 50 caracteres'),
-  descripcion: z.string().min(1, 'La descripción es obligatoria'),
-
-  categoria: z.union([z.string(), z.number()]).nullable().optional(), // ID o nombre
-  marca: z.union([z.string(), z.number()]).nullable().optional(),
-
-  nombre_modelo: z.string().optional().nullable(),
-  serie_lote: z.string().optional().nullable(),
-
-  cantidad_disponible: z.number().min(0, 'Debe ser mayor o igual a 0').default(0),
-  min_stock: z.number().min(0, 'Debe ser mayor o igual a 0').default(0),
-  unidad: z.string().default('pieza'),
-
-  proveedor: z.union([z.string(), z.number()]).nullable().optional(),
-  precio_compra: z.number().nullable().optional(),
-  precio_venta: z.number().nullable().optional(),
-
-  status: z.enum(['activo', 'inactivo', 'descontinuado']).default('activo'),
-  notas: z.string().nullable().optional(),
+export const categoriaCreateSchema = z.object({
+  nombre: z.string().min(1, 'El nombre de la categoría es obligatorio'),
+  descripcion: z.string().nullable().optional(),
 });
-
-export const productoUpdateSchema = productoCreateSchema.partial();
-
-export const productoResponseSchema = productoCreateSchema.extend({
+export const categoriaUpdateSchema = categoriaCreateSchema.partial();
+export const categoriaResponseSchema = categoriaCreateSchema.extend({
   id: z.number(),
-  categoria: z
-    .object({
-      id: z.number(),
-      nombre: z.string(),
-    })
-    .nullable()
-    .optional(),
-  marca: z
-    .object({
-      id: z.number(),
-      nombre: z.string(),
-    })
-    .nullable()
-    .optional(),
-  proveedor: z
-    .object({
-      id: z.number(),
-      nombre: z.string(),
-    })
-    .nullable()
-    .optional(),
-
-  creado: z.iso.datetime(),
-  actualizado: z.iso.datetime(),
 });
 
-export type ProductoCreate = z.infer<typeof productoCreateSchema>;
-export type ProductoUpdate = z.infer<typeof productoUpdateSchema>;
-export type ProductoResponse = z.infer<typeof productoResponseSchema>;
+export type CategoriaCreate = z.infer<typeof categoriaCreateSchema>;
+export type CategoriaUpdate = z.infer<typeof categoriaUpdateSchema>;
+export type CategoriaResponse = z.infer<typeof categoriaResponseSchema>;
+
+export const marcaCreateSchema = z.object({
+  nombre: z.string().min(1, 'El nombre de la marca es obligatorio'),
+  descripcion: z.string().nullable().optional(),
+});
+export const marcaUpdateSchema = marcaCreateSchema.partial();
+export const marcaResponseSchema = marcaCreateSchema.extend({
+  id: z.number(),
+});
+
+export type MarcaCreate = z.infer<typeof marcaCreateSchema>;
+export type MarcaUpdate = z.infer<typeof marcaUpdateSchema>;
+export type MarcaResponse = z.infer<typeof marcaResponseSchema>;
+
+export const equipoCreateSchema = z.object({
+  nombre: z.string().min(1, 'El nombre del modelo es obligatorio'),
+  descripcion: z.string().nullable().optional(),
+  marca: z.number(),
+});
+export const equipoUpdateSchema = equipoCreateSchema.partial();
+export const equipoResponseSchema = equipoCreateSchema.extend({
+  id: z.number(),
+  marca: marcaResponseSchema,
+});
+
+export type EquipoCreate = z.infer<typeof equipoCreateSchema>;
+export type EquipoUpdate = z.infer<typeof equipoUpdateSchema>;
+export type EquipoResponse = z.infer<typeof equipoResponseSchema>;
 
 export const proveedorCreateSchema = z.object({
   nombre: z.string().min(1),
@@ -76,6 +58,46 @@ export type ProveedorCreate = z.infer<typeof proveedorCreateSchema>;
 export type ProveedorUpdate = z.infer<typeof proveedorUpdateSchema>;
 export type ProveedorResponse = z.infer<typeof proveedorResponseSchema>;
 
+export const productoCreateSchema = z.object({
+  codigo_interno: z
+    .string()
+    .min(1, 'El código interno es obligatorio')
+    .max(50, 'Máximo 50 caracteres'),
+  descripcion: z.string().min(1, 'La descripción es obligatoria'),
+
+  categoria: z.number(),
+  equipo: z.number(),
+  serie_lote: z.string().min(1, 'El número de serie/lote es obligatorio'),
+
+  cantidad_disponible: z.number().min(0, 'La cantidad disponible no puede ser negativa'),
+  min_stock: z.number().min(0, 'El stock mínimo no puede ser negativo'),
+  unidad: z.string(),
+
+  proveedor: z.number().nullable().optional(),
+  precio_compra: z.number().nullable().optional(),
+  precio_venta: z.number().nullable().optional(),
+
+  status: z.enum(['activo', 'inactivo', 'descontinuado']).default('activo'),
+  notas: z.string().nullable().optional(),
+});
+
+export const productoUpdateSchema = productoCreateSchema.partial();
+
+export const productoResponseSchema = productoCreateSchema.extend({
+  id: z.number(),
+
+  categoria: categoriaResponseSchema,
+  equipo: equipoResponseSchema,
+  proveedor: proveedorResponseSchema,
+
+  creado: z.iso.datetime(),
+  actualizado: z.iso.datetime(),
+});
+
+export type ProductoCreate = z.infer<typeof productoCreateSchema>;
+export type ProductoUpdate = z.infer<typeof productoUpdateSchema>;
+export type ProductoResponse = z.infer<typeof productoResponseSchema>;
+
 export const perfilUsuarioResponseSchema = z.object({
   id: z.number(),
   rol: z.enum(['admin', 'operativo', 'consulta']),
@@ -93,19 +115,6 @@ export const userResponseSchema = z.object({
 
 export type UserResponse = z.infer<typeof userResponseSchema>;
 export type PerfilUsuarioResponse = z.infer<typeof perfilUsuarioResponseSchema>;
-
-export const clientSchema = z.object({
-  nombre: z.string().min(10, 'El nombre debe tener al menos 10 caracteres.'),
-  telefono: z.string().min(10, 'El teléfono debe tener al menos 10 caracteres.'),
-  correo: z.string(),
-  direccion: z.string(),
-  rfc: z.string(),
-  cliente_especial: z.boolean(),
-  descuentos: z.string(),
-  is_active: z.boolean(),
-});
-
-export type Cliente = z.infer<typeof clientSchema> & { id: number };
 
 export const movimientoEntradaCreateSchema = z.object({
   producto: z.number(), // FK → Producto.id
