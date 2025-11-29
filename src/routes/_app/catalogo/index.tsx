@@ -1,34 +1,50 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Package2, Plus, Search } from 'lucide-react';
+import { EllipsisVertical, FunnelX, Package2, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 
 // COMPONENTES DEL PROYECTO
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { DataTable } from '@/components/data-table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
-
-// OTRAS UTILIDADES
-import { fetchAllProductos as fetchAllProductosAndCatalogs } from '@/api/catalogo';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { ProductoResponse } from '@/lib/types';
+import { DeleteProductDialog } from '@/components/delete-product-dialog';
 import { useHeader } from '@/components/site-header';
+import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// OTRAS UTILIDADES
+import { fetchAllProductos } from '@/api/catalogo';
+import { useCatalogs } from '@/hooks/use-catalogs';
+import type { ProductoResponse } from '@/lib/types';
 
 const columns: ColumnDef<ProductoResponse>[] = [
+  {
+    id: 'check',
+    header: () => <Checkbox />,
+    cell: () => <Checkbox />,
+  },
   {
     accessorKey: 'codigo_interno',
     header: 'Código',
     cell: ({ row }) => (
-      <Link to='/catalogo/$id' params={{ id: String(row.original.id) }}>
+      <Link to='/catalogo/$id' params={{ id: String(row.original.id) }} className='font-semibold'>
         {row.getValue('codigo_interno')}
       </Link>
     ),
@@ -64,44 +80,78 @@ const columns: ColumnDef<ProductoResponse>[] = [
       </span>
     ),
   },
+  {
+    id: 'actions',
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant='ghost'
+            className='data-[state=open]:bg-muted text-muted-foreground flex size-8'
+            size='icon'
+          >
+            <EllipsisVertical />
+            <span className='sr-only'>Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end' className='w-32'>
+          <AddProductDialog
+            trigger={<DropdownMenuItem onSelect={(e) => e.preventDefault()}>Editar</DropdownMenuItem>}
+            producto={row.original}
+          />
+          <DropdownMenuItem>Marcar favorito</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DeleteProductDialog
+            trigger={
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()} variant='destructive'>
+                Eliminar
+              </DropdownMenuItem>
+            }
+            productId={row.original.id}
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  },
 ];
 
 export const Route = createFileRoute('/_app/catalogo/')({
+  validateSearch: (
+    search
+  ): { text?: string; categoria?: number; marca?: number; equipo?: number } => ({
+    text: search.text as string,
+    categoria: Number(search.categoria) || undefined,
+    marca: Number(search.marca) || undefined,
+    equipo: Number(search.equipo) || undefined,
+  }),
+  loader: fetchAllProductos,
   component: RouteComponent,
-  loader: fetchAllProductosAndCatalogs,
 });
 
 function RouteComponent() {
-  const { productos, categorias, equipos, proveedores } = Route.useLoaderData();
+  const productos = Route.useLoaderData();
+  const { text, categoria, marca, equipo } = Route.useSearch();
+  const { categorias, marcas, equipos } = useCatalogs();
   const { setContent } = useHeader();
+  const navigate = Route.useNavigate();
 
-  const [search, setSearch] = useState('');
-  const [categoria, setCategoria] = useState<number | null>();
-  const [marca, setMarca] = useState<number>(0);
-  const [modelo, setModelo] = useState<number>(0);
+  const [_localText, setLocalText] = useState(text);
+  const [localText] = useDebounce(_localText, 800);
 
   const filtered = useMemo(() => {
     return productos.filter((prod) => {
       if (
-        search &&
-        !prod.codigo_interno.toLowerCase().includes(search.toLowerCase()) &&
-        !prod.descripcion.toLowerCase().includes(search.toLowerCase())
+        text &&
+        !prod.codigo_interno.toLowerCase().includes(text.toLowerCase()) &&
+        !prod.descripcion.toLowerCase().includes(text.toLowerCase())
       )
         return false;
       if (categoria && prod.categoria.id !== categoria) return false;
       if (marca && prod.equipo.marca.id !== marca) return false;
-      if (modelo && prod.equipo.id !== modelo) return false;
+      if (equipo && prod.equipo.id !== equipo) return false;
       return true;
     });
-  }, [productos, search, categoria, marca, modelo]);
-
-  const marcas = useMemo(
-    () =>
-      equipos
-        .map((eq) => eq.marca)
-        .filter((marca, idx, all) => all.findIndex((t) => t.id === marca.id) === idx),
-    [equipos]
-  );
+  }, [productos, text, categoria, marca, equipo]);
 
   const emptyComponent = !productos.length ? (
     <Empty className='my-0 py-0'>
@@ -138,24 +188,31 @@ function RouteComponent() {
     return () => setContent(null);
   }, []);
 
+  useEffect(() => {
+    navigate({ search: (prev) => ({ ...prev, text: localText }), replace: true });
+  }, [localText]);
+
   return (
     <div className='space-y-4'>
-      <h1 className='text-xl'>Productos en el catálogo</h1>
-
       <div className='flex flex-col gap-2 items-stretch md:flex-row md:items-center'>
         <InputGroup>
           <InputGroupInput
             placeholder='Buscar producto por código o descripción...'
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            defaultValue={text}
+            onChange={(e) => setLocalText(e.target.value)}
           />
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
         </InputGroup>
 
-        <Select value={String(categoria)} onValueChange={(v) => setCategoria(Number(v))}>
-          <SelectTrigger>
+        <Select
+          value={categoria ? String(categoria) : undefined}
+          onValueChange={(v) =>
+            navigate({ search: (prev) => ({ ...prev, categoria: Number(v) }), replace: true })
+          }
+        >
+          <SelectTrigger className='w-full md:w-auto'>
             <SelectValue placeholder='Categoría' />
           </SelectTrigger>
           <SelectContent>
@@ -167,8 +224,13 @@ function RouteComponent() {
           </SelectContent>
         </Select>
 
-        <Select value={String(marca)} onValueChange={(v) => setMarca(Number(v))}>
-          <SelectTrigger>
+        <Select
+          value={marca ? String(marca) : undefined}
+          onValueChange={(v) =>
+            navigate({ search: (prev) => ({ ...prev, marca: Number(v) }), replace: true })
+          }
+        >
+          <SelectTrigger className='w-full md:w-auto'>
             <SelectValue placeholder='Marca' />
           </SelectTrigger>
           <SelectContent>
@@ -180,8 +242,13 @@ function RouteComponent() {
           </SelectContent>
         </Select>
 
-        <Select value={String(modelo)} onValueChange={(v) => setModelo(Number(v))}>
-          <SelectTrigger>
+        <Select
+          value={equipo ? String(equipo) : undefined}
+          onValueChange={(v) =>
+            navigate({ search: (prev) => ({ ...prev, equipo: Number(v) }), replace: true })
+          }
+        >
+          <SelectTrigger className='w-full md:w-auto'>
             <SelectValue placeholder='Modelo' />
           </SelectTrigger>
           <SelectContent>
@@ -194,6 +261,20 @@ function RouteComponent() {
               ))}
           </SelectContent>
         </Select>
+
+        <Button
+          variant='ghost'
+          size='icon-sm'
+          className='-mx-1.5'
+          onClick={() =>
+            navigate({
+              search: { text: undefined, categoria: undefined, marca: undefined, equipo: undefined },
+              replace: true,
+            })
+          }
+        >
+          <FunnelX />
+        </Button>
       </div>
 
       <DataTable columns={columns} data={filtered} emptyComponent={emptyComponent} />
@@ -205,10 +286,6 @@ function RouteComponent() {
               <Plus />
             </Button>
           }
-          categorias={categorias}
-          equipos={equipos}
-          marcas={marcas}
-          proveedores={proveedores}
         />
       </div>
     </div>
@@ -218,5 +295,12 @@ function RouteComponent() {
 function statusFromStock(stock: number) {
   if (stock === 0) return <Badge variant='destructive'>Agotado</Badge>;
   if (stock < 10) return '🟠';
-  return <Badge variant='default'>Disponible</Badge>;
+  return (
+    <Badge
+      variant='outline'
+      className='border-green-500 text-green-600 dark:border-green-700 dark:text-green-400'
+    >
+      Disponible
+    </Badge>
+  );
 }

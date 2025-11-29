@@ -6,8 +6,7 @@ import type { ProductoResponse, TodosMovimientosResponse } from '@/lib/types';
 export async function fetchMovimientos() {
   const productos = await withAuth
     .get(ENDPOINTS.products.list)
-    .then((res) => res.data)
-    .then((data) => data as ProductoResponse[])
+    .then((res) => res.data as ProductoResponse[])
     .catch((error) => {
       toast.error(error.message);
       return [];
@@ -15,8 +14,7 @@ export async function fetchMovimientos() {
 
   const movimientos = await withAuth
     .get(ENDPOINTS.movimientos.all)
-    .then((res) => res.data)
-    .then((data) => data as TodosMovimientosResponse)
+    .then((res) => res.data as TodosMovimientosResponse)
     .catch((error) => {
       toast.error(error.message);
       return { entradas: [], salidas: [] };

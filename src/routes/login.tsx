@@ -1,7 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import axios from 'axios';
@@ -10,8 +6,13 @@ import { useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import * as z from 'zod';
 
-import { API_BASE, ENDPOINTS } from '@/api/endpoints';
 import { useTheme } from '@/components/theme-provider';
+import { Button } from '@/components/ui/button';
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+
+import { API_BASE, ENDPOINTS } from '@/api/endpoints';
 import { authActions } from '@/stores/authStore';
 
 export const loginSchema = z.object({
@@ -149,7 +150,7 @@ function RouteComponent() {
           </form>
         </div>
       </div>
-      <Toaster position='top-center' richColors closeButton theme={theme} />
+      <Toaster position='top-center' richColors theme={theme} />
     </div>
   );
 }

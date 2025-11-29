@@ -17,6 +17,9 @@ export const ENDPOINTS = {
   categorias: {
     list: '/productos/categorias/',
   },
+  marcas: {
+    list: '/productos/marcas/',
+  },
   equipos: {
     list: '/productos/equipos/',
   },
@@ -34,4 +37,8 @@ export const ENDPOINTS = {
       detail: (id: string | number) => `/movimientos/salidas/${id}/`,
     }
   },
+  sysvars: {
+    list: '/system/configuracion/',
+    detail: (id: string | number) => `/system/configuracion/${id}/`
+  }
 } as const;

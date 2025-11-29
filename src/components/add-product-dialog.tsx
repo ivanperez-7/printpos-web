@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type z from 'zod';
 
 // COMPONENTES DEL PROYECTO
-import { Button } from '@/components/ui/button';
+import { Button } from './ui/button';
 import {
   Dialog,
   DialogClose,
@@ -14,24 +14,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Field, FieldError, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
+} from './ui/dialog';
+import { Field, FieldError, FieldLabel } from './ui/field';
+import { Input } from './ui/input';
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from './ui/input-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Separator } from './ui/separator';
+import { Spinner } from './ui/spinner';
 
 // OTRAS UTILIDADES
 import { ENDPOINTS } from '@/api/endpoints';
+import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import {
-  productoCreateSchema,
-  type CategoriaResponse,
-  type EquipoResponse,
-  type MarcaResponse,
-  type ProductoResponse,
-  type ProveedorResponse,
-} from '@/lib/types';
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from './ui/input-group';
+import { productoCreateSchema, type ProductoResponse } from '@/lib/types';
 
 const unidades = [
   { value: 'pieza', label: 'Pieza' },
@@ -41,21 +36,14 @@ const unidades = [
 
 export function AddProductDialog({
   trigger,
-  categorias,
-  marcas,
-  equipos,
-  proveedores,
   producto,
 }: {
   trigger: React.ReactNode;
-  categorias: CategoriaResponse[];
-  marcas: MarcaResponse[];
-  equipos: EquipoResponse[];
-  proveedores: ProveedorResponse[];
   producto?: ProductoResponse;
 }) {
-  const [marca, setMarca] = useState(1);
+  const [marca, setMarca] = useState(producto?.equipo?.marca?.id ?? 1);
   const [loadingCreate, setLoadingCreate] = useState(false);
+  const { categorias, marcas, equipos, proveedores } = useCatalogs();
   const router = useRouter();
 
   const form = useForm({
@@ -63,13 +51,13 @@ export function AddProductDialog({
       codigo_interno: producto?.codigo_interno ?? '',
       descripcion: producto?.descripcion ?? '',
       serie_lote: producto?.serie_lote ?? '',
-      equipo: producto?.equipo ?? 1,
-      categoria: producto?.categoria ?? 1,
+      equipo: producto?.equipo?.id ?? 1,
+      categoria: producto?.categoria?.id ?? 1,
       cantidad_disponible: producto?.cantidad_disponible ?? 0,
       min_stock: producto?.min_stock ?? 0,
       unidad: producto?.unidad ?? 'pieza',
-      precio_compra: producto?.precio_compra ?? 0,
-      precio_venta: producto?.precio_venta ?? 0,
+      precio_compra: Number(producto?.precio_compra) ?? 0,
+      precio_venta: Number(producto?.precio_venta) ?? 0,
       notas: producto?.notas ?? '',
       status: producto?.status ?? 'activo',
     } as z.input<typeof productoCreateSchema>,
@@ -83,9 +71,9 @@ export function AddProductDialog({
         : withAuth.post(ENDPOINTS.products.list, value)
       )
         .then((res) => {
-          if (res.status === 201) {
-            toast.success('¡Producto registrado correctamente!');
-            form.reset();
+          if (res.status === 200 || res.status === 201) {
+            toast.success(`¡Producto ${producto ? 'editado' : 'registrado'} correctamente!`);
+            if (!producto) form.reset();
             router.invalidate();
           }
         })
@@ -104,6 +92,7 @@ export function AddProductDialog({
             {producto ? 'Editar este producto' : 'Agregar nuevo producto'}
           </DialogTitle>
         </DialogHeader>
+        <Separator />
 
         <form
           id='product-form'
@@ -191,6 +180,7 @@ export function AddProductDialog({
                           ))}
                       </SelectContent>
                     </Select>
+                    <FieldError errors={field.state.meta.errors} />
                   </Field>
                 );
               }}
@@ -219,6 +209,7 @@ export function AddProductDialog({
                         ))}
                       </SelectContent>
                     </Select>
+                    <FieldError errors={field.state.meta.errors} />
                   </Field>
                 );
               }}
@@ -253,6 +244,7 @@ export function AddProductDialog({
                     value={field.state.value}
                     onChange={(e) => field.handleChange(Number(e.target.value))}
                   />
+                  <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
             />
@@ -267,6 +259,7 @@ export function AddProductDialog({
                     value={field.state.value}
                     onChange={(e) => field.handleChange(Number(e.target.value))}
                   />
+                  <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
             />
@@ -288,6 +281,7 @@ export function AddProductDialog({
                       ))}
                     </SelectContent>
                   </Select>
+                  <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
             />
@@ -314,6 +308,7 @@ export function AddProductDialog({
                       <InputGroupText>MXN</InputGroupText>
                     </InputGroupAddon>
                   </InputGroup>
+                  <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
             />
@@ -337,6 +332,7 @@ export function AddProductDialog({
                       <InputGroupText>MXN</InputGroupText>
                     </InputGroupAddon>
                   </InputGroup>
+                  <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
             />
@@ -363,6 +359,7 @@ export function AddProductDialog({
                     ))}
                   </SelectContent>
                 </Select>
+                <FieldError errors={field.state.meta.errors} />
               </Field>
             )}
           />
@@ -377,23 +374,20 @@ export function AddProductDialog({
                   value={field.state.value ?? ''}
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
+                <FieldError errors={field.state.meta.errors} />
               </Field>
             )}
           />
 
           <DialogFooter className='pt-2'>
-            <Button
-              type='submit'
-              disabled={loadingCreate || !form.state.canSubmit}
-              className='w-full md:w-auto'
-            >
-              Guardar {loadingCreate && <Spinner />}
-            </Button>
             <DialogClose asChild>
               <Button variant='ghost' className='w-full md:w-auto'>
                 Cancelar
               </Button>
             </DialogClose>
+            <Button type='submit' disabled={loadingCreate} className='w-full md:w-auto'>
+              Guardar {loadingCreate && <Spinner />}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

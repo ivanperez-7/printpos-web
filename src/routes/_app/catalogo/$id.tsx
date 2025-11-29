@@ -1,3 +1,15 @@
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
+import { ArrowDownToDot, ArrowLeft, ArrowLeftRight, ArrowUpFromDot, Edit, Trash } from 'lucide-react';
+import { useEffect } from 'react';
+
+// COMPONENTES DEL PROYECTO
+import { AddProductDialog } from '@/components/add-product-dialog';
+import { DataTable } from '@/components/data-table';
+import { DeleteProductDialog } from '@/components/delete-product-dialog';
+import { useHeader } from '@/components/site-header';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,25 +18,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { createFileRoute, Link } from '@tanstack/react-router';
-import type { ColumnDef } from '@tanstack/react-table';
-import { ArrowLeft, ArrowLeftRight, Edit } from 'lucide-react';
-import { useEffect } from 'react';
-
-// COMPONENTES DEL PROYECTO
-import { AddProductDialog } from '@/components/add-product-dialog';
-import { CustomLink } from '@/components/custom-link';
-import { useHeader } from '@/components/site-header';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Separator } from '@/components/ui/separator';
 
 // OTRAS UTILIDADES
 import { fetchProductoById } from '@/api/catalogo';
-import { DataTable } from '@/components/data-table';
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import type { MovimientoUnified } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
 import { combineMovements } from '../movements';
@@ -58,8 +58,8 @@ const columns: ColumnDef<MovimientoUnified>[] = [
       <span
         className={
           (row.getValue('cantidad') as number) > 0
-            ? 'text-green-600 font-semibold'
-            : 'text-red-600 font-semibold'
+            ? 'text-blue-600 dark:text-blue-400 font-semibold'
+            : 'text-red-600 dark:text-red-400 font-semibold'
         }
       >
         {row.getValue('cantidad') as number} {row.original.producto.unidad}s
@@ -91,6 +91,7 @@ export const Route = createFileRoute('/_app/catalogo/$id')({
 function RouteComponent() {
   const { producto, movimientos } = Route.useLoaderData();
   const { setContent } = useHeader();
+  const router = useRouter();
 
   useEffect(() => {
     setContent(
@@ -113,32 +114,41 @@ function RouteComponent() {
 
   return (
     <>
-      {/* Header with back button and product title */}
-      <div className='flex items-center gap-4'>
-        <CustomLink variant='ghost' size='icon' to='/catalogo'>
-          <ArrowLeft className='h-4 w-4' />
-        </CustomLink>
-        <h1 className='text-2xl font-bold'>{producto.descripcion}</h1>
+      {/* Header con título y botones de editar y eliminar */}
+      <header className='grid md:flex justify-between'>
+        <div className='flex items-center gap-4'>
+          <Button variant='ghost' size='icon' onClick={() => router.history.back()}>
+            <ArrowLeft className='h-4 w-4' />
+          </Button>
+          <h1 className='text-2xl'>{producto.descripcion}</h1>
+        </div>
 
-        <AddProductDialog
-          trigger={
-            <Button>
-              <Edit className='h-4 w-4' />
-              Editar
-            </Button>
-          }
-          categorias={[]}
-          marcas={[]}
-          equipos={[]}
-          proveedores={[]}
-          producto={producto}
-        />
-      </div>
+        <div className='space-x-2'>
+          <AddProductDialog
+            trigger={
+              <Button variant='ghost'>
+                <Edit className='h-4 w-4' />
+                Editar
+              </Button>
+            }
+            producto={producto}
+          />
+          <DeleteProductDialog
+            trigger={
+              <Button variant='destructive'>
+                <Trash className='h-4 w-4' />
+              </Button>
+            }
+            productId={producto.id}
+          />
+        </div>
+      </header>
 
       {/* Product Information Card */}
       <Card className='my-6'>
         <CardHeader>
           <CardTitle className='text-lg'>Información General</CardTitle>
+          <Separator />
         </CardHeader>
         <CardContent>
           <div className='grid grid-cols-2 gap-8'>
@@ -176,12 +186,55 @@ function RouteComponent() {
         </CardContent>
       </Card>
 
-      <Separator />
+      {producto.proveedor && (
+        <Card className='my-6'>
+          <CardHeader>
+            <CardTitle className='text-lg'>Proveedor de este producto</CardTitle>
+            <Separator />
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-2 gap-8'>
+              <div className='space-y-4'>
+                <div>
+                  <p className='text-sm text-muted-foreground'>Razón social</p>
+                  <p className='font-semibold'>{producto.proveedor.nombre}</p>
+                </div>
+                <div>
+                  <p className='text-sm text-muted-foreground'>Nombre de contacto</p>
+                  <p className='font-semibold'>{producto.proveedor.nombre_contacto}</p>
+                </div>
+              </div>
+              <div className='space-y-4'>
+                <div>
+                  <p className='text-sm text-muted-foreground'>Teléfono</p>
+                  <p className='font-semibold'>{producto.proveedor.telefono || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className='text-sm text-muted-foreground'>Correo</p>
+                  <a className='font-semibold' href={'mailto:' + producto.proveedor.correo}>
+                    {producto.proveedor.correo || 'N/A'}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Movement History Table */}
       <Card className='mb-6'>
-        <CardHeader>
+        <CardHeader className='grid items-center md:flex md:justify-between'>
           <CardTitle className='text-lg'>Últimos movimientos</CardTitle>
+          <div className='grid md:flex gap-3'>
+            <Button size='sm'>
+              <ArrowDownToDot />
+              Registrar entrada
+            </Button>
+            <Button variant='secondary' size='sm'>
+              <ArrowUpFromDot />
+              Registrar salida
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <DataTable

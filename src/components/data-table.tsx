@@ -1,7 +1,24 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from './ui/pagination';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+
+const ELLIPSIS = -1;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -20,46 +37,136 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (
-    <div className={transparent ? '' : 'overflow-hidden rounded-lg border'}>
-      <Table>
-        <TableHeader className={transparent ? '' : 'bg-muted sticky top-0 z-10'}>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
+    <>
+      <div className={transparent ? '' : 'overflow-hidden rounded-lg border'}>
+        <Table>
+          <TableHeader className={transparent ? '' : 'bg-muted sticky top-0 z-10'}>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className='py-3'>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
                 ))}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length}>
-                {emptyComponent || <span className='h-24 text-center'>No results.</span>}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            ))}
+          </TableHeader>
+
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className='py-2.5'>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length}>
+                  {emptyComponent || <span className='h-24 text-center'>No results.</span>}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className='grid w-full items-center md:flex md:justify-between text-sm'>
+        {/* Contador */}
+        <div className='text-muted-foreground'>
+          Mostrando <strong>{table.getPaginationRowModel().rows.length}</strong> de{' '}
+          <strong>{data.length}</strong> registros
+        </div>
+
+        {/* Paginación */}
+        <Pagination className='mx-auto md:mx-0'>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => table.previousPage()}
+                className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+
+            {getPageItems({
+              pageIndex: table.getState().pagination.pageIndex,
+              pageCount: table.getPageCount(),
+            }).map((item, i) => {
+              if (item === ELLIPSIS) {
+                return (
+                  <PaginationItem key={`ellipsis-${i}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+              return (
+                <PaginationItem key={item}>
+                  <PaginationLink
+                    isActive={table.getState().pagination.pageIndex === item}
+                    onClick={() => table.setPageIndex(item)}
+                  >
+                    {item + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => table.nextPage()}
+                className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    </>
   );
+}
+
+/** Devuelve un array como: `[0, -1, 5, 6, 7, -1, 20]` */
+function getPageItems({ pageIndex, pageCount }: { pageIndex: number; pageCount: number }) {
+  const pages = [];
+
+  // Mostrar siempre la primera página
+  pages.push(0);
+
+  // Mostrar -1 si estás lejos del inicio
+  if (pageIndex > 2) {
+    pages.push(ELLIPSIS);
+  }
+
+  // Páginas cercanas a la actual
+  for (let i = pageIndex - 1; i <= pageIndex + 1; i++) {
+    if (i > 0 && i < pageCount - 1) {
+      pages.push(i);
+    }
+  }
+
+  // Mostrar -1 antes del final
+  if (pageIndex < pageCount - 3) {
+    pages.push(ELLIPSIS);
+  }
+
+  // Última página
+  if (pageCount > 1) {
+    pages.push(pageCount - 1);
+  }
+
+  return pages;
 }

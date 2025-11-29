@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +11,8 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { GalleryVerticalEnd, Settings } from 'lucide-react';
+import { PackageOpen, Settings } from 'lucide-react';
+import * as React from 'react';
 import { CustomSidebarLink } from './custom-link';
 import { NavFooter } from './nav-footer';
 
@@ -31,28 +31,28 @@ export function AppSidebar({
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <div className='flex gap-2 m-2 items-center'>
+        <div className='flex gap-2 mx-2 mt-2 items-center'>
           <div className='bg-blue-700 text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-            <GalleryVerticalEnd className='size-4' />
+            <PackageOpen className='size-4' />
           </div>
           <div className='flex flex-col gap-1 leading-none text-sm'>
             <span className='font-medium'>Manejador de inventario</span>
-            <span className=''>Printcopy</span>
+            <span className='text-muted-foreground'>Printcopy</span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         {navigation.map((section) => (
           <SidebarGroup key={section.title}>
-            <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
+            {section.title && <SidebarGroupLabel>{section.title}</SidebarGroupLabel>}
             <SidebarGroupContent>
               <SidebarMenu>
                 {section.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.content}>
                     <CustomSidebarLink
-                      to={item.route}
-                      content={item.title}
-                      Icon={item.Icon}
+                      to={item.to}
+                      content={item.content}
+                      icon={item.icon}
                       onClick={() => setOpenMobile(false)}
                     />
                   </SidebarMenuItem>
@@ -63,11 +63,11 @@ export function AppSidebar({
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenuItem >
+        <SidebarMenuItem>
           <CustomSidebarLink
             to='/settings'
             content='Configuración'
-            Icon={<Settings />}
+            icon={<Settings />}
             onClick={() => setOpenMobile(false)}
           />
         </SidebarMenuItem>

@@ -1,21 +1,9 @@
-import { ArrowLeftRight, BookUser, Package2, TrendingUpDown } from 'lucide-react';
+import type { Link, LinkComponentProps } from '@tanstack/react-router';
+import { ArrowLeftRight, BookUser, LayoutDashboard, Package2, Printer, Sparkles } from 'lucide-react';
 
-type NavItem = {
-  route:
-    | '.'
-    | '..'
-    | '/'
-    | '/login'
-    | '/movements'
-    | '/dashboard'
-    | '/suppliers'
-    | '/profile'
-    | '/settings'
-    | '/catalogo/$id'
-    | '/catalogo'
-    | undefined;
-  title: string;
-  Icon?: React.ReactNode;
+type NavItem = LinkComponentProps<typeof Link> & {
+  content: string;
+  icon?: React.ReactNode;
 };
 
 type NavSection = {
@@ -25,17 +13,37 @@ type NavSection = {
 
 const navigation: NavSection[] = [
   {
-    title: 'Inventario',
+    title: '',
     items: [
       {
-        route: '/catalogo',
-        title: 'Productos',
-        Icon: <Package2 />,
+        to: '/dashboard',
+        content: 'Dashboard',
+        icon: <LayoutDashboard />,
       },
       {
-        route: '/suppliers',
-        title: 'Proveedores',
-        Icon: <BookUser />,
+        to: '/chatbot',
+        content: 'Asistente IA',
+        icon: <Sparkles />,
+      },
+    ],
+  },
+  {
+    title: 'Catálogos',
+    items: [
+      {
+        to: '/catalogo',
+        content: 'Productos',
+        icon: <Package2 />,
+      },
+      {
+        to: '/equipos',
+        content: 'Equipos',
+        icon: <Printer />,
+      },
+      {
+        to: '/suppliers',
+        content: 'Proveedores',
+        icon: <BookUser />,
       },
     ],
   },
@@ -43,14 +51,9 @@ const navigation: NavSection[] = [
     title: 'Movimientos',
     items: [
       {
-        route: '/movements',
-        title: 'Registrar movimiento',
-        Icon: <ArrowLeftRight />,
-      },
-      {
-        route: '/dashboard',
-        title: 'Dashboard',
-        Icon: <TrendingUpDown />,
+        to: '/movements',
+        content: 'Registrar movimiento',
+        icon: <ArrowLeftRight />,
       },
     ],
   },

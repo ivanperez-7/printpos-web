@@ -4,26 +4,22 @@ export const categoriaCreateSchema = z.object({
   nombre: z.string().min(1, 'El nombre de la categoría es obligatorio'),
   descripcion: z.string().nullable().optional(),
 });
-export const categoriaUpdateSchema = categoriaCreateSchema.partial();
 export const categoriaResponseSchema = categoriaCreateSchema.extend({
   id: z.number(),
 });
 
 export type CategoriaCreate = z.infer<typeof categoriaCreateSchema>;
-export type CategoriaUpdate = z.infer<typeof categoriaUpdateSchema>;
 export type CategoriaResponse = z.infer<typeof categoriaResponseSchema>;
 
 export const marcaCreateSchema = z.object({
   nombre: z.string().min(1, 'El nombre de la marca es obligatorio'),
   descripcion: z.string().nullable().optional(),
 });
-export const marcaUpdateSchema = marcaCreateSchema.partial();
 export const marcaResponseSchema = marcaCreateSchema.extend({
   id: z.number(),
 });
 
 export type MarcaCreate = z.infer<typeof marcaCreateSchema>;
-export type MarcaUpdate = z.infer<typeof marcaUpdateSchema>;
 export type MarcaResponse = z.infer<typeof marcaResponseSchema>;
 
 export const equipoCreateSchema = z.object({
@@ -31,14 +27,12 @@ export const equipoCreateSchema = z.object({
   descripcion: z.string().nullable().optional(),
   marca: z.number(),
 });
-export const equipoUpdateSchema = equipoCreateSchema.partial();
 export const equipoResponseSchema = equipoCreateSchema.extend({
   id: z.number(),
   marca: marcaResponseSchema,
 });
 
 export type EquipoCreate = z.infer<typeof equipoCreateSchema>;
-export type EquipoUpdate = z.infer<typeof equipoUpdateSchema>;
 export type EquipoResponse = z.infer<typeof equipoResponseSchema>;
 
 export const proveedorCreateSchema = z.object({
@@ -49,13 +43,11 @@ export const proveedorCreateSchema = z.object({
   direccion: z.string().nullable().optional(),
   activo: z.boolean().default(true),
 });
-export const proveedorUpdateSchema = proveedorCreateSchema.partial();
 export const proveedorResponseSchema = proveedorCreateSchema.extend({
   id: z.number(),
 });
 
 export type ProveedorCreate = z.infer<typeof proveedorCreateSchema>;
-export type ProveedorUpdate = z.infer<typeof proveedorUpdateSchema>;
 export type ProveedorResponse = z.infer<typeof proveedorResponseSchema>;
 
 export const productoCreateSchema = z.object({
@@ -81,8 +73,6 @@ export const productoCreateSchema = z.object({
   notas: z.string().nullable().optional(),
 });
 
-export const productoUpdateSchema = productoCreateSchema.partial();
-
 export const productoResponseSchema = productoCreateSchema.extend({
   id: z.number(),
 
@@ -90,12 +80,14 @@ export const productoResponseSchema = productoCreateSchema.extend({
   equipo: equipoResponseSchema,
   proveedor: proveedorResponseSchema,
 
+  precio_compra: z.string().nullable().optional(),
+  precio_venta: z.string().nullable().optional(),
+
   creado: z.iso.datetime(),
   actualizado: z.iso.datetime(),
 });
 
 export type ProductoCreate = z.infer<typeof productoCreateSchema>;
-export type ProductoUpdate = z.infer<typeof productoUpdateSchema>;
 export type ProductoResponse = z.infer<typeof productoResponseSchema>;
 
 export const perfilUsuarioResponseSchema = z.object({
@@ -125,7 +117,6 @@ export const movimientoEntradaCreateSchema = z.object({
   recibido_por: z.number(), // FK → User.id
   comentarios: z.string().nullable().optional(),
 });
-export const movimientoEntradaUpdateSchema = movimientoEntradaCreateSchema.partial();
 export const movimientoEntradaResponseSchema = movimientoEntradaCreateSchema.extend({
   id: z.number(),
   producto: productoResponseSchema,
@@ -138,7 +129,6 @@ export const movimientoEntradaResponseSchema = movimientoEntradaCreateSchema.ext
 });
 
 export type MovimientoEntradaCreate = z.infer<typeof movimientoEntradaCreateSchema>;
-export type MovimientoEntradaUpdate = z.infer<typeof movimientoEntradaUpdateSchema>;
 export type MovimientoEntradaResponse = z.infer<typeof movimientoEntradaResponseSchema>;
 
 export const movimientoSalidaCreateSchema = z.object({
@@ -160,8 +150,6 @@ export const movimientoSalidaCreateSchema = z.object({
   comentarios: z.string().nullable().optional(),
 });
 
-export const movimientoSalidaUpdateSchema = movimientoSalidaCreateSchema.partial();
-
 export const movimientoSalidaResponseSchema = movimientoSalidaCreateSchema.extend({
   id: z.number(),
   producto: productoResponseSchema,
@@ -173,7 +161,6 @@ export const movimientoSalidaResponseSchema = movimientoSalidaCreateSchema.exten
 });
 
 export type MovimientoSalidaCreate = z.infer<typeof movimientoSalidaCreateSchema>;
-export type MovimientoSalidaUpdate = z.infer<typeof movimientoSalidaUpdateSchema>;
 export type MovimientoSalidaResponse = z.infer<typeof movimientoSalidaResponseSchema>;
 
 export type TodosMovimientosResponse = {
@@ -191,3 +178,16 @@ export type MovimientoUnified = {
   comentarios?: string | null;
   original?: MovimientoEntradaResponse | MovimientoSalidaResponse;
 };
+
+export const variableSistemaCreateSchema = z.object({
+  clave: z.string().max(100, 'El nombre de la variable no puede exceder 100 caracteres.'),
+  valor: z.string().nullable().optional(),
+  descripcion: z.string().nullable().optional(),
+});
+export const variableSistemaResponseSchema = variableSistemaCreateSchema.extend({
+  id: z.number(),
+  actualizado: z.iso.datetime(),
+});
+
+export type VariableSistemaCreate = z.infer<typeof variableSistemaCreateSchema>
+export type VariableSistemaResponse = z.infer<typeof variableSistemaResponseSchema>
