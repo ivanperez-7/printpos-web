@@ -1,24 +1,14 @@
-import { withAuth } from '@/lib/auth';
-import { ENDPOINTS } from './endpoints';
 import { toast } from 'sonner';
-import type { ProductoResponse, TodosMovimientosResponse } from '@/lib/types';
 
-export async function fetchMovimientos() {
-  const productos = await withAuth
-    .get(ENDPOINTS.products.list)
-    .then((res) => res.data as ProductoResponse[])
-    .catch((error) => {
-      toast.error(error.message);
-      return [];
-    });
+import { withAuth } from '@/lib/auth';
+import type { TodosMovimientosResponse } from '@/lib/types';
+import { ENDPOINTS } from './endpoints';
 
-  const movimientos = await withAuth
+export const fetchMovimientos = async () =>
+  await withAuth
     .get(ENDPOINTS.movimientos.all)
     .then((res) => res.data as TodosMovimientosResponse)
     .catch((error) => {
       toast.error(error.message);
       return { entradas: [], salidas: [] };
     });
-
-  return { productos, movimientos };
-}
