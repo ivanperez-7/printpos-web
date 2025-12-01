@@ -1,6 +1,14 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ArrowDownToDot, ArrowLeft, ArrowLeftRight, ArrowUpFromDot, Edit, Trash } from 'lucide-react';
+import {
+  ArrowDownToDot,
+  ArrowLeft,
+  ArrowLeftRight,
+  ArrowUpFromDot,
+  Edit,
+  PackageOpen,
+  Trash,
+} from 'lucide-react';
 import { useEffect } from 'react';
 
 // COMPONENTES DEL PROYECTO
@@ -25,7 +33,7 @@ import { Separator } from '@/components/ui/separator';
 
 // OTRAS UTILIDADES
 import { fetchProductoById } from '@/api/catalogo';
-import type { MovimientoUnified } from '@/lib/types';
+import type { LoteResponse, MovimientoUnified } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
 import { combineMovements } from '../movements';
 
@@ -62,7 +70,7 @@ const columns: ColumnDef<MovimientoUnified>[] = [
             : 'text-red-600 dark:text-red-400 font-semibold'
         }
       >
-        {row.getValue('cantidad') as number} {row.original.producto.unidad}s
+        {row.getValue('cantidad') as number}
       </span>
     ),
   },
@@ -83,13 +91,41 @@ const columns: ColumnDef<MovimientoUnified>[] = [
   },
 ];
 
+const lotesColumns: ColumnDef<LoteResponse>[] = [
+  {
+    accessorKey: 'codigo_lote',
+    header: 'Código',
+  },
+  {
+    accessorKey: 'cantidad_inicial',
+    header: 'Cantidad inicial',
+    cell: ({ row }) => <span>{row.getValue('cantidad_inicial')} unidades</span>,
+  },
+  {
+    accessorKey: 'cantidad_restante',
+    header: 'Cantidad restante',
+    cell: ({ row }) => <span>{row.getValue('cantidad_restante')} unidades</span>,
+  },
+  {
+    accessorKey: 'fecha_entrada',
+    header: 'Fecha de entrada',
+    cell: ({ row }) => humanDate(row.getValue('fecha_entrada')),
+  },
+  {
+    id: 'hora_entrada',
+    accessorKey: 'fecha_entrada',
+    header: 'Hora de entrada',
+    cell: ({ row }) => humanTime(row.getValue('fecha_entrada')),
+  },
+];
+
 export const Route = createFileRoute('/_app/catalogo/$id')({
   component: RouteComponent,
   loader: async ({ params }) => await fetchProductoById(Number(params.id)),
 });
 
 function RouteComponent() {
-  const { producto, movimientos } = Route.useLoaderData();
+  const { producto, movimientos, lotes } = Route.useLoaderData();
   const { setContent } = useHeader();
   const router = useRouter();
 
@@ -162,8 +198,8 @@ function RouteComponent() {
                 <p className='font-semibold'>{producto.categoria?.nombre}</p>
               </div>
               <div>
-                <p className='text-sm text-muted-foreground'>Serie/Lote</p>
-                <p className='font-semibold'>{producto.serie_lote || 'N/A'}</p>
+                <p className='text-sm text-muted-foreground'>SKU</p>
+                <p className='font-semibold'>{producto.sku}</p>
               </div>
             </div>
             <div className='space-y-4'>
@@ -178,7 +214,7 @@ function RouteComponent() {
               <div>
                 <p className='text-sm text-muted-foreground'>Existencia</p>
                 <p className='font-semibold'>
-                  {producto.cantidad_disponible} {producto.unidad}
+                  {producto.cantidad_disponible} {producto.cantidad_disponible == 1 ? 'lote' : 'lotes'}
                 </p>
               </div>
             </div>
@@ -221,7 +257,33 @@ function RouteComponent() {
         </Card>
       )}
 
-      {/* Movement History Table */}
+      {/* Tabla de lotes */}
+      <Card className='mb-6'>
+        <CardHeader className='grid items-center md:flex md:justify-between'>
+          <CardTitle className='text-lg'>Lotes en el almacén</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            data={lotes}
+            columns={lotesColumns}
+            transparent
+            emptyComponent={
+              <Empty className='my-0 py-0'>
+                <EmptyHeader>
+                  <EmptyMedia variant='icon'>
+                    <PackageOpen />
+                  </EmptyMedia>
+                  <EmptyTitle>No se ha registrado ningún lote</EmptyTitle>
+                  <EmptyDescription>
+                    Comienza registrando un lote por medio de una entrada
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            }
+          />
+        </CardContent>
+      </Card>
+
       <Card className='mb-6'>
         <CardHeader className='grid items-center md:flex md:justify-between'>
           <CardTitle className='text-lg'>Últimos movimientos</CardTitle>

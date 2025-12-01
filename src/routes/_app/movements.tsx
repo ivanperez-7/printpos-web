@@ -1,10 +1,16 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Plus, Search } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
 
-import { fetchMovimientos } from '@/api/movimientos';
 import { DataTable } from '@/components/data-table';
+import { useHeader } from '@/components/site-header';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -20,17 +26,10 @@ import { Field, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
-import { withAuth } from '@/lib/auth';
-import type {
-  MovimientoEntradaCreate,
-  MovimientoSalidaCreate,
-  MovimientoUnified,
-  ProductoResponse,
-  TodosMovimientosResponse,
-} from '@/lib/types';
+
+import { fetchMovimientos } from '@/api/movimientos';
+import type { MovimientoUnified, ProductoResponse, TodosMovimientosResponse } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
-import { Plus, Search } from 'lucide-react';
-import { ENDPOINTS } from '@/api/endpoints';
 
 export const Route = createFileRoute('/_app/movements')({
   component: RouteComponent,
@@ -41,9 +40,7 @@ export function combineMovements(m: TodosMovimientosResponse): MovimientoUnified
   const entradas = (m.entradas || []).map((e) => ({
     id: `e-${e.id}`,
     fecha: e.creado,
-    producto: e.producto,
     tipo: 'entrada' as const,
-    cantidad: e.cantidad,
     usuario: e.recibido_por?.username ?? null,
     comentarios: e.comentarios ?? null,
     original: e,
@@ -52,9 +49,7 @@ export function combineMovements(m: TodosMovimientosResponse): MovimientoUnified
   const salidas = (m.salidas || []).map((s) => ({
     id: `s-${s.id}`,
     fecha: s.creado,
-    producto: s.producto,
     tipo: 'salida' as const,
-    cantidad: -s.cantidad, // negative to show as -2 in table
     usuario: s.entregado_por?.username ?? null,
     comentarios: s.comentarios ?? null,
     original: s,
@@ -74,11 +69,6 @@ const columns: ColumnDef<MovimientoUnified>[] = [
     accessorKey: 'fecha',
     header: 'Hora',
     cell: ({ row }) => humanTime(row.getValue('fecha')),
-  },
-  {
-    accessorKey: 'producto',
-    header: 'Producto',
-    cell: ({ row }) => (row.getValue('producto') as ProductoResponse).codigo_interno,
   },
   {
     accessorKey: 'tipo',
@@ -107,6 +97,7 @@ const columns: ColumnDef<MovimientoUnified>[] = [
 
 function RouteComponent() {
   const { productos, movimientos } = Route.useLoaderData();
+  const { setContent } = useHeader();
 
   const [search, setSearch] = useState('');
   const [filterEntrada, setFilterEntrada] = useState(true);
@@ -117,21 +108,24 @@ function RouteComponent() {
       if (!filterEntrada && m.tipo === 'entrada') return false;
       if (!filterSalida && m.tipo === 'salida') return false;
       if (!search) return true;
-      const q = search.toLowerCase();
-      return (
-        (m.producto.descripcion || '').toLowerCase().includes(q) ||
-        (m.producto.codigo_interno || '').toLowerCase().includes(q) ||
-        (m.comentarios || '').toLowerCase().includes(q)
-      );
     });
   }, [movimientos, search, filterEntrada, filterSalida]);
 
+  useEffect(() => {
+    setContent(
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Movimientos</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+    return () => setContent(null);
+  }, []);
+
   return (
     <div className='space-y-4'>
-      <header className='flex items-center justify-between'>
-        <h1 className='font-bold text-2xl'>Movimientos de inventario</h1>
-      </header>
-
       <div className='flex gap-4 items-center'>
         <div className='flex-1'>
           <InputGroup>

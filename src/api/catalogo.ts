@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/auth';
 import type {
   CategoriaResponse,
   EquipoResponse,
+  LoteResponse,
   MarcaResponse,
   ProductoResponse,
   ProveedorResponse,
@@ -29,14 +30,22 @@ export const fetchProductoById = async (id: number) => {
     });
 
   const movimientos = await withAuth
-    .get(ENDPOINTS.movimientos.all, { params: { producto: id } })
+    .get(ENDPOINTS.movimientos.all, { params: { items__producto: id } })
     .then((res) => res.data as TodosMovimientosResponse)
     .catch((error) => {
       toast.error(error.message);
       return { entradas: [], salidas: [] };
     });
 
-  return { producto, movimientos };
+  const lotes = await withAuth
+    .get(ENDPOINTS.products.lotes(id))
+    .then((res) => res.data as LoteResponse[])
+    .catch((error) => {
+      toast.error(error.message);
+      return [] as LoteResponse[];
+    });
+
+  return { producto, movimientos, lotes };
 };
 
 export const fetchCatalogs = async () => {

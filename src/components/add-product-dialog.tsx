@@ -17,7 +17,6 @@ import {
 } from './ui/dialog';
 import { Field, FieldError, FieldLabel } from './ui/field';
 import { Input } from './ui/input';
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from './ui/input-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { Spinner } from './ui/spinner';
@@ -28,12 +27,6 @@ import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
 import { productoCreateSchema, type ProductoResponse } from '@/lib/types';
 
-const unidades = [
-  { value: 'pieza', label: 'Pieza' },
-  { value: 'kg', label: 'Kilogramo' },
-  { value: 'lt', label: 'Litro' },
-];
-
 export function AddProductDialog({
   trigger,
   producto,
@@ -43,22 +36,18 @@ export function AddProductDialog({
 }) {
   const [marca, setMarca] = useState(producto?.equipo?.marca?.id ?? 1);
   const [loadingCreate, setLoadingCreate] = useState(false);
-  const { categorias, marcas, equipos, proveedores } = useCatalogs();
+  const { categorias, marcas, equipos } = useCatalogs();
   const router = useRouter();
 
   const form = useForm({
     defaultValues: {
       codigo_interno: producto?.codigo_interno ?? '',
       descripcion: producto?.descripcion ?? '',
-      serie_lote: producto?.serie_lote ?? '',
-      equipo: producto?.equipo?.id ?? 1,
-      categoria: producto?.categoria?.id ?? 1,
-      cantidad_disponible: producto?.cantidad_disponible ?? 0,
+      categoria: producto?.categoria.id ?? 1,
+      equipo: producto?.equipo.id ?? 1,
+      sku: producto?.sku ?? '',
       min_stock: producto?.min_stock ?? 0,
-      unidad: producto?.unidad ?? 'pieza',
-      precio_compra: Number(producto?.precio_compra) ?? 0,
-      precio_venta: Number(producto?.precio_venta) ?? 0,
-      notas: producto?.notas ?? '',
+      unidad_medida: producto?.unidad_medida ?? 'pieza',
       status: producto?.status ?? 'activo',
     } as z.input<typeof productoCreateSchema>,
     validators: { onSubmit: productoCreateSchema },
@@ -216,39 +205,8 @@ export function AddProductDialog({
             />
           </div>
 
-          {/* Serie/Lote */}
-          <form.Field
-            name='serie_lote'
-            children={(field) => (
-              <Field className='space-y-1'>
-                <FieldLabel htmlFor={field.name}>Número de serie/lote</FieldLabel>
-                <Input
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </Field>
-            )}
-          />
-
-          {/* Cantidad / Stock / Unidad */}
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-            <form.Field
-              name='cantidad_disponible'
-              children={(field) => (
-                <Field className='space-y-1'>
-                  <FieldLabel>Cantidad disponible</FieldLabel>
-                  <Input
-                    type='number'
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
-                  />
-                  <FieldError errors={field.state.meta.errors} />
-                </Field>
-              )}
-            />
-
+          {/* Cantidad / Stock */}
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <form.Field
               name='min_stock'
               children={(field) => (
@@ -265,73 +223,14 @@ export function AddProductDialog({
             />
 
             <form.Field
-              name='unidad'
+              name='sku'
               children={(field) => (
                 <Field className='space-y-1'>
-                  <FieldLabel htmlFor='select-unidad'>Unidad</FieldLabel>
-                  <Select value={field.state.value} onValueChange={field.handleChange}>
-                    <SelectTrigger id='select-unidad' className='w-full'>
-                      <SelectValue placeholder='Unidad' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unidades.map((u) => (
-                        <SelectItem key={u.value} value={u.value}>
-                          {u.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FieldError errors={field.state.meta.errors} />
-                </Field>
-              )}
-            />
-          </div>
-
-          {/* Precios */}
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <form.Field
-              name='precio_compra'
-              children={(field) => (
-                <Field className='space-y-1'>
-                  <FieldLabel>Precio compra</FieldLabel>
-                  <InputGroup>
-                    <InputGroupAddon>
-                      <InputGroupText>$</InputGroupText>
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      placeholder='0.00'
-                      type='number'
-                      value={field.state.value ?? ''}
-                      onChange={(e) => field.handleChange(Number(e.target.value))}
-                    />
-                    <InputGroupAddon align='inline-end'>
-                      <InputGroupText>MXN</InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                  <FieldError errors={field.state.meta.errors} />
-                </Field>
-              )}
-            />
-
-            <form.Field
-              name='precio_venta'
-              children={(field) => (
-                <Field className='space-y-1'>
-                  <FieldLabel>Precio venta</FieldLabel>
-                  <InputGroup>
-                    <InputGroupAddon>
-                      <InputGroupText>$</InputGroupText>
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      placeholder='0.00'
-                      type='number'
-                      value={field.state.value ?? ''}
-                      onChange={(e) => field.handleChange(Number(e.target.value))}
-                    />
-                    <InputGroupAddon align='inline-end'>
-                      <InputGroupText>MXN</InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
+                  <FieldLabel>SKU</FieldLabel>
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
@@ -339,7 +238,7 @@ export function AddProductDialog({
           </div>
 
           {/* Proveedor */}
-          <form.Field
+          {/* <form.Field
             name='proveedor'
             children={(field) => (
               <Field className='space-y-1'>
@@ -362,22 +261,7 @@ export function AddProductDialog({
                 <FieldError errors={field.state.meta.errors} />
               </Field>
             )}
-          />
-
-          {/* Notas */}
-          <form.Field
-            name='notas'
-            children={(field) => (
-              <Field className='space-y-1'>
-                <FieldLabel>Notas</FieldLabel>
-                <Input
-                  value={field.state.value ?? ''}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </Field>
-            )}
-          />
+          /> */}
 
           <DialogFooter className='pt-2'>
             <DialogClose asChild>

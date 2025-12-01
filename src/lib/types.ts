@@ -59,29 +59,22 @@ export const productoCreateSchema = z.object({
 
   categoria: z.number(),
   equipo: z.number(),
-  serie_lote: z.string().min(1, 'El número de serie/lote es obligatorio'),
-
-  cantidad_disponible: z.number().min(0, 'La cantidad disponible no puede ser negativa'),
-  min_stock: z.number().min(0, 'El stock mínimo no puede ser negativo'),
-  unidad: z.string(),
+  min_stock: z.number(),
 
   proveedor: z.number().nullable().optional(),
-  precio_compra: z.number().nullable().optional(),
-  precio_venta: z.number().nullable().optional(),
+  sku: z.string().min(1, 'El SKU es obligatorio'),
 
+  unidad_medida: z.string().default('pieza'),
   status: z.enum(['activo', 'inactivo', 'descontinuado']).default('activo'),
-  notas: z.string().nullable().optional(),
 });
 
 export const productoResponseSchema = productoCreateSchema.extend({
   id: z.number(),
+  cantidad_disponible: z.number(),
 
   categoria: categoriaResponseSchema,
   equipo: equipoResponseSchema,
-  proveedor: proveedorResponseSchema,
-
-  precio_compra: z.string().nullable().optional(),
-  precio_venta: z.string().nullable().optional(),
+  proveedor: proveedorResponseSchema.nullable(),
 
   creado: z.iso.datetime(),
   actualizado: z.iso.datetime(),
@@ -89,6 +82,39 @@ export const productoResponseSchema = productoCreateSchema.extend({
 
 export type ProductoCreate = z.infer<typeof productoCreateSchema>;
 export type ProductoResponse = z.infer<typeof productoResponseSchema>;
+
+export const loteCreateSchema = z.object({
+  producto: z.number(),
+  codigo_lote: z.string().min(1, 'El código de lote es obligatorio'),
+
+  cantidad_inicial: z.number().min(1),
+  cantidad_restante: z.number().min(0),
+
+  fecha_entrada: z.iso.datetime().optional(),
+});
+
+export const loteResponseSchema = loteCreateSchema.extend({
+  id: z.number(),
+  creado: z.iso.datetime(),
+  actualizado: z.iso.datetime(),
+});
+
+export type LoteCreate = z.infer<typeof loteCreateSchema>;
+export type LoteResponse = z.infer<typeof loteResponseSchema>;
+
+export const unidadCreateSchema = z.object({
+  lote: z.number(),
+  codigo_unidad: z.string().optional(),
+  status: z.string().default('disponible'),
+});
+
+export const unidadResponseSchema = unidadCreateSchema.extend({
+  id: z.number(),
+  actualizado: z.iso.datetime(),
+});
+
+export type UnidadCreate = z.infer<typeof unidadCreateSchema>;
+export type UnidadResponse = z.infer<typeof unidadResponseSchema>;
 
 export const perfilUsuarioResponseSchema = z.object({
   id: z.number(),
@@ -108,56 +134,84 @@ export const userResponseSchema = z.object({
 export type UserResponse = z.infer<typeof userResponseSchema>;
 export type PerfilUsuarioResponse = z.infer<typeof perfilUsuarioResponseSchema>;
 
-export const movimientoEntradaCreateSchema = z.object({
+export const entradaItemCreateSchema = z.object({
   producto: z.number(), // FK → Producto.id
-  proveedor: z.number().nullable().optional(), // FK → Proveedor.id
-  tipo_entrada: z.enum(['compra', 'devolucion', 'ajuste']).default('compra'),
-  numero_factura: z.string().nullable().optional(),
   cantidad: z.number().int().positive(),
-  recibido_por: z.number(), // FK → User.id
-  comentarios: z.string().nullable().optional(),
 });
+export const entradaItemResponseSchema = entradaItemCreateSchema.extend({
+  id: z.number(),
+  producto: productoResponseSchema, // objeto completo
+});
+
+export type EntradaItemCreate = z.infer<typeof entradaItemCreateSchema>;
+export type EntradaItemResponse = z.infer<typeof entradaItemResponseSchema>;
+
+export const movimientoEntradaCreateSchema = z.object({
+  tipo_entrada: z.enum(['compra', 'devolucion', 'ajuste']).default('compra'),
+  numero_factura: z.string(),
+
+  recibido_por: z.number(), // FK → User.id
+
+  comentarios: z.string().nullable().optional(),
+
+  items: z.array(entradaItemCreateSchema).min(1, 'Debe tener al menos un item'),
+});
+
 export const movimientoEntradaResponseSchema = movimientoEntradaCreateSchema.extend({
   id: z.number(),
-  producto: productoResponseSchema,
-  proveedor: proveedorResponseSchema.nullable().optional(),
+
   recibido_por: userResponseSchema.nullable().optional(),
-  user_aprueba: userResponseSchema.nullable().optional(), // read-only en el frontend
-  aprobado: z.boolean(), // read-only en el frontend
-  aprobado_fecha: z.iso.datetime().nullable().optional(), // read-only en el frontend
+  user_aprueba: userResponseSchema.nullable().optional(),
+
+  aprobado: z.boolean(),
+  aprobado_fecha: z.iso.datetime().nullable().optional(),
   creado: z.iso.datetime(),
+
+  items: z.array(entradaItemResponseSchema),
 });
 
 export type MovimientoEntradaCreate = z.infer<typeof movimientoEntradaCreateSchema>;
 export type MovimientoEntradaResponse = z.infer<typeof movimientoEntradaResponseSchema>;
 
-export const movimientoSalidaCreateSchema = z.object({
-  producto: z.number(), // FK → Producto.id
+export const salidaItemCreateSchema = z.object({
+  producto: z.number(),
+  cantidad: z.number().int().positive(),
+});
+export const salidaItemResponseSchema = salidaItemCreateSchema.extend({
+  id: z.number(),
+  producto: productoResponseSchema,
+});
 
+export type SalidaItemCreate = z.infer<typeof salidaItemCreateSchema>;
+export type SalidaItemResponse = z.infer<typeof salidaItemResponseSchema>;
+
+export const movimientoSalidaCreateSchema = z.object({
   tipo_salida: z.enum(['project', 'rental', 'internal', 'adjustment']).default('project'),
 
-  nombre_cliente: z.string().nullable().optional(),
+  nombre_cliente: z.string(),
   tecnico: z.string().nullable().optional(),
-  equipo_asociado: z.string().nullable().optional(),
 
-  cantidad: z.number().int().positive(),
-
-  entregado_por: z.number(), // FK → User.id
+  entregado_por: z.number(),
   recibido_por: z.string().nullable().optional(),
 
   requiere_aprobacion: z.boolean().default(false),
 
   comentarios: z.string().nullable().optional(),
+
+  items: z.array(salidaItemCreateSchema).min(1, 'Debe tener al menos un item'),
 });
 
 export const movimientoSalidaResponseSchema = movimientoSalidaCreateSchema.extend({
   id: z.number(),
-  producto: productoResponseSchema,
+
   entregado_por: userResponseSchema.nullable().optional(),
   user_aprueba: userResponseSchema.nullable().optional(),
+
   aprobado: z.boolean(),
   aprobado_fecha: z.iso.datetime().nullable().optional(),
   creado: z.iso.datetime(),
+
+  items: z.array(salidaItemResponseSchema),
 });
 
 export type MovimientoSalidaCreate = z.infer<typeof movimientoSalidaCreateSchema>;
@@ -169,11 +223,9 @@ export type TodosMovimientosResponse = {
 };
 
 export type MovimientoUnified = {
-  id: string | number;
+  id: number | string;
   fecha: string;
-  producto: ProductoResponse;
   tipo: 'entrada' | 'salida';
-  cantidad: number; // positivo para entradas, negativo para salidas
   usuario?: string | null;
   comentarios?: string | null;
   original?: MovimientoEntradaResponse | MovimientoSalidaResponse;
@@ -189,5 +241,5 @@ export const variableSistemaResponseSchema = variableSistemaCreateSchema.extend(
   actualizado: z.iso.datetime(),
 });
 
-export type VariableSistemaCreate = z.infer<typeof variableSistemaCreateSchema>
-export type VariableSistemaResponse = z.infer<typeof variableSistemaResponseSchema>
+export type VariableSistemaCreate = z.infer<typeof variableSistemaCreateSchema>;
+export type VariableSistemaResponse = z.infer<typeof variableSistemaResponseSchema>;

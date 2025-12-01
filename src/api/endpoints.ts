@@ -13,6 +13,7 @@ export const ENDPOINTS = {
   products: {
     list: '/productos/productos/',
     detail: (id: string | number) => `/productos/productos/${id}/`,
+    lotes: (id: string | number) => `/productos/productos/${id}/lotes/`,
   },
   categorias: {
     list: '/productos/categorias/',

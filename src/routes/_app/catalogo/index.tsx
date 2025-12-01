@@ -64,11 +64,14 @@ const columns: ColumnDef<ProductoResponse>[] = [
   {
     accessorKey: 'cantidad_disponible',
     header: 'Existencia',
-    cell: ({ row }) => (
-      <span>
-        {row.getValue('cantidad_disponible')} {row.original.unidad}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const cantidad = row.getValue('cantidad_disponible') as number;
+      return (
+        <span className='inline-flex items-center gap-2'>
+          {cantidad} {cantidad == 1 ? 'lote' : 'lotes'}
+        </span>
+      );
+    },
   },
   {
     id: 'status',
@@ -76,7 +79,7 @@ const columns: ColumnDef<ProductoResponse>[] = [
     header: 'Estado',
     cell: ({ row }) => (
       <span className='inline-flex items-center gap-2'>
-        {statusFromStock(row.getValue('cantidad_disponible'))}
+        {statusFromStock(row.getValue('cantidad_disponible'), row.original.min_stock)}
       </span>
     ),
   },
@@ -292,9 +295,14 @@ function RouteComponent() {
   );
 }
 
-function statusFromStock(stock: number) {
+function statusFromStock(stock: number, min_stock: number) {
   if (stock === 0) return <Badge variant='destructive'>Agotado</Badge>;
-  if (stock < 10) return '🟠';
+  if (stock < min_stock)
+    return (
+      <Badge variant='default' className='bg-orange-500 dark:bg-orange-700'>
+        Bajo en stock
+      </Badge>
+    );
   return (
     <Badge
       variant='outline'
