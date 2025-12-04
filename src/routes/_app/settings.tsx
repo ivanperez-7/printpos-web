@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Spinner } from '@/components/ui/spinner';
 
 import { ENDPOINTS } from '@/api/endpoints';
 import { fetchAllSysvars } from '@/api/system';
@@ -88,7 +87,6 @@ function SysvarRow({ sysvar }: { sysvar: VariableSistemaResponse }) {
           {isDirty && (
             <Button size='sm' onClick={handleSave} disabled={saving}>
               Guardar
-              {saving && <Spinner className='ml-2 h-4 w-4' />}
             </Button>
           )}
         </div>

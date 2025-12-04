@@ -108,7 +108,7 @@ function RouteComponent() {
                         type='text'
                         placeholder='tu_usuario'
                         value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                        onChange={(e) => field.handleChange(e.target.value.toLocaleLowerCase())}
                         onBlur={field.handleBlur}
                       />
                     </Field>

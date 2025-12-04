@@ -23,6 +23,7 @@ const ELLIPSIS = -1;
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  initialPage?: number,
   transparent?: boolean;
   emptyComponent?: React.ReactNode;
 }
@@ -30,6 +31,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
+  initialPage,
   transparent,
   emptyComponent,
 }: DataTableProps<TData, TValue>) {
@@ -40,6 +42,7 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
+        pageIndex: initialPage ?? 0,
         pageSize: 10,
       },
     },

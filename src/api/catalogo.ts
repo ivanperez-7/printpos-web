@@ -38,7 +38,7 @@ export const fetchProductoById = async (id: number) => {
     });
 
   const lotes = await withAuth
-    .get(ENDPOINTS.products.lotes(id))
+    .get(ENDPOINTS.lotes.list, { params: { producto: id } })
     .then((res) => res.data as LoteResponse[])
     .catch((error) => {
       toast.error(error.message);

@@ -40,15 +40,14 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
     setSearching(true);
 
     withAuth
-      .get(ENDPOINTS.products.list, { params: { lote: encodeURIComponent(scanCode) } })
-      .then((res) => {
-        if (res.status !== 200) throw new Error('Producto no encontrado');
-        return res.data[0] as MovimientoItem;
-      })
+      .get(ENDPOINTS.products.list, { params: { sku: encodeURIComponent(scanCode) } })
+      .then((res) => res.data as MovimientoItem[])
       .then((data) => {
-        data.cantidad = cantidad;
+        if (!data.length) throw new Error('No se encontró ningún producto con este código');
+        const obj = data[0];
+        obj.cantidad = cantidad;
 
-        setItems((prev) => [...prev, data]);
+        setItems((prev) => [...prev, obj]);
         setScanCode('');
         setCantidad(1);
         scanInputRef.current?.focus();
@@ -58,20 +57,26 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
         setScanCode('');
         scanInputRef.current?.focus();
       })
-      .finally(() => {
-        setSearching(false);
-      });
+      .finally(() => setSearching(false));
   };
 
   const handleSave = () => {
-    const payload = { tipo, items };
+    let url;
+    if (tipo === 'entrada') url = ENDPOINTS.movimientos.entradas.list;
+    else url = ENDPOINTS.movimientos.salidas.list;
 
-    console.log('Movimiento enviado:', payload);
-    toast.success('Movimiento registrado (simulación)');
-
-    setItems([]);
-    setScanCode('');
-    setCantidad(1);
+    withAuth
+      .post(url, { items })
+      .then((res) => {
+        if (res.status === 200 || res.status === 201) {
+          toast.success('Movimiento registrado (simulación)');
+          setItems([]);
+          setScanCode('');
+          setCantidad(1);
+        }
+      })
+      .catch((error) => toast.error(error.message))
+      .finally(() => setSearching(false));
   };
 
   useEffect(() => {
