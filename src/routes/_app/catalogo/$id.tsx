@@ -33,11 +33,11 @@ import { Separator } from '@/components/ui/separator';
 
 // OTRAS UTILIDADES
 import { fetchProductoById } from '@/api/catalogo';
-import type { LoteResponse, MovimientoUnified } from '@/lib/types';
+import type { LoteResponse, MovimientoItemResponse, MovimientoUnified } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
-import { combineMovements } from '../movements';
+import { combineMovements } from '../movements/index';
 
-const columns: ColumnDef<MovimientoUnified>[] = [
+const columns: ColumnDef<MovimientoUnified & MovimientoItemResponse>[] = [
   {
     accessorKey: 'fecha',
     header: 'Fecha',
@@ -54,8 +54,8 @@ const columns: ColumnDef<MovimientoUnified>[] = [
     accessorKey: 'cantidad',
     header: 'Tipo',
     cell: ({ row }) => (
-      <Badge variant={(row.getValue('cantidad') as number) > 0 ? 'default' : 'destructive'}>
-        {(row.getValue('cantidad') as number) > 0 ? 'Entrada' : 'Salida'}
+      <Badge variant={row.original.tipo === 'entrada' ? 'default' : 'destructive'}>
+        {row.original.tipo === 'entrada' ? 'Entrada' : 'Salida' /* cringe */}
       </Badge>
     ),
   },
@@ -65,7 +65,7 @@ const columns: ColumnDef<MovimientoUnified>[] = [
     cell: ({ row }) => (
       <span
         className={
-          (row.getValue('cantidad') as number) > 0
+          row.original.tipo === 'entrada'
             ? 'text-blue-600 dark:text-blue-400 font-semibold'
             : 'text-red-600 dark:text-red-400 font-semibold'
         }
@@ -300,7 +300,11 @@ function RouteComponent() {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={combineMovements(movimientos)}
+            // hacemos básicamente un cross product de cada movimiento con su array de items
+            data={combineMovements(movimientos).reduce(
+              (acc: any[], mov) => [...acc, ...mov.items.map((item) => ({ ...item, ...mov }))],
+              []
+            )}
             columns={columns}
             transparent
             emptyComponent={

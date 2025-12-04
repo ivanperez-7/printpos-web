@@ -34,7 +34,7 @@ export function AddProductDialog({
   trigger: React.ReactNode;
   producto?: ProductoResponse;
 }) {
-  const [marca, setMarca] = useState(producto?.equipo?.marca?.id ?? 1);
+  const [marca, setMarca] = useState(producto?.equipo?.marca?.id);
   const [loadingCreate, setLoadingCreate] = useState(false);
   const { categorias, marcas, equipos } = useCatalogs();
   const router = useRouter();
@@ -43,11 +43,10 @@ export function AddProductDialog({
     defaultValues: {
       codigo_interno: producto?.codigo_interno ?? '',
       descripcion: producto?.descripcion ?? '',
-      categoria: producto?.categoria.id ?? 1,
-      equipo: producto?.equipo.id ?? 1,
+      categoria: producto?.categoria.id,
+      equipo: producto?.equipo.id,
       sku: producto?.sku ?? '',
       min_stock: producto?.min_stock ?? 0,
-      unidad_medida: producto?.unidad_medida ?? 'pieza',
       status: producto?.status ?? 'activo',
     } as z.input<typeof productoCreateSchema>,
     validators: { onSubmit: productoCreateSchema },
@@ -66,7 +65,7 @@ export function AddProductDialog({
             router.invalidate();
           }
         })
-        .catch((error) => toast.error(error.message))
+        .catch((error) => toast.error(error.response?.data?.codigo_interno || error.message))
         .finally(() => setLoadingCreate(false));
     },
   });
@@ -130,9 +129,12 @@ export function AddProductDialog({
             {/* Marca */}
             <Field className='space-y-1'>
               <FieldLabel htmlFor='select-marca'>Marca</FieldLabel>
-              <Select value={String(marca)} onValueChange={(v) => setMarca(Number(v))}>
+              <Select
+                value={marca ? String(marca) : undefined}
+                onValueChange={(v) => setMarca(Number(v))}
+              >
                 <SelectTrigger id='select-marca' className='w-full'>
-                  <SelectValue placeholder='Marca' />
+                  <SelectValue placeholder='Seleccione una marca' />
                 </SelectTrigger>
                 <SelectContent>
                   {marcas.map((eq) => (
@@ -153,11 +155,11 @@ export function AddProductDialog({
                   <Field className='space-y-1' data-invalid={isInvalid}>
                     <FieldLabel htmlFor='select-equipo'>Equipo</FieldLabel>
                     <Select
-                      value={String(field.state.value)}
+                      value={field.state.value ? String(field.state.value) : undefined}
                       onValueChange={(v) => field.handleChange(Number(v))}
                     >
                       <SelectTrigger id='select-equipo' aria-invalid={isInvalid} className='w-full'>
-                        <SelectValue placeholder='Equipo' />
+                        <SelectValue placeholder='Seleccione un equipo' />
                       </SelectTrigger>
                       <SelectContent>
                         {equipos
@@ -184,11 +186,11 @@ export function AddProductDialog({
                   <Field className='space-y-1' data-invalid={isInvalid}>
                     <FieldLabel htmlFor='select-categoria'>Categoría</FieldLabel>
                     <Select
-                      value={String(field.state.value)}
+                      value={field.state.value ? String(field.state.value) : undefined}
                       onValueChange={(v) => field.handleChange(Number(v))}
                     >
                       <SelectTrigger id='select-categoria' aria-invalid={isInvalid} className='w-full'>
-                        <SelectValue placeholder='Categoría' />
+                        <SelectValue placeholder='Seleccione una categoría' />
                       </SelectTrigger>
                       <SelectContent>
                         {categorias.map((cat) => (

@@ -64,7 +64,6 @@ export const productoCreateSchema = z.object({
   proveedor: z.number().nullable().optional(),
   sku: z.string().min(1, 'El SKU es obligatorio'),
 
-  unidad_medida: z.string().default('pieza'),
   status: z.enum(['activo', 'inactivo', 'descontinuado']).default('activo'),
 });
 
@@ -140,7 +139,6 @@ export const movimientoItemCreateSchema = z.object({
 });
 export const movimientoItemResponseSchema = movimientoItemCreateSchema.extend({
   id: z.number(),
-  producto: productoResponseSchema, // objeto completo
 });
 
 export type MovimientoItemCreate = z.infer<typeof movimientoItemCreateSchema>;
@@ -216,6 +214,7 @@ export type MovimientoUnified = {
   tipo: 'entrada' | 'salida';
   usuario?: string | null;
   comentarios?: string | null;
+  items: MovimientoItemResponse[],
   original?: MovimientoEntradaResponse | MovimientoSalidaResponse;
 };
 

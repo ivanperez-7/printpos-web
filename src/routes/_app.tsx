@@ -49,7 +49,7 @@ function RouteComponent() {
             </div>
           </HeaderProvider>
 
-          <Toaster position='top-center' richColors theme={theme} />
+          <Toaster position='top-right' richColors theme={theme} />
         </SidebarInset>
       </CatalogsProvider>
     </SidebarProvider>

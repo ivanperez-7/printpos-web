@@ -65,7 +65,9 @@ function RouteComponent() {
           if (redirect) router.history.push(redirect);
           else router.navigate({ to: '/dashboard' });
         })
-        .catch((error) => toast.error(error.response ? error.response.data.detail : error.message))
+        .catch((error) =>
+          toast.error(error.response ? error.response.data.detail : 'No se pudo conectar al servidor')
+        )
         .finally(() => setLoading(false));
     },
   });

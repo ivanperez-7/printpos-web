@@ -15,11 +15,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSuppliersRouteImport } from './routes/_app/suppliers'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
-import { Route as AppMovementsRouteImport } from './routes/_app/movements'
 import { Route as AppEquiposRouteImport } from './routes/_app/equipos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppChatbotRouteImport } from './routes/_app/chatbot'
+import { Route as AppMovementsIndexRouteImport } from './routes/_app/movements/index'
 import { Route as AppCatalogoIndexRouteImport } from './routes/_app/catalogo/index'
+import { Route as AppMovementsIdRouteImport } from './routes/_app/movements/$id'
 import { Route as AppCatalogoIdRouteImport } from './routes/_app/catalogo/$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -51,11 +52,6 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMovementsRoute = AppMovementsRouteImport.update({
-  id: '/movements',
-  path: '/movements',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppEquiposRoute = AppEquiposRouteImport.update({
   id: '/equipos',
   path: '/equipos',
@@ -71,9 +67,19 @@ const AppChatbotRoute = AppChatbotRouteImport.update({
   path: '/chatbot',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMovementsIndexRoute = AppMovementsIndexRouteImport.update({
+  id: '/movements/',
+  path: '/movements/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCatalogoIndexRoute = AppCatalogoIndexRouteImport.update({
   id: '/catalogo/',
   path: '/catalogo/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMovementsIdRoute = AppMovementsIdRouteImport.update({
+  id: '/movements/$id',
+  path: '/movements/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCatalogoIdRoute = AppCatalogoIdRouteImport.update({
@@ -88,12 +94,13 @@ export interface FileRoutesByFullPath {
   '/chatbot': typeof AppChatbotRoute
   '/dashboard': typeof AppDashboardRoute
   '/equipos': typeof AppEquiposRoute
-  '/movements': typeof AppMovementsRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/suppliers': typeof AppSuppliersRoute
   '/catalogo/$id': typeof AppCatalogoIdRoute
+  '/movements/$id': typeof AppMovementsIdRoute
   '/catalogo': typeof AppCatalogoIndexRoute
+  '/movements': typeof AppMovementsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,12 +108,13 @@ export interface FileRoutesByTo {
   '/chatbot': typeof AppChatbotRoute
   '/dashboard': typeof AppDashboardRoute
   '/equipos': typeof AppEquiposRoute
-  '/movements': typeof AppMovementsRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/suppliers': typeof AppSuppliersRoute
   '/catalogo/$id': typeof AppCatalogoIdRoute
+  '/movements/$id': typeof AppMovementsIdRoute
   '/catalogo': typeof AppCatalogoIndexRoute
+  '/movements': typeof AppMovementsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,12 +124,13 @@ export interface FileRoutesById {
   '/_app/chatbot': typeof AppChatbotRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/equipos': typeof AppEquiposRoute
-  '/_app/movements': typeof AppMovementsRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/suppliers': typeof AppSuppliersRoute
   '/_app/catalogo/$id': typeof AppCatalogoIdRoute
+  '/_app/movements/$id': typeof AppMovementsIdRoute
   '/_app/catalogo/': typeof AppCatalogoIndexRoute
+  '/_app/movements/': typeof AppMovementsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,12 +140,13 @@ export interface FileRouteTypes {
     | '/chatbot'
     | '/dashboard'
     | '/equipos'
-    | '/movements'
     | '/profile'
     | '/settings'
     | '/suppliers'
     | '/catalogo/$id'
+    | '/movements/$id'
     | '/catalogo'
+    | '/movements'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,12 +154,13 @@ export interface FileRouteTypes {
     | '/chatbot'
     | '/dashboard'
     | '/equipos'
-    | '/movements'
     | '/profile'
     | '/settings'
     | '/suppliers'
     | '/catalogo/$id'
+    | '/movements/$id'
     | '/catalogo'
+    | '/movements'
   id:
     | '__root__'
     | '/'
@@ -158,12 +169,13 @@ export interface FileRouteTypes {
     | '/_app/chatbot'
     | '/_app/dashboard'
     | '/_app/equipos'
-    | '/_app/movements'
     | '/_app/profile'
     | '/_app/settings'
     | '/_app/suppliers'
     | '/_app/catalogo/$id'
+    | '/_app/movements/$id'
     | '/_app/catalogo/'
+    | '/_app/movements/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -216,13 +228,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/movements': {
-      id: '/_app/movements'
-      path: '/movements'
-      fullPath: '/movements'
-      preLoaderRoute: typeof AppMovementsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/equipos': {
       id: '/_app/equipos'
       path: '/equipos'
@@ -244,11 +249,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatbotRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/movements/': {
+      id: '/_app/movements/'
+      path: '/movements'
+      fullPath: '/movements'
+      preLoaderRoute: typeof AppMovementsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/catalogo/': {
       id: '/_app/catalogo/'
       path: '/catalogo'
       fullPath: '/catalogo'
       preLoaderRoute: typeof AppCatalogoIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/movements/$id': {
+      id: '/_app/movements/$id'
+      path: '/movements/$id'
+      fullPath: '/movements/$id'
+      preLoaderRoute: typeof AppMovementsIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/catalogo/$id': {
@@ -265,24 +284,26 @@ interface AppRouteChildren {
   AppChatbotRoute: typeof AppChatbotRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppEquiposRoute: typeof AppEquiposRoute
-  AppMovementsRoute: typeof AppMovementsRoute
   AppProfileRoute: typeof AppProfileRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSuppliersRoute: typeof AppSuppliersRoute
   AppCatalogoIdRoute: typeof AppCatalogoIdRoute
+  AppMovementsIdRoute: typeof AppMovementsIdRoute
   AppCatalogoIndexRoute: typeof AppCatalogoIndexRoute
+  AppMovementsIndexRoute: typeof AppMovementsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppChatbotRoute: AppChatbotRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppEquiposRoute: AppEquiposRoute,
-  AppMovementsRoute: AppMovementsRoute,
   AppProfileRoute: AppProfileRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSuppliersRoute: AppSuppliersRoute,
   AppCatalogoIdRoute: AppCatalogoIdRoute,
+  AppMovementsIdRoute: AppMovementsIdRoute,
   AppCatalogoIndexRoute: AppCatalogoIndexRoute,
+  AppMovementsIndexRoute: AppMovementsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

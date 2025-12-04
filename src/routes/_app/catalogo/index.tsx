@@ -41,17 +41,17 @@ const columns: ColumnDef<ProductoResponse>[] = [
     cell: () => <Checkbox />,
   },
   {
-    accessorKey: 'codigo_interno',
-    header: 'Código',
+    accessorKey: 'descripcion',
+    header: 'Descripción',
     cell: ({ row }) => (
       <Link to='/catalogo/$id' params={{ id: String(row.original.id) }} className='font-semibold'>
-        {row.getValue('codigo_interno')}
+        {row.getValue('descripcion')}
       </Link>
     ),
   },
   {
-    accessorKey: 'descripcion',
-    header: 'Descripción',
+    accessorKey: 'codigo_interno',
+    header: 'Código',
   },
   {
     accessorKey: 'equipo.marca.nombre',

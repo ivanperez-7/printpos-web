@@ -21,7 +21,7 @@ import { fetchMovimientos } from '@/api/movimientos';
 import type { MovimientoUnified, TodosMovimientosResponse } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
 
-export const Route = createFileRoute('/_app/movements')({
+export const Route = createFileRoute('/_app/movements/')({
   component: RouteComponent,
   loader: async () => await fetchMovimientos(),
 });
@@ -33,6 +33,7 @@ export function combineMovements(m: TodosMovimientosResponse): MovimientoUnified
     tipo: 'entrada' as const,
     usuario: e.recibido_por?.username ?? null,
     comentarios: e.comentarios ?? null,
+    items: e.items,
     original: e,
   }));
 
@@ -42,6 +43,7 @@ export function combineMovements(m: TodosMovimientosResponse): MovimientoUnified
     tipo: 'salida' as const,
     usuario: s.entregado_por?.username ?? null,
     comentarios: s.comentarios ?? null,
+    items: s.items,
     original: s,
   }));
 
