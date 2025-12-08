@@ -1,36 +1,23 @@
 import { toast } from 'sonner';
 
 import { withAuth } from '@/lib/auth';
-import type {
-  MovimientoEntradaResponse,
-  MovimientoSalidaResponse,
-  TodosMovimientosResponse,
-} from '@/lib/types';
+import type { MovimientoResponse } from '@/lib/types';
 import { ENDPOINTS } from './endpoints';
 
 export const fetchMovimientos = async () =>
   await withAuth
-    .get(ENDPOINTS.movimientos.all)
-    .then((res) => res.data as TodosMovimientosResponse)
+    .get(ENDPOINTS.movimientos.list)
+    .then((res) => res.data as MovimientoResponse[])
     .catch((error) => {
       toast.error(error.message);
-      return { entradas: [], salidas: [] };
+      return [];
     });
 
-export const fetchMovEntradaById = async (id: number | string) =>
+export const fetchMovimientoById = async (id: number | string) =>
   await withAuth
-    .get(ENDPOINTS.movimientos.entradas.detail(id))
-    .then((res) => res.data as MovimientoEntradaResponse)
+    .get(ENDPOINTS.movimientos.detail(id))
+    .then((res) => res.data as MovimientoResponse)
     .catch((error) => {
       toast.error(error.message);
-      return {};
-    });
-
-export const fetchMovSalidaById = async (id: number | string) =>
-  await withAuth
-    .get(ENDPOINTS.movimientos.salidas.detail(id))
-    .then((res) => res.data as MovimientoSalidaResponse)
-    .catch((error) => {
-      toast.error(error.message);
-      return {};
+      return {} as MovimientoResponse;
     });

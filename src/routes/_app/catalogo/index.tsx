@@ -54,12 +54,8 @@ const columns: ColumnDef<ProductoResponse>[] = [
     header: 'Código',
   },
   {
-    accessorKey: 'equipo.marca.nombre',
-    header: 'Marca',
-  },
-  {
-    accessorKey: 'equipo.nombre',
-    header: 'Equipo',
+    accessorKey: 'proveedor.nombre',
+    header: 'Proveedor',
   },
   {
     accessorKey: 'cantidad_disponible',
@@ -90,7 +86,7 @@ const columns: ColumnDef<ProductoResponse>[] = [
         <DropdownMenuTrigger asChild>
           <Button
             variant='ghost'
-            className='data-[state=open]:bg-muted text-muted-foreground flex size-8'
+            className='data-[state=open]:bg-muted text-muted-foreground size-8'
             size='icon'
           >
             <EllipsisVertical />
@@ -150,8 +146,8 @@ function RouteComponent() {
       )
         return false;
       if (categoria && prod.categoria.id !== categoria) return false;
-      if (marca && prod.equipo.marca.id !== marca) return false;
-      if (equipo && prod.equipo.id !== equipo) return false;
+      if (marca && !prod.equipos.map((eq) => eq.marca.id).includes(marca)) return false;
+      if (equipo && !prod.equipos.map((eq) => eq.id).includes(equipo)) return false;
       return true;
     });
   }, [productos, text, categoria, marca, equipo]);

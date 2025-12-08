@@ -16,7 +16,6 @@ import { AddProductDialog } from '@/components/add-product-dialog';
 import { DataTable } from '@/components/data-table';
 import { DeleteProductDialog } from '@/components/delete-product-dialog';
 import { useHeader } from '@/components/site-header';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
@@ -33,21 +32,29 @@ import { Separator } from '@/components/ui/separator';
 
 // OTRAS UTILIDADES
 import { fetchProductoById } from '@/api/catalogo';
-import type { LoteResponse, MovimientoItemResponse, MovimientoUnified } from '@/lib/types';
+import type { LoteResponse, MovimientoResponse } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
-import { combineMovements } from '../movements/index';
 
-const columns: ColumnDef<MovimientoUnified & MovimientoItemResponse>[] = [
+const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: number }>[] = [
   {
-    accessorKey: 'fecha',
+    accessorKey: 'id',
+    header: 'Folio',
+    cell: ({ row }) => (
+      <Link to='/movements/$id' params={{ id: String(row.original.id) }} className='font-semibold'>
+        {row.getValue('id')}
+      </Link>
+    ),
+  },
+  {
+    accessorKey: 'creado',
     header: 'Fecha',
-    cell: ({ row }) => <span>{humanDate(row.getValue('fecha'))}</span>,
+    cell: ({ row }) => <span>{humanDate(row.getValue('creado'))}</span>,
   },
   {
     id: 'hora',
-    accessorKey: 'fecha',
+    accessorKey: 'creado',
     header: 'Hora',
-    cell: ({ row }) => <span>{humanTime(row.getValue('fecha'))}</span>,
+    cell: ({ row }) => <span>{humanTime(row.getValue('creado'))}</span>,
   },
   {
     id: 'tipo',
@@ -75,19 +82,8 @@ const columns: ColumnDef<MovimientoUnified & MovimientoItemResponse>[] = [
     ),
   },
   {
-    accessorKey: 'usuario',
-    header: 'Responsable',
-    cell: ({ row }) =>
-      row.getValue('usuario') && (
-        <div className='flex gap-2.5 items-center'>
-          <Avatar>
-            <AvatarFallback>
-              {(row.getValue('usuario') as string)[0].toLocaleUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          {row.getValue('usuario')}
-        </div>
-      ),
+    accessorKey: 'aprobado',
+    header: '¿Aprobado?',
   },
 ];
 
@@ -204,18 +200,24 @@ function RouteComponent() {
             </div>
             <div className='space-y-4'>
               <div>
-                <p className='text-sm text-muted-foreground'>Marca</p>
-                <p className='font-semibold'>{producto.equipo.marca.nombre || 'N/A'}</p>
-              </div>
-              <div>
-                <p className='text-sm text-muted-foreground'>Modelo</p>
-                <p className='font-semibold'>{producto.equipo.nombre || 'N/A'}</p>
-              </div>
-              <div>
                 <p className='text-sm text-muted-foreground'>Existencia</p>
                 <p className='font-semibold'>
                   {producto.cantidad_disponible} {producto.cantidad_disponible == 1 ? 'lote' : 'lotes'}
                 </p>
+              </div>
+              <div>
+                <p className='text-sm text-muted-foreground mb-2'>Equipos compatibles</p>
+                {producto.equipos?.length > 0 ? (
+                  <div className='flex flex-wrap gap-2'>
+                    {producto.equipos.map((eq) => (
+                      <Badge key={eq.id} variant='secondary' className='px-3 py-1'>
+                        {eq.nombre} — {eq.marca.nombre}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className='font-semibold'>N/A</p>
+                )}
               </div>
             </div>
           </div>
@@ -301,9 +303,12 @@ function RouteComponent() {
         <CardContent>
           <DataTable
             // hacemos básicamente un cross product de cada movimiento con su array de items
-            data={combineMovements(movimientos).reduce(
-              (acc: any[], mov) => [...acc, ...mov.items.map((item) => ({ ...item, ...mov }))],
-              []
+            data={movimientos.flatMap((mov) =>
+              mov.items.map((item) => ({
+                cantidad: item.cantidad,
+                producto_id: item.producto_id,
+                ...mov,
+              }))
             )}
             columns={columns}
             transparent

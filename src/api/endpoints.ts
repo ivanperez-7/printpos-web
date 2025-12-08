@@ -30,15 +30,8 @@ export const ENDPOINTS = {
     list: '/productos/proveedores/'
   },
   movimientos: {
-    all: '/movimientos/main-table/',
-    entradas: {
-      list: '/movimientos/entradas/',
-      detail: (id: string | number) => `/movimientos/entradas/${id}/`,
-    },
-    salidas: {
-      list: '/movimientos/salidas/',
-      detail: (id: string | number) => `/movimientos/salidas/${id}/`,
-    }
+    list: '/movimientos/movimientos/',
+    detail: (id: string | number) => `/movimientos/movimientos/${id}/`
   },
   sysvars: {
     list: '/system/configuracion/',

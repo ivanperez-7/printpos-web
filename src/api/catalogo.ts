@@ -9,7 +9,7 @@ import type {
   MarcaResponse,
   ProductoResponse,
   ProveedorResponse,
-  TodosMovimientosResponse,
+  MovimientoResponse,
 } from '@/lib/types';
 import { ENDPOINTS } from './endpoints';
 
@@ -30,11 +30,11 @@ export const fetchProductoById = async (id: number) => {
     });
 
   const movimientos = await withAuth
-    .get(ENDPOINTS.movimientos.all, { params: { items__producto: id } })
-    .then((res) => res.data as TodosMovimientosResponse)
+    .get(ENDPOINTS.movimientos.list, { params: { items__producto: id } })
+    .then((res) => res.data as MovimientoResponse[])
     .catch((error) => {
       toast.error(error.message);
-      return { entradas: [], salidas: [] };
+      return [];
     });
 
   const lotes = await withAuth

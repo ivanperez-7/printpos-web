@@ -1,6 +1,9 @@
+import { useForm, useStore } from '@tanstack/react-form';
+import { useRouter } from '@tanstack/react-router';
 import { Trash } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import type z from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,16 +23,15 @@ import { Spinner } from './ui/spinner';
 
 import { ENDPOINTS } from '@/api/endpoints';
 import { withAuth } from '@/lib/auth';
-import type { ProductoResponse } from '@/lib/types';
-
-type MovimientoItem = ProductoResponse & { cantidad: number };
+import { movimientoCreateSchema, type ProductoResponse } from '@/lib/types';
 
 export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
-  const [tipo, setTipo] = useState<'entrada' | 'salida'>('entrada');
   const [scanCode, setScanCode] = useState('');
   const [cantidad, setCantidad] = useState(1);
-  const [items, setItems] = useState<MovimientoItem[]>([]);
   const [searching, setSearching] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   // referencia del input para autofocus
   const scanInputRef = useRef<HTMLInputElement>(null);
@@ -41,43 +43,61 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
 
     withAuth
       .get(ENDPOINTS.products.list, { params: { sku: encodeURIComponent(scanCode) } })
-      .then((res) => res.data as MovimientoItem[])
+      .then((res) => res.data as ProductoResponse[])
       .then((data) => {
         if (!data.length) throw new Error('No se encontró ningún producto con este código');
-        const obj = data[0];
-        obj.cantidad = cantidad;
-
-        setItems((prev) => [...prev, obj]);
-        setScanCode('');
+        form.setFieldValue('items', (prev) => [...prev, { producto_id: data[0].id, cantidad }]);
         setCantidad(1);
-        scanInputRef.current?.focus();
-      })
-      .catch((error) => {
-        toast.error(error.message);
-        setScanCode('');
-        scanInputRef.current?.focus();
-      })
-      .finally(() => setSearching(false));
-  };
-
-  const handleSave = () => {
-    let url;
-    if (tipo === 'entrada') url = ENDPOINTS.movimientos.entradas.list;
-    else url = ENDPOINTS.movimientos.salidas.list;
-
-    withAuth
-      .post(url, { items })
-      .then((res) => {
-        if (res.status === 200 || res.status === 201) {
-          toast.success('Movimiento registrado (simulación)');
-          setItems([]);
-          setScanCode('');
-          setCantidad(1);
-        }
       })
       .catch((error) => toast.error(error.message))
-      .finally(() => setSearching(false));
+      .finally(() => {
+        setSearching(false);
+        setScanCode('');
+        scanInputRef.current?.focus();
+      });
   };
+
+  const form = useForm({
+    defaultValues: {
+      tipo: 'entrada',
+      items: [],
+      detalle_entrada: {
+        numero_factura: '',
+        recibido_por_id: '',
+      },
+      detalle_salida: {
+        cliente_id: 0,
+        tecnico: '',
+        requiere_aprobacion: true,
+      },
+      comentarios: '',
+    } as z.input<typeof movimientoCreateSchema>,
+    validators: { onSubmit: movimientoCreateSchema },
+    onSubmit: async ({ value }) => {
+      if (!value.items.length) return;
+      if (value.tipo === 'entrada') delete value.detalle_salida;
+      if (value.tipo === 'salida') delete value.detalle_entrada;
+      setLoading(true);
+
+      withAuth
+        .post(ENDPOINTS.movimientos.list, value)
+        .then((res) => {
+          if (res.status === 200 || res.status === 201) {
+            toast.success('Movimiento registrado');
+            form.reset();
+            router.invalidate();
+          }
+        })
+        .catch((error) => toast.error(error.message))
+        .finally(() => {
+          setSearching(false);
+          setLoading(false);
+        });
+    },
+  });
+
+  const items = useStore(form.store, (state) => state.values.items);
+  const tipo = useStore(form.store, (state) => state.values.tipo);
 
   useEffect(() => {
     scanInputRef.current?.focus();
@@ -93,28 +113,40 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
         </DialogHeader>
         <Separator />
 
-        <form onSubmit={handleScanSubmit} className='grid gap-4'>
+        <form
+          id='movement-form'
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+          className='grid gap-4'
+        >
           <FieldSet>
             <FieldGroup className='grid grid-cols-2 gap-4'>
-              <Field>
-                <FieldLabel>Tipo</FieldLabel>
-                <div className='flex gap-2'>
-                  <Button
-                    variant={tipo === 'entrada' ? 'default' : 'outline'}
-                    onClick={() => setTipo('entrada')}
-                    type='button'
-                  >
-                    Entrada
-                  </Button>
-                  <Button
-                    variant={tipo === 'salida' ? 'default' : 'outline'}
-                    onClick={() => setTipo('salida')}
-                    type='button'
-                  >
-                    Salida
-                  </Button>
-                </div>
-              </Field>
+              <form.Field
+                name='tipo'
+                children={(field) => (
+                  <Field>
+                    <FieldLabel>Tipo</FieldLabel>
+                    <div className='flex gap-2'>
+                      <Button
+                        variant={field.state.value === 'entrada' ? 'default' : 'outline'}
+                        onClick={() => field.handleChange('entrada')}
+                        type='button'
+                      >
+                        Entrada
+                      </Button>
+                      <Button
+                        variant={field.state.value === 'salida' ? 'default' : 'outline'}
+                        onClick={() => field.handleChange('salida')}
+                        type='button'
+                      >
+                        Salida
+                      </Button>
+                    </div>
+                  </Field>
+                )}
+              />
 
               <Field>
                 <FieldLabel>Código / Escaneo</FieldLabel>
@@ -137,63 +169,149 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
               </Field>
 
               <div className='flex items-end'>
-                <Button type='submit' className='w-full' disabled={searching}>
+                <Button className='w-full' disabled={searching} onClick={handleScanSubmit}>
                   Agregar {searching && <Spinner />}
                 </Button>
               </div>
             </FieldGroup>
           </FieldSet>
-        </form>
 
-        {/* TABLA DE ITEMS AGREGADOS */}
-        <div className='rounded-md p-3 max-h-80 overflow-y-auto'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Cantidad</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {items.map((item, i) => (
-                <TableRow key={i}>
-                  <TableCell>{item.codigo_interno}</TableCell>
-                  <TableCell>{item.descripcion}</TableCell>
-                  <TableCell>{item.cantidad}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant='destructive'
-                      size='icon-sm'
-                      onClick={() => setItems((prev) => prev.filter((_, prevIdx) => prevIdx !== i))}
-                    >
-                      <Trash />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-
-              {items.length === 0 && (
+          {/* TABLA DE ITEMS AGREGADOS */}
+          <div className='rounded-md p-3 max-h-80 overflow-y-auto'>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={3} className='text-center text-gray-500 py-3'>
-                    No hay productos registrados
-                  </TableCell>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead>Cantidad</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
 
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant='ghost'>Cerrar</Button>
-          </DialogClose>
-          <Button onClick={handleSave} disabled={items.length === 0}>
-            Registrar movimiento
-          </Button>
-        </DialogFooter>
+              <TableBody>
+                {items.map((item, i) => (
+                  <TableRow key={i}>
+                    <TableCell>{item.producto_id}</TableCell>
+                    <TableCell>{item.producto_id}</TableCell>
+                    <TableCell>{item.cantidad}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant='destructive'
+                        size='icon-sm'
+                        onClick={() =>
+                          form.setFieldValue('items', (prev) =>
+                            prev.filter((_, prevIdx) => prevIdx !== i)
+                          )
+                        }
+                      >
+                        <Trash />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {items.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className='text-center text-gray-500 py-3'>
+                      No hay productos registrados
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {tipo === 'entrada' && (
+            <div className='grid grid-cols-2 gap-4 mt-4'>
+              <form.Field
+                name='detalle_entrada.numero_factura'
+                children={(field) => (
+                  <Field>
+                    <FieldLabel>Número de factura</FieldLabel>
+                    <Input
+                      value={field.state.value ?? ''}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder='ABC-123'
+                    />
+                  </Field>
+                )}
+              />
+
+              <form.Field
+                name='detalle_entrada.recibido_por_id'
+                children={(field) => (
+                  <Field>
+                    <FieldLabel>Recibido por (User ID)</FieldLabel>
+                    <Input
+                      type='number'
+                      value={field.state.value || ''}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder='ID usuario'
+                    />
+                  </Field>
+                )}
+              />
+            </div>
+          )}
+
+          {tipo === 'salida' && (
+            <div className='grid grid-cols-2 gap-4 mt-4'>
+              <form.Field
+                name='detalle_salida.cliente_id'
+                children={(field) => (
+                  <Field>
+                    <FieldLabel>Cliente</FieldLabel>
+                    <Input
+                      type='number'
+                      value={field.state.value || ''}
+                      onChange={(e) => field.handleChange(Number(e.target.value))}
+                      placeholder='ID cliente'
+                    />
+                  </Field>
+                )}
+              />
+
+              <form.Field
+                name='detalle_salida.tecnico'
+                children={(field) => (
+                  <Field>
+                    <FieldLabel>Técnico</FieldLabel>
+                    <Input
+                      value={field.state.value || ''}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder='Nombre del técnico'
+                    />
+                  </Field>
+                )}
+              />
+
+              <form.Field
+                name='detalle_salida.requiere_aprobacion'
+                children={(field) => (
+                  <Field>
+                    <FieldLabel>Requiere aprobación</FieldLabel>
+                    <Button
+                      variant={field.state.value ? 'default' : 'outline'}
+                      onClick={() => field.handleChange(!field.state.value)}
+                      type='button'
+                    >
+                      {field.state.value ? 'Sí' : 'No'}
+                    </Button>
+                  </Field>
+                )}
+              />
+            </div>
+          )}
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant='ghost'>Cerrar</Button>
+            </DialogClose>
+            <Button type='submit' disabled={items.length === 0}>
+              Registrar movimiento {loading && <Spinner />}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

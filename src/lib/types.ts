@@ -1,5 +1,21 @@
 import * as z from 'zod';
 
+export const clienteCreateSchema = z.object({
+  nombre: z.string().min(1, 'El nombre es obligatorio'),
+  tipo: z.enum(['fisica', 'moral']).default('fisica'),
+  rfc: z.string().length(13, 'El RFC debe tener 13 caracteres').optional().nullable(),
+  telefono: z.string().optional().nullable(),
+  email: z.string().email('Email inválido').optional().nullable(),
+  direccion: z.string().optional().nullable(),
+  activo: z.boolean().default(true),
+});
+export const clienteResponseSchema = clienteCreateSchema.extend({
+  id: z.number(),
+});
+
+export type ClienteCreate = z.infer<typeof clienteCreateSchema>;
+export type ClienteResponse = z.infer<typeof clienteResponseSchema>;
+
 export const categoriaCreateSchema = z.object({
   nombre: z.string().min(1, 'El nombre de la categoría es obligatorio'),
   descripcion: z.string().nullable().optional(),
@@ -57,11 +73,11 @@ export const productoCreateSchema = z.object({
     .max(50, 'Máximo 50 caracteres'),
   descripcion: z.string().min(1, 'La descripción es obligatoria'),
 
-  categoria: z.number(),
-  equipo: z.number(),
+  categoria_id: z.number(),
+  equipos_id: z.array(z.number()),
   min_stock: z.number(),
 
-  proveedor: z.number().nullable().optional(),
+  proveedor_id: z.number().nullable().optional(),
   sku: z.string().min(1, 'El SKU es obligatorio'),
 
   status: z.enum(['activo', 'inactivo', 'descontinuado']).default('activo'),
@@ -72,7 +88,7 @@ export const productoResponseSchema = productoCreateSchema.extend({
   cantidad_disponible: z.number(),
 
   categoria: categoriaResponseSchema,
-  equipo: equipoResponseSchema,
+  equipos: z.array(equipoResponseSchema),
   proveedor: proveedorResponseSchema.nullable(),
 
   creado: z.iso.datetime(),
@@ -134,89 +150,63 @@ export type UserResponse = z.infer<typeof userResponseSchema>;
 export type PerfilUsuarioResponse = z.infer<typeof perfilUsuarioResponseSchema>;
 
 export const movimientoItemCreateSchema = z.object({
-  producto: z.number(), // FK → Producto.id
-  cantidad: z.number().int().positive(),
+  producto_id: z.number(),
+  cantidad: z.number().min(1),
 });
 export const movimientoItemResponseSchema = movimientoItemCreateSchema.extend({
   id: z.number(),
+  producto: z.object({ id: z.number(), codigo_interno: z.string() }),
 });
 
 export type MovimientoItemCreate = z.infer<typeof movimientoItemCreateSchema>;
 export type MovimientoItemResponse = z.infer<typeof movimientoItemResponseSchema>;
 
-export const movimientoEntradaCreateSchema = z.object({
-  tipo_entrada: z.enum(['compra', 'devolucion', 'ajuste']).default('compra'),
-  numero_factura: z.string(),
-
-  recibido_por: z.number(), // FK → User.id
-
-  comentarios: z.string().nullable().optional(),
-
-  items: z.array(movimientoItemCreateSchema).min(1, 'Debe tener al menos un item'),
+export const detalleEntradaCreateSchema = z.object({
+  numero_factura: z.string().min(1),
+  recibido_por_id: z.union([z.number(), z.string()]),
 });
-
-export const movimientoEntradaResponseSchema = movimientoEntradaCreateSchema.extend({
+export const detalleEntradaResponseSchema = detalleEntradaCreateSchema.extend({
   id: z.number(),
-
-  recibido_por: userResponseSchema.nullable().optional(),
-  user_aprueba: userResponseSchema.nullable().optional(),
-
-  aprobado: z.boolean(),
-  aprobado_fecha: z.iso.datetime().nullable().optional(),
-  creado: z.iso.datetime(),
-
-  items: z.array(movimientoItemResponseSchema),
+  recibido_por: z.object({ username: z.string() }),
 });
 
-export type MovimientoEntradaCreate = z.infer<typeof movimientoEntradaCreateSchema>;
-export type MovimientoEntradaResponse = z.infer<typeof movimientoEntradaResponseSchema>;
+export type DetalleEntradaCreate = z.infer<typeof detalleEntradaCreateSchema>;
+export type DetalleEntradaResponse = z.infer<typeof detalleEntradaResponseSchema>;
 
-export const movimientoSalidaCreateSchema = z.object({
-  tipo_salida: z.enum(['project', 'rental', 'internal', 'adjustment']).default('project'),
-
-  nombre_cliente: z.string(),
+export const detalleSalidaCreateSchema = z.object({
+  cliente_id: z.number(),
   tecnico: z.string().nullable().optional(),
-
-  entregado_por: z.number(),
-  recibido_por: z.string().nullable().optional(),
-
-  requiere_aprobacion: z.boolean().default(false),
-
-  comentarios: z.string().nullable().optional(),
-
-  items: z.array(movimientoItemCreateSchema).min(1, 'Debe tener al menos un item'),
+  requiere_aprobacion: z.boolean().default(true),
 });
-
-export const movimientoSalidaResponseSchema = movimientoSalidaCreateSchema.extend({
+export const detalleSalidaResponseSchema = detalleSalidaCreateSchema.extend({
   id: z.number(),
-
-  entregado_por: userResponseSchema.nullable().optional(),
-  user_aprueba: userResponseSchema.nullable().optional(),
-
-  aprobado: z.boolean(),
-  aprobado_fecha: z.iso.datetime().nullable().optional(),
-  creado: z.iso.datetime(),
-
-  items: z.array(movimientoItemResponseSchema),
+  cliente: clienteResponseSchema,
 });
 
-export type MovimientoSalidaCreate = z.infer<typeof movimientoSalidaCreateSchema>;
-export type MovimientoSalidaResponse = z.infer<typeof movimientoSalidaResponseSchema>;
+export type DetalleSalidaCreate = z.infer<typeof detalleSalidaCreateSchema>;
+export type DetalleSalidaResponse = z.infer<typeof detalleSalidaResponseSchema>;
 
-export type TodosMovimientosResponse = {
-  entradas: MovimientoEntradaResponse[];
-  salidas: MovimientoSalidaResponse[];
-};
+export const movimientoCreateSchema = z.object({
+  tipo: z.enum(['entrada', 'salida']),
+  items: z.array(movimientoItemCreateSchema),
+  detalle_entrada: detalleEntradaCreateSchema.nullable().optional(),
+  detalle_salida: detalleSalidaCreateSchema.nullable().optional(),
+  comentarios: z.string().nullable().optional(),
+});
+export const movimientoResponseSchema = movimientoCreateSchema.extend({
+  id: z.number(),
+  items: z.array(movimientoItemResponseSchema),
+  detalle_entrada: detalleEntradaResponseSchema.nullable().optional(),
+  detalle_salida: detalleSalidaResponseSchema.nullable(),
+  creado: z.iso.datetime(),
+  creado_por: z.object({ username: z.string() }),
+  aprobado: z.boolean(),
+  aprobado_fecha: z.iso.datetime().nullable(),
+  user_aprueba: z.object({ username: z.string() }).nullable(),
+});
 
-export type MovimientoUnified = {
-  id: number | string;
-  fecha: string;
-  tipo: 'entrada' | 'salida';
-  usuario?: string | null;
-  comentarios?: string | null;
-  items: MovimientoItemResponse[],
-  original?: MovimientoEntradaResponse | MovimientoSalidaResponse;
-};
+export type MovimientoCreate = z.infer<typeof movimientoCreateSchema>;
+export type MovimientoResponse = z.infer<typeof movimientoResponseSchema>;
 
 export const variableSistemaCreateSchema = z.object({
   clave: z.string().max(100, 'El nombre de la variable no puede exceder 100 caracteres.'),

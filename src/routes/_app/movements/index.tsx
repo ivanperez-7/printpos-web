@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Plus, Search } from 'lucide-react';
+import { EllipsisVertical, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { AddMovementForm } from '@/components/add-movement-dialog';
@@ -18,7 +18,14 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { Label } from '@/components/ui/label';
 
 import { fetchMovimientos } from '@/api/movimientos';
-import type { MovimientoUnified, TodosMovimientosResponse } from '@/lib/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import type { MovimientoResponse } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
 
 export const Route = createFileRoute('/_app/movements/')({
@@ -26,54 +33,40 @@ export const Route = createFileRoute('/_app/movements/')({
   loader: async () => await fetchMovimientos(),
 });
 
-export function combineMovements(m: TodosMovimientosResponse): MovimientoUnified[] {
-  const entradas = (m.entradas || []).map((e) => ({
-    id: `e-${e.id}`,
-    fecha: e.creado,
-    tipo: 'entrada' as const,
-    usuario: e.recibido_por?.username ?? null,
-    comentarios: e.comentarios ?? null,
-    items: e.items,
-    original: e,
-  }));
-
-  const salidas = (m.salidas || []).map((s) => ({
-    id: `s-${s.id}`,
-    fecha: s.creado,
-    tipo: 'salida' as const,
-    usuario: s.entregado_por?.username ?? null,
-    comentarios: s.comentarios ?? null,
-    items: s.items,
-    original: s,
-  }));
-
-  return [...entradas, ...salidas].sort((a, b) => +new Date(b.fecha) - +new Date(a.fecha));
-}
-
-const columns: ColumnDef<MovimientoUnified>[] = [
+const columns: ColumnDef<MovimientoResponse>[] = [
   {
-    accessorKey: 'fecha',
+    id: 'check',
+    header: () => <Checkbox />,
+    cell: () => <Checkbox />,
+  },
+  {
+    accessorKey: 'id',
+    header: 'Folio',
+    cell: ({ row }) => (
+      <Link
+        to='/movements/$id'
+        params={{ id: String(row.original.id) }}
+        className='font-semibold'
+      >
+        {row.getValue('id')}
+      </Link>
+    ),
+  },
+  {
+    accessorKey: 'creado',
     header: 'Fecha',
-    cell: ({ row }) => humanDate(row.getValue('fecha')),
+    cell: ({ row }) => humanDate(row.getValue('creado')),
   },
   {
     id: 'hora',
-    accessorKey: 'fecha',
+    accessorKey: 'creado',
     header: 'Hora',
-    cell: ({ row }) => humanTime(row.getValue('fecha')),
+    cell: ({ row }) => humanTime(row.getValue('creado')),
   },
   {
     accessorKey: 'tipo',
     header: 'Tipo',
     cell: ({ row }) => (row.getValue('tipo') === 'entrada' ? 'Entrada' : 'Salida'),
-  },
-  {
-    accessorKey: 'cantidad',
-    header: 'Cantidad',
-    cell: ({ row }) =>
-      (row.getValue('cantidad') as number) > 0
-        ? `+${row.getValue('cantidad')}`
-        : `${row.getValue('cantidad')}`,
   },
   {
     accessorKey: 'usuario',
@@ -84,6 +77,31 @@ const columns: ColumnDef<MovimientoUnified>[] = [
     accessorKey: 'comentarios',
     header: 'Comentarios',
     cell: ({ row }) => row.getValue('comentarios') ?? '',
+  },
+  {
+    id: 'actions',
+    cell: () => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant='ghost'
+            className='data-[state=open]:bg-muted text-muted-foreground size-8'
+            size='icon'
+          >
+            <EllipsisVertical />
+            <span className='sr-only'>Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end' className='w-32'>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Editar</DropdownMenuItem>
+          <DropdownMenuItem>Marcar favorito</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()} variant='destructive'>
+            Eliminar
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
   },
 ];
 
@@ -96,7 +114,7 @@ function RouteComponent() {
   const [filterSalida, setFilterSalida] = useState(true);
 
   const filtered = useMemo(() => {
-    return combineMovements(movimientos).filter((m) => {
+    return movimientos.filter((m) => {
       if (!filterEntrada && m.tipo === 'entrada') return false;
       if (!filterSalida && m.tipo === 'salida') return false;
       if (!search) return true;
