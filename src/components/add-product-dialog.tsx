@@ -35,6 +35,7 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Checkbox } from './ui/checkbox';
+import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
 
 export function AddProductDialog({
   trigger,
@@ -173,11 +174,13 @@ export function AddProductDialog({
               children={(field) => (
                 <Field className='space-y-1'>
                   <FieldLabel>Stock mínimo</FieldLabel>
-                  <Input
-                    type='number'
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
-                  />
+                  <InputGroup>
+                    <InputGroupInput
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(Number(e.target.value))}
+                    />
+                    <InputGroupAddon align='inline-end'>unidades</InputGroupAddon>
+                  </InputGroup>
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
@@ -227,7 +230,7 @@ export function AddProductDialog({
               </Button>
             </DialogClose>
             <Button type='submit' disabled={loadingCreate} className='w-full md:w-auto'>
-              Guardar {loadingCreate && <Spinner />}
+              {loadingCreate && <Spinner />} Guardar
             </Button>
           </DialogFooter>
         </form>

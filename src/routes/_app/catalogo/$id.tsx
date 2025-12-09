@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowLeftRight,
   ArrowUpFromDot,
+  CheckCircle,
   Edit,
   PackageOpen,
   Trash,
@@ -12,6 +13,7 @@ import {
 import { useEffect } from 'react';
 
 // COMPONENTES DEL PROYECTO
+import { AddMovementForm } from '@/components/add-movement-dialog';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { DataTable } from '@/components/data-table';
 import { DeleteProductDialog } from '@/components/delete-product-dialog';
@@ -84,6 +86,13 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
   {
     accessorKey: 'aprobado',
     header: '¿Aprobado?',
+    cell: ({ row }) =>
+      row.getValue('aprobado') && (
+        <div className='flex gap-1.5 items-center'>
+          <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
+          <span className='text-muted-foreground'>{row.original.user_aprueba?.username}</span>
+        </div>
+      ),
   },
 ];
 
@@ -202,7 +211,8 @@ function RouteComponent() {
               <div>
                 <p className='text-sm text-muted-foreground'>Existencia</p>
                 <p className='font-semibold'>
-                  {producto.cantidad_disponible} {producto.cantidad_disponible == 1 ? 'lote' : 'lotes'}
+                  {producto.cantidad_disponible}{' '}
+                  {producto.cantidad_disponible == 1 ? 'unidad' : 'unidades'}
                 </p>
               </div>
               <div>
@@ -290,10 +300,15 @@ function RouteComponent() {
         <CardHeader className='grid items-center md:flex md:justify-between'>
           <CardTitle className='text-lg'>Últimos movimientos</CardTitle>
           <div className='grid md:flex gap-3'>
-            <Button size='sm'>
-              <ArrowDownToDot />
-              Registrar entrada
-            </Button>
+            <AddMovementForm
+              trigger={
+                <Button size='sm'>
+                  <ArrowDownToDot />
+                  Registrar entrada
+                </Button>
+              }
+              initialItems={[{ producto_id: producto.id, cantidad: 1 }]}
+            />
             <Button variant='secondary' size='sm'>
               <ArrowUpFromDot />
               Registrar salida
@@ -306,7 +321,7 @@ function RouteComponent() {
             data={movimientos.flatMap((mov) =>
               mov.items.map((item) => ({
                 cantidad: item.cantidad,
-                producto_id: item.producto_id,
+                producto_id: item.producto.id,
                 ...mov,
               }))
             )}

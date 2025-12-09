@@ -144,7 +144,7 @@ function RouteComponent() {
                     form='login-form'
                     disabled={loading || !form.state.canSubmit}
                   >
-                    Iniciar sesión {loading && <Spinner />}
+                    {loading && <Spinner />} Iniciar sesión
                   </Button>
                 </Field>
               </FieldGroup>

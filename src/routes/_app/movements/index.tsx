@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { EllipsisVertical, Plus, Search } from 'lucide-react';
+import { CheckCircle, EllipsisVertical, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { AddMovementForm } from '@/components/add-movement-dialog';
 import { DataTable } from '@/components/data-table';
 import { useHeader } from '@/components/site-header';
+import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -30,7 +31,7 @@ import { humanDate, humanTime } from '@/lib/utils';
 
 export const Route = createFileRoute('/_app/movements/')({
   component: RouteComponent,
-  loader: async () => await fetchMovimientos(),
+  loader: fetchMovimientos,
 });
 
 const columns: ColumnDef<MovimientoResponse>[] = [
@@ -43,11 +44,7 @@ const columns: ColumnDef<MovimientoResponse>[] = [
     accessorKey: 'id',
     header: 'Folio',
     cell: ({ row }) => (
-      <Link
-        to='/movements/$id'
-        params={{ id: String(row.original.id) }}
-        className='font-semibold'
-      >
+      <Link to='/movements/$id' params={{ id: String(row.original.id) }} className='font-semibold'>
         {row.getValue('id')}
       </Link>
     ),
@@ -66,17 +63,30 @@ const columns: ColumnDef<MovimientoResponse>[] = [
   {
     accessorKey: 'tipo',
     header: 'Tipo',
-    cell: ({ row }) => (row.getValue('tipo') === 'entrada' ? 'Entrada' : 'Salida'),
+    cell: ({ row }) => (
+      <Badge variant={row.original.tipo === 'entrada' ? 'default' : 'destructive'}>
+        {row.original.tipo === 'entrada' ? 'Entrada' : 'Salida' /* cringe */}
+      </Badge>
+    ),
   },
   {
-    accessorKey: 'usuario',
+    accessorKey: 'creado_por.username',
     header: 'Usuario',
-    cell: ({ row }) => row.getValue('usuario') ?? '',
   },
   {
     accessorKey: 'comentarios',
     header: 'Comentarios',
-    cell: ({ row }) => row.getValue('comentarios') ?? '',
+  },
+  {
+    accessorKey: 'aprobado',
+    header: '¿Aprobado?',
+    cell: ({ row }) =>
+      row.getValue('aprobado') && (
+        <div className='flex gap-1.5 items-center'>
+          <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
+          <span className='text-muted-foreground'>{row.original.user_aprueba?.username}</span>
+        </div>
+      ),
   },
   {
     id: 'actions',

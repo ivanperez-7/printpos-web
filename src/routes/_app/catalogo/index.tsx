@@ -64,7 +64,7 @@ const columns: ColumnDef<ProductoResponse>[] = [
       const cantidad = row.getValue('cantidad_disponible') as number;
       return (
         <span className='inline-flex items-center gap-2'>
-          {cantidad} {cantidad == 1 ? 'lote' : 'lotes'}
+          {cantidad} {cantidad == 1 ? 'unidad' : 'unidades'}
         </span>
       );
     },

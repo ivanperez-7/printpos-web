@@ -23,9 +23,15 @@ import { Spinner } from './ui/spinner';
 
 import { ENDPOINTS } from '@/api/endpoints';
 import { withAuth } from '@/lib/auth';
-import { movimientoCreateSchema, type ProductoResponse } from '@/lib/types';
+import { movimientoCreateSchema, type MovimientoItemCreate, type ProductoResponse } from '@/lib/types';
 
-export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
+export function AddMovementForm({
+  trigger,
+  initialItems,
+}: {
+  trigger: React.ReactNode;
+  initialItems?: MovimientoItemCreate[];
+}) {
   const [scanCode, setScanCode] = useState('');
   const [cantidad, setCantidad] = useState(1);
   const [searching, setSearching] = useState(false);
@@ -60,23 +66,16 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
   const form = useForm({
     defaultValues: {
       tipo: 'entrada',
-      items: [],
+      items: initialItems ?? [],
       detalle_entrada: {
         numero_factura: '',
-        recibido_por_id: '',
-      },
-      detalle_salida: {
-        cliente_id: 0,
-        tecnico: '',
-        requiere_aprobacion: true,
+        recibido_por_id: 1,
       },
       comentarios: '',
     } as z.input<typeof movimientoCreateSchema>,
     validators: { onSubmit: movimientoCreateSchema },
     onSubmit: async ({ value }) => {
       if (!value.items.length) return;
-      if (value.tipo === 'entrada') delete value.detalle_salida;
-      if (value.tipo === 'salida') delete value.detalle_entrada;
       setLoading(true);
 
       withAuth
@@ -118,6 +117,7 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
           onSubmit={(e) => {
             e.preventDefault();
             form.handleSubmit();
+            console.log(form.state.errors);
           }}
           className='grid gap-4'
         >
@@ -170,7 +170,7 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
 
               <div className='flex items-end'>
                 <Button className='w-full' disabled={searching} onClick={handleScanSubmit}>
-                  Agregar {searching && <Spinner />}
+                  {searching && <Spinner />} Agregar
                 </Button>
               </div>
             </FieldGroup>
@@ -308,7 +308,7 @@ export function AddMovementForm({ trigger }: { trigger: React.ReactNode }) {
               <Button variant='ghost'>Cerrar</Button>
             </DialogClose>
             <Button type='submit' disabled={items.length === 0}>
-              Registrar movimiento {loading && <Spinner />}
+              {loading && <Spinner />} Registrar movimiento
             </Button>
           </DialogFooter>
         </form>

@@ -143,7 +143,7 @@ export const userResponseSchema = z.object({
   id: z.number(),
   username: z.string(),
   email: z.email(),
-  profile: perfilUsuarioResponseSchema.nullable(), // coincide con el DRF serializer
+  profile: perfilUsuarioResponseSchema.nullable(),
 });
 
 export type UserResponse = z.infer<typeof userResponseSchema>;
@@ -155,7 +155,7 @@ export const movimientoItemCreateSchema = z.object({
 });
 export const movimientoItemResponseSchema = movimientoItemCreateSchema.extend({
   id: z.number(),
-  producto: z.object({ id: z.number(), codigo_interno: z.string() }),
+  producto: z.object({ id: z.number(), codigo_interno: z.string(), descripcion: z.string() }),
 });
 
 export type MovimientoItemCreate = z.infer<typeof movimientoItemCreateSchema>;
@@ -186,15 +186,25 @@ export const detalleSalidaResponseSchema = detalleSalidaCreateSchema.extend({
 export type DetalleSalidaCreate = z.infer<typeof detalleSalidaCreateSchema>;
 export type DetalleSalidaResponse = z.infer<typeof detalleSalidaResponseSchema>;
 
-export const movimientoCreateSchema = z.object({
-  tipo: z.enum(['entrada', 'salida']),
-  items: z.array(movimientoItemCreateSchema),
-  detalle_entrada: detalleEntradaCreateSchema.nullable().optional(),
-  detalle_salida: detalleSalidaCreateSchema.nullable().optional(),
-  comentarios: z.string().nullable().optional(),
-});
-export const movimientoResponseSchema = movimientoCreateSchema.extend({
+export const movimientoCreateSchema = z.discriminatedUnion('tipo', [
+  z.object({
+    tipo: z.literal('entrada'),
+    items: z.array(movimientoItemCreateSchema).min(1),
+    detalle_entrada: detalleEntradaCreateSchema,
+    comentarios: z.string().optional(),
+  }),
+
+  z.object({
+    tipo: z.literal('salida'),
+    items: z.array(movimientoItemCreateSchema).min(1),
+    detalle_salida: detalleSalidaCreateSchema,
+    comentarios: z.string().optional(),
+  }),
+]);
+
+export const movimientoResponseSchema = z.object({
   id: z.number(),
+  tipo: z.enum(['entrada', 'salida']),
   items: z.array(movimientoItemResponseSchema),
   detalle_entrada: detalleEntradaResponseSchema.nullable().optional(),
   detalle_salida: detalleSalidaResponseSchema.nullable(),
@@ -203,6 +213,7 @@ export const movimientoResponseSchema = movimientoCreateSchema.extend({
   aprobado: z.boolean(),
   aprobado_fecha: z.iso.datetime().nullable(),
   user_aprueba: z.object({ username: z.string() }).nullable(),
+  comentarios: z.string().optional(),
 });
 
 export type MovimientoCreate = z.infer<typeof movimientoCreateSchema>;

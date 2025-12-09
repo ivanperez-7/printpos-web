@@ -31,16 +31,19 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
       <Link
         to='/catalogo/$id'
         params={{ id: String(row.original.producto.id) }}
-        className='underline font-medium'
+        className='font-medium'
       >
         {row.original.producto.codigo_interno}
       </Link>
     ),
   },
   {
+    accessorKey: 'producto.descripcion',
+    header: 'Descripción',
+  },
+  {
     accessorKey: 'cantidad',
     header: 'Cantidad',
-    cell: ({ row }) => <span className='font-semibold'>{row.original.cantidad}</span>,
   },
 ];
 
@@ -208,7 +211,6 @@ function RouteComponent() {
       <Card className='mb-6'>
         <CardHeader>
           <CardTitle className='text-lg'>Productos del movimiento</CardTitle>
-          <Separator />
         </CardHeader>
         <CardContent>
           <DataTable
