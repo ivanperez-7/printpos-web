@@ -31,8 +31,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 // OTRAS UTILIDADES
 import { fetchAllProductos } from '@/api/catalogo';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import type { ProductoResponse } from '@/lib/types';
+import { plural } from '@/lib/utils';
 
 const columns: ColumnDef<ProductoResponse>[] = [
   {
@@ -62,11 +64,7 @@ const columns: ColumnDef<ProductoResponse>[] = [
     header: 'Existencia',
     cell: ({ row }) => {
       const cantidad = row.getValue('cantidad_disponible') as number;
-      return (
-        <span className='inline-flex items-center gap-2'>
-          {cantidad} {cantidad == 1 ? 'unidad' : 'unidades'}
-        </span>
-      );
+      return <span className='inline-flex items-center gap-2'>{plural('unidad', cantidad)}</span>;
     },
   },
   {
@@ -74,9 +72,14 @@ const columns: ColumnDef<ProductoResponse>[] = [
     accessorKey: 'cantidad_disponible',
     header: 'Estado',
     cell: ({ row }) => (
-      <span className='inline-flex items-center gap-2'>
-        {statusFromStock(row.getValue('cantidad_disponible'), row.original.min_stock)}
-      </span>
+      <Tooltip>
+        <TooltipTrigger>
+          {statusFromStock(row.getValue('cantidad_disponible'), row.original.min_stock)}
+        </TooltipTrigger>
+        <TooltipContent>
+          <span className='font-medium'>Min requerido</span>: {plural('unidad', row.original.min_stock)}
+        </TooltipContent>
+      </Tooltip>
     ),
   },
   {
@@ -193,10 +196,11 @@ function RouteComponent() {
 
   return (
     <div className='space-y-4'>
+      <h1 className='text-2xl'>Buscar productos</h1>
       <div className='flex flex-col gap-2 items-stretch md:flex-row md:items-center'>
         <InputGroup>
           <InputGroupInput
-            placeholder='Buscar producto por código o descripción...'
+            placeholder='Buscar por código o descripción...'
             defaultValue={text}
             onChange={(e) => setLocalText(e.target.value)}
           />

@@ -35,7 +35,7 @@ import { Separator } from '@/components/ui/separator';
 // OTRAS UTILIDADES
 import { fetchProductoById } from '@/api/catalogo';
 import type { LoteResponse, MovimientoResponse } from '@/lib/types';
-import { humanDate, humanTime } from '@/lib/utils';
+import { humanDate, humanTime, plural } from '@/lib/utils';
 
 const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: number }>[] = [
   {
@@ -90,7 +90,9 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
       row.getValue('aprobado') && (
         <div className='flex gap-1.5 items-center'>
           <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
-          <span className='text-muted-foreground'>{row.original.user_aprueba?.username}</span>
+          <span className='text-muted-foreground'>
+            {row.original.user_aprueba?.first_name} {row.original.user_aprueba?.last_name}
+          </span>
         </div>
       ),
   },
@@ -210,10 +212,7 @@ function RouteComponent() {
             <div className='space-y-4'>
               <div>
                 <p className='text-sm text-muted-foreground'>Existencia</p>
-                <p className='font-semibold'>
-                  {producto.cantidad_disponible}{' '}
-                  {producto.cantidad_disponible == 1 ? 'unidad' : 'unidades'}
-                </p>
+                <p className='font-semibold'>{plural('unidad', producto.cantidad_disponible)}</p>
               </div>
               <div>
                 <p className='text-sm text-muted-foreground mb-2'>Equipos compatibles</p>
@@ -307,12 +306,17 @@ function RouteComponent() {
                   Registrar entrada
                 </Button>
               }
-              initialItems={[{ producto_id: producto.id, cantidad: 1 }]}
+              movimiento={{ tipo: 'entrada', items: [{ cantidad: 1, producto_id: producto.id }] }}
             />
-            <Button variant='secondary' size='sm'>
-              <ArrowUpFromDot />
-              Registrar salida
-            </Button>
+            <AddMovementForm
+              trigger={
+                <Button variant='secondary' size='sm'>
+                  <ArrowUpFromDot />
+                  Registrar salida
+                </Button>
+              }
+              movimiento={{ tipo: 'salida', items: [{ cantidad: 1, producto_id: producto.id }] }}
+            />
           </div>
         </CardHeader>
         <CardContent>

@@ -23,14 +23,14 @@ import { Spinner } from './ui/spinner';
 
 import { ENDPOINTS } from '@/api/endpoints';
 import { withAuth } from '@/lib/auth';
-import { movimientoCreateSchema, type MovimientoItemCreate, type ProductoResponse } from '@/lib/types';
+import { movimientoCreateSchema, type MovimientoCreate, type ProductoResponse } from '@/lib/types';
 
 export function AddMovementForm({
   trigger,
-  initialItems,
+  movimiento,
 }: {
   trigger: React.ReactNode;
-  initialItems?: MovimientoItemCreate[];
+  movimiento?: MovimientoCreate;
 }) {
   const [scanCode, setScanCode] = useState('');
   const [cantidad, setCantidad] = useState(1);
@@ -65,8 +65,8 @@ export function AddMovementForm({
 
   const form = useForm({
     defaultValues: {
-      tipo: 'entrada',
-      items: initialItems ?? [],
+      tipo: movimiento?.tipo ?? 'entrada',
+      items: movimiento?.items ?? [],
       detalle_entrada: {
         numero_factura: '',
         recibido_por_id: 1,

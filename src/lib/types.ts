@@ -167,7 +167,7 @@ export const detalleEntradaCreateSchema = z.object({
 });
 export const detalleEntradaResponseSchema = detalleEntradaCreateSchema.extend({
   id: z.number(),
-  recibido_por: z.object({ username: z.string() }),
+  recibido_por: z.object({ username: z.string(), first_name: z.string(), last_name: z.string() }),
 });
 
 export type DetalleEntradaCreate = z.infer<typeof detalleEntradaCreateSchema>;
@@ -209,10 +209,12 @@ export const movimientoResponseSchema = z.object({
   detalle_entrada: detalleEntradaResponseSchema.nullable().optional(),
   detalle_salida: detalleSalidaResponseSchema.nullable(),
   creado: z.iso.datetime(),
-  creado_por: z.object({ username: z.string() }),
+  creado_por: z.object({ username: z.string(), first_name: z.string(), last_name: z.string() }),
   aprobado: z.boolean(),
   aprobado_fecha: z.iso.datetime().nullable(),
-  user_aprueba: z.object({ username: z.string() }).nullable(),
+  user_aprueba: z
+    .object({ username: z.string(), first_name: z.string(), last_name: z.string() })
+    .nullable(),
   comentarios: z.string().optional(),
 });
 

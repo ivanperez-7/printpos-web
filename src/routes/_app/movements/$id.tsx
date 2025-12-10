@@ -134,7 +134,7 @@ function RouteComponent() {
                     {/* <Avatar>
                       <AvatarFallback>{movimiento.creado_por[0].toUpperCase()}</AvatarFallback>
                     </Avatar> */}
-                    {movimiento.creado_por.username}
+                    {movimiento.creado_por.first_name} {movimiento.creado_por.last_name}
                   </div>
                 ) : (
                   '—'
@@ -180,7 +180,8 @@ function RouteComponent() {
               <strong>Número de factura:</strong> {detalleEntrada.numero_factura || '—'}
             </p>
             <p>
-              <strong>Recibido por:</strong> {detalleEntrada.recibido_por.username || '—'}
+              <strong>Recibido por:</strong> {detalleEntrada.recibido_por.first_name}{' '}
+              {detalleEntrada.recibido_por.last_name}
             </p>
           </CardContent>
         </Card>

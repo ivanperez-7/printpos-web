@@ -72,6 +72,11 @@ const columns: ColumnDef<MovimientoResponse>[] = [
   {
     accessorKey: 'creado_por.username',
     header: 'Usuario',
+    cell: ({ row }) => (
+      <span>
+        {row.original.creado_por.first_name} {row.original.creado_por.last_name}
+      </span>
+    ),
   },
   {
     accessorKey: 'comentarios',
@@ -84,7 +89,9 @@ const columns: ColumnDef<MovimientoResponse>[] = [
       row.getValue('aprobado') && (
         <div className='flex gap-1.5 items-center'>
           <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
-          <span className='text-muted-foreground'>{row.original.user_aprueba?.username}</span>
+          <span className='text-muted-foreground'>
+            {row.original.user_aprueba?.first_name} {row.original.user_aprueba?.last_name}
+          </span>
         </div>
       ),
   },
@@ -146,11 +153,12 @@ function RouteComponent() {
 
   return (
     <div className='space-y-4'>
+      <h1 className='text-2xl'>Movimientos del almacén</h1>
       <div className='flex gap-4 items-center'>
         <div className='flex-1'>
           <InputGroup>
             <InputGroupInput
-              placeholder='Buscar producto...'
+              placeholder='Buscar...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
