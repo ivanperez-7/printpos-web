@@ -1,11 +1,13 @@
-import { useForm, useStore } from '@tanstack/react-form';
+import { useForm } from '@tanstack/react-form';
 import { useRouter } from '@tanstack/react-router';
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import type z from 'zod';
 
 // COMPONENTES DEL PROYECTO
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
+import { Checkbox } from './ui/checkbox';
 import {
   Dialog,
   DialogClose,
@@ -17,6 +19,8 @@ import {
 } from './ui/dialog';
 import { Field, FieldError, FieldLabel } from './ui/field';
 import { Input } from './ui/input';
+import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
+import { ScrollArea } from './ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { Spinner } from './ui/spinner';
@@ -25,17 +29,8 @@ import { Spinner } from './ui/spinner';
 import { ENDPOINTS } from '@/api/endpoints';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import {
-  productoCreateSchema,
-  type EquipoResponse,
-  type MarcaResponse,
-  type ProductoResponse,
-} from '@/lib/types';
-import { Badge } from './ui/badge';
-import { ScrollArea } from './ui/scroll-area';
+import { productoCreateSchema, type ProductoResponse } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Checkbox } from './ui/checkbox';
-import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
 
 export function AddProductDialog({
   trigger,
@@ -44,11 +39,8 @@ export function AddProductDialog({
   trigger: React.ReactNode;
   producto?: ProductoResponse;
 }) {
-  const [loadingCreate, setLoadingCreate] = useState(false);
-  const { categorias, marcas, equipos } = useCatalogs();
+  const { categorias, proveedores } = useCatalogs();
   const router = useRouter();
-
-  const [marca, setMarca] = useState<number | undefined>(producto?.categoria?.id);
 
   const form = useForm({
     defaultValues: {
@@ -56,44 +48,37 @@ export function AddProductDialog({
       descripcion: producto?.descripcion ?? '',
       categoria_id: producto?.categoria.id,
       equipos_id: producto?.equipos?.map((e) => e.id) ?? [],
+      proveedor_id: producto?.proveedor?.id,
       sku: producto?.sku ?? '',
       min_stock: producto?.min_stock ?? 0,
       status: producto?.status ?? 'activo',
     } as z.input<typeof productoCreateSchema>,
     validators: { onSubmit: productoCreateSchema },
     onSubmit: async ({ value }) => {
-      if (loadingCreate) return;
-      setLoadingCreate(true);
+      try {
+        const res = producto
+          ? await withAuth.patch(ENDPOINTS.products.detail(producto.id), value)
+          : await withAuth.post(ENDPOINTS.products.list, value);
 
-      (producto
-        ? withAuth.patch(ENDPOINTS.products.detail(producto.id), value)
-        : withAuth.post(ENDPOINTS.products.list, value)
-      )
-        .then((res) => {
-          if (res.status === 200 || res.status === 201) {
-            toast.success(`¡Producto ${producto ? 'editado' : 'registrado'} correctamente!`);
-            if (!producto) form.reset();
-            router.invalidate();
-          }
-        })
-        .catch((error) => toast.error(error.response?.data?.codigo_interno || error.message))
-        .finally(() => setLoadingCreate(false));
+        if (res.status === 200 || res.status === 201) {
+          toast.success(`¡Producto ${producto ? 'editado' : 'registrado'} correctamente!`);
+          if (!producto) form.reset();
+          router.invalidate();
+        }
+      } catch (error: any) {
+        toast.error(error.response?.data?.codigo_interno || error.message);
+      }
     },
   });
-
-  const selectedEquipos = useStore(form.store, (state) => state.values.equipos_id);
 
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className='max-w-full md:max-w-xl lg:max-w-2xl'>
-        <DialogHeader className='space-y-1'>
-          <DialogTitle className='text-lg font-semibold'>
-            {producto ? 'Editar este producto' : 'Agregar nuevo producto'}
-          </DialogTitle>
+        <DialogHeader>
+          <DialogTitle>{producto ? 'Editar este producto' : 'Agregar nuevo producto'}</DialogTitle>
         </DialogHeader>
-
         <Separator />
 
         <form
@@ -106,25 +91,22 @@ export function AddProductDialog({
         >
           {/* Datos generales */}
           <div className='space-y-4'>
-            <form.Field
-              name='codigo_interno'
-              children={(field) => (
+            <form.Field name='codigo_interno'>
+              {(field) => (
                 <Field className='space-y-1'>
                   <FieldLabel htmlFor={field.name}>Código interno</FieldLabel>
                   <Input
                     id={field.name}
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    className='w-full'
                   />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
-            />
+            </form.Field>
 
-            <form.Field
-              name='descripcion'
-              children={(field) => (
+            <form.Field name='descripcion'>
+              {(field) => (
                 <Field className='space-y-1'>
                   <FieldLabel htmlFor={field.name}>Descripción</FieldLabel>
                   <Input
@@ -135,24 +117,23 @@ export function AddProductDialog({
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
-            />
+            </form.Field>
           </div>
 
           {/* Marca / Categoría */}
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             {/* Categoría */}
-            <form.Field
-              name='categoria_id'
-              children={(field) => {
+            <form.Field name='categoria_id'>
+              {(field) => {
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <Field className='space-y-1' data-invalid={isInvalid}>
                     <FieldLabel htmlFor='select-categoria'>Categoría</FieldLabel>
                     <Select
-                      value={field.state.value ? String(field.state.value) : undefined}
+                      value={field.state.value ? String(field.state.value) : ''}
                       onValueChange={(v) => field.handleChange(Number(v))}
                     >
-                      <SelectTrigger id='select-categoria' aria-invalid={isInvalid} className='w-full'>
+                      <SelectTrigger id='select-categoria'>
                         <SelectValue placeholder='Seleccione una categoría' />
                       </SelectTrigger>
                       <SelectContent>
@@ -167,11 +148,10 @@ export function AddProductDialog({
                   </Field>
                 );
               }}
-            />
+            </form.Field>
 
-            <form.Field
-              name='min_stock'
-              children={(field) => (
+            <form.Field name='min_stock'>
+              {(field) => (
                 <Field className='space-y-1'>
                   <FieldLabel>Stock mínimo</FieldLabel>
                   <InputGroup>
@@ -184,14 +164,13 @@ export function AddProductDialog({
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
-            />
+            </form.Field>
           </div>
 
           {/* Cantidad / Stock */}
-          <div className='grid grid-cols-1 gap-4'>
-            <form.Field
-              name='sku'
-              children={(field) => (
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <form.Field name='sku'>
+              {(field) => (
                 <Field className='space-y-1'>
                   <FieldLabel>SKU</FieldLabel>
                   <Input
@@ -201,27 +180,49 @@ export function AddProductDialog({
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
               )}
-            />
+            </form.Field>
+
+            <form.Field name='proveedor_id'>
+              {(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field className='space-y-1' data-invalid={isInvalid}>
+                    <FieldLabel htmlFor='select-proveedor'>Proveedor</FieldLabel>
+                    <Select
+                      value={field.state.value ? String(field.state.value) : ''}
+                      onValueChange={(v) => field.handleChange(Number(v) || null)}
+                    >
+                      <SelectTrigger id='select-proveedor'>
+                        <SelectValue placeholder='Seleccione un proveedor' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='0'>---------</SelectItem>
+                        {proveedores.map((cat) => (
+                          <SelectItem key={cat.id} value={String(cat.id)}>
+                            {cat.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                );
+              }}
+            </form.Field>
           </div>
 
-          <form.Field
-            name='equipos_id'
-            children={(field) => (
+          <form.Field name='equipos_id'>
+            {(field) => (
               <Field className='space-y-1'>
                 <FieldLabel className='text-xl'>Equipos compatibles</FieldLabel>
-
                 <EquipoSelector
-                  marcas={marcas}
-                  equipos={equipos}
-                  selectedMarca={marca}
-                  setSelectedMarca={setMarca}
-                  selectedEquipos={selectedEquipos}
-                  onEquiposChange={(nuevos) => form.setFieldValue('equipos_id', nuevos)}
+                  selectedEquipos={field.state.value}
+                  onEquiposChange={field.handleChange}
                 />
                 <FieldError errors={field.state.meta.errors} />
               </Field>
             )}
-          />
+          </form.Field>
 
           <DialogFooter className='pt-2'>
             <DialogClose asChild>
@@ -229,9 +230,18 @@ export function AddProductDialog({
                 Cancelar
               </Button>
             </DialogClose>
-            <Button type='submit' disabled={loadingCreate} className='w-full md:w-auto'>
-              {loadingCreate && <Spinner />} Guardar
-            </Button>
+            <form.Subscribe selector={(state) => state.isSubmitting}>
+              {(isSubmitting) => (
+                <Button
+                  type='submit'
+                  disabled={isSubmitting}
+                  className='w-full md:w-auto'
+                  form='product-form'
+                >
+                  {isSubmitting && <Spinner />} Guardar
+                </Button>
+              )}
+            </form.Subscribe>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -240,23 +250,16 @@ export function AddProductDialog({
 }
 
 function EquipoSelector({
-  marcas,
-  equipos,
-  selectedMarca,
-  setSelectedMarca,
   selectedEquipos,
   onEquiposChange,
 }: {
-  marcas: MarcaResponse[];
-  equipos: EquipoResponse[];
-  selectedMarca: number | undefined;
-  setSelectedMarca: (id: number | undefined) => void;
   selectedEquipos: number[];
   onEquiposChange: (nuevos: number[]) => void;
 }) {
   const [search, setSearch] = useState('');
+  const [selectedMarca, setSelectedMarca] = useState<number | undefined>();
+  const { marcas, equipos } = useCatalogs();
 
-  // Equipos filtrados
   const equiposFiltrados = useMemo(() => {
     return equipos.filter((eq) => {
       const coincideMarca = selectedMarca ? eq.marca.id === selectedMarca : true;
@@ -267,32 +270,30 @@ function EquipoSelector({
 
   return (
     <div className='space-y-4'>
-      <div className='space-y-2'>
-        <div className='flex flex-wrap gap-2'>
-          {marcas.map((m) => (
-            <Badge
-              key={m.id}
-              variant={selectedMarca === m.id ? 'default' : 'secondary'}
-              className={cn(
-                'cursor-pointer px-3 py-1 rounded-md',
-                selectedMarca === m.id && 'ring-2 ring-primary'
-              )}
-              onClick={() => setSelectedMarca(selectedMarca === m.id ? undefined : m.id)}
-            >
-              {m.nombre}
-            </Badge>
-          ))}
-        </div>
+      {/* Selector de marcas */}
+      <div className='flex flex-wrap gap-2'>
+        {marcas.map((m) => (
+          <Badge
+            key={m.id}
+            variant={selectedMarca === m.id ? 'default' : 'secondary'}
+            className={cn(
+              'cursor-pointer px-3 py-1 rounded-md',
+              selectedMarca === m.id && 'ring-2 ring-primary'
+            )}
+            onClick={() => setSelectedMarca(selectedMarca === m.id ? undefined : m.id)}
+          >
+            {m.nombre}
+          </Badge>
+        ))}
       </div>
 
-      <div className='space-y-2'>
-        <Input
-          placeholder='Buscar por nombre...'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      <Input
+        placeholder='Buscar por nombre...'
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
+      {/* Selector de equipos */}
       <ScrollArea className='h-48 rounded-md border p-3'>
         <div className='space-y-2'>
           {equiposFiltrados.length === 0 && (
@@ -303,13 +304,15 @@ function EquipoSelector({
             <label key={eq.id} className='flex items-center gap-2 text-sm cursor-pointer'>
               <Checkbox
                 checked={selectedEquipos.includes(eq.id)}
-                className='h-4 w-4'
                 onCheckedChange={(checked) => {
                   if (checked == true) onEquiposChange([...selectedEquipos, eq.id]);
                   else onEquiposChange(selectedEquipos.filter((id) => id !== eq.id));
                 }}
               />
-              {eq.nombre}
+              {eq.nombre}{' '}
+              {!selectedMarca && (
+                <span className='text-xs text-muted-foreground'>{eq.marca.nombre}</span>
+              )}
             </label>
           ))}
         </div>

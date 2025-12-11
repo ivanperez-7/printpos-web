@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 
 import { fetchMovimientoById } from '@/api/movimientos';
 import type { MovimientoItemResponse } from '@/lib/types';
-import { humanDate, humanTime } from '@/lib/utils';
+import { humanDate, humanTime, plural } from '@/lib/utils';
 
 const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
   {
@@ -44,6 +44,7 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
   {
     accessorKey: 'cantidad',
     header: 'Cantidad',
+    cell: ({ row }) => plural('unidad', row.getValue('cantidad')),
   },
 ];
 
@@ -121,7 +122,7 @@ function RouteComponent() {
               {/* Fecha */}
               <div>
                 <p className='text-sm text-muted-foreground'>Fecha</p>
-                <p className='font-semibold'>
+                <p>
                   {humanDate(movimiento.creado)} {humanTime(movimiento.creado)}
                 </p>
               </div>

@@ -29,7 +29,7 @@ export type CategoriaResponse = z.infer<typeof categoriaResponseSchema>;
 
 export const marcaCreateSchema = z.object({
   nombre: z.string().min(1, 'El nombre de la marca es obligatorio'),
-  descripcion: z.string().nullable().optional(),
+  activo: z.boolean().default(true),
 });
 export const marcaResponseSchema = marcaCreateSchema.extend({
   id: z.number(),
@@ -40,8 +40,8 @@ export type MarcaResponse = z.infer<typeof marcaResponseSchema>;
 
 export const equipoCreateSchema = z.object({
   nombre: z.string().min(1, 'El nombre del modelo es obligatorio'),
-  descripcion: z.string().nullable().optional(),
   marca: z.number(),
+  activo: z.boolean().default(true),
 });
 export const equipoResponseSchema = equipoCreateSchema.extend({
   id: z.number(),
@@ -144,6 +144,7 @@ export const userResponseSchema = z.object({
   username: z.string(),
   email: z.email(),
   profile: perfilUsuarioResponseSchema.nullable(),
+  full_name: z.string(),
 });
 
 export type UserResponse = z.infer<typeof userResponseSchema>;
@@ -162,7 +163,7 @@ export type MovimientoItemCreate = z.infer<typeof movimientoItemCreateSchema>;
 export type MovimientoItemResponse = z.infer<typeof movimientoItemResponseSchema>;
 
 export const detalleEntradaCreateSchema = z.object({
-  numero_factura: z.string().min(1),
+  numero_factura: z.string().min(3, 'El número de factura es obligatorio'),
   recibido_por_id: z.union([z.number(), z.string()]),
 });
 export const detalleEntradaResponseSchema = detalleEntradaCreateSchema.extend({

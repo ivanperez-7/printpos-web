@@ -31,7 +31,7 @@ function RouteComponent() {
       .post(ENDPOINTS.auth.logout)
       .then(() => {
         authActions.clear();
-        router.navigate({ to: '/login' });
+        router.navigate({ to: '/login', search: { redirect: undefined } });
       })
       .catch((error) => toast.error(error.message))
       .finally(() => setLoadingLogout(false));
@@ -42,14 +42,13 @@ function RouteComponent() {
       <CatalogsProvider>
         <AppSidebar onLogout={onLogout} loadingLogout={loadingLogout} />
         <SidebarInset>
+          <Toaster position='top-right' richColors theme={theme} />
           <HeaderProvider>
             <SiteHeader />
             <div className='p-4 md:pt-7 md:px-11'>
               <Outlet />
             </div>
           </HeaderProvider>
-
-          <Toaster position='top-right' richColors theme={theme} />
         </SidebarInset>
       </CatalogsProvider>
     </SidebarProvider>

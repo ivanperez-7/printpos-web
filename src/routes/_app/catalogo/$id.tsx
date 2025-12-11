@@ -202,30 +202,31 @@ function RouteComponent() {
               </div>
               <div>
                 <p className='text-sm text-muted-foreground'>Categoría</p>
-                <p className='font-semibold'>{producto.categoria?.nombre}</p>
+                <p>{producto.categoria?.nombre}</p>
               </div>
               <div>
                 <p className='text-sm text-muted-foreground'>SKU</p>
-                <p className='font-semibold'>{producto.sku}</p>
+                <p>{producto.sku}</p>
               </div>
             </div>
             <div className='space-y-4'>
               <div>
                 <p className='text-sm text-muted-foreground'>Existencia</p>
-                <p className='font-semibold'>{plural('unidad', producto.cantidad_disponible)}</p>
+                <p>{plural('unidad', producto.cantidad_disponible)}</p>
               </div>
               <div>
-                <p className='text-sm text-muted-foreground mb-2'>Equipos compatibles</p>
+                <p className='text-sm text-muted-foreground '>Equipos compatibles</p>
                 {producto.equipos?.length > 0 ? (
-                  <div className='flex flex-wrap gap-2'>
+                  <div className='flex flex-wrap gap-2 mt-2'>
                     {producto.equipos.map((eq) => (
-                      <Badge key={eq.id} variant='secondary' className='px-3 py-1'>
-                        {eq.nombre} — {eq.marca.nombre}
+                      <Badge key={eq.id} variant='secondary' className='px-3 py-1 gap-2'>
+                        {eq.nombre}{' '}
+                        <span className='text-xs text-muted-foreground'>{eq.marca.nombre}</span>
                       </Badge>
                     ))}
                   </div>
                 ) : (
-                  <p className='font-semibold'>N/A</p>
+                  <p>N/A</p>
                 )}
               </div>
             </div>
@@ -306,7 +307,6 @@ function RouteComponent() {
                   Registrar entrada
                 </Button>
               }
-              movimiento={{ tipo: 'entrada', items: [{ cantidad: 1, producto_id: producto.id }] }}
             />
             <AddMovementForm
               trigger={
@@ -315,7 +315,6 @@ function RouteComponent() {
                   Registrar salida
                 </Button>
               }
-              movimiento={{ tipo: 'salida', items: [{ cantidad: 1, producto_id: producto.id }] }}
             />
           </div>
         </CardHeader>

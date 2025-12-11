@@ -10,6 +10,8 @@ import type {
   ProductoResponse,
   ProveedorResponse,
   MovimientoResponse,
+  UserResponse,
+  ClienteResponse,
 } from '@/lib/types';
 import { ENDPOINTS } from './endpoints';
 
@@ -77,5 +79,19 @@ export const fetchCatalogs = async () => {
       throw new Error(error.message);
     });
 
-  return { categorias, marcas, equipos, proveedores };
+  const users = await withAuth
+    .get(ENDPOINTS.users.list)
+    .then((res) => res.data as UserResponse[])
+    .catch((error) => {
+      throw new Error(error.message);
+    });
+
+  const clientes = await withAuth
+    .get(ENDPOINTS.clientes.list)
+    .then((res) => res.data as ClienteResponse[])
+    .catch((error) => {
+      throw new Error(error.message);
+    });
+
+  return { categorias, marcas, equipos, proveedores, users, clientes };
 };

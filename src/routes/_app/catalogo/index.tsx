@@ -9,7 +9,6 @@ import { AddProductDialog } from '@/components/add-product-dialog';
 import { DataTable } from '@/components/data-table';
 import { DeleteProductDialog } from '@/components/delete-product-dialog';
 import { useHeader } from '@/components/site-header';
-import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -33,8 +32,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { fetchAllProductos } from '@/api/catalogo';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCatalogs } from '@/hooks/use-catalogs';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { ProductoResponse } from '@/lib/types';
-import { plural } from '@/lib/utils';
+import { plural, statusFromStock } from '@/lib/utils';
+import { ProductCard } from '@/components/product-card';
 
 const columns: ColumnDef<ProductoResponse>[] = [
   {
@@ -77,7 +78,8 @@ const columns: ColumnDef<ProductoResponse>[] = [
           {statusFromStock(row.getValue('cantidad_disponible'), row.original.min_stock)}
         </TooltipTrigger>
         <TooltipContent>
-          <span className='font-medium'>Min requerido</span>: {plural('unidad', row.original.min_stock)}
+          <span className='font-medium'>Min requerido</span>:{' '}
+          {plural('unidad', row.original.min_stock)}
         </TooltipContent>
       </Tooltip>
     ),
@@ -135,6 +137,7 @@ function RouteComponent() {
   const { text, categoria, marca, equipo } = Route.useSearch();
   const { categorias, marcas, equipos } = useCatalogs();
   const { setContent } = useHeader();
+  const isMobile = useIsMobile();
   const navigate = Route.useNavigate();
 
   const [_localText, setLocalText] = useState(text);
@@ -210,7 +213,7 @@ function RouteComponent() {
         </InputGroup>
 
         <Select
-          value={categoria ? String(categoria) : undefined}
+          value={categoria ? String(categoria) : ''}
           onValueChange={(v) =>
             navigate({ search: (prev) => ({ ...prev, categoria: Number(v) }), replace: true })
           }
@@ -228,7 +231,7 @@ function RouteComponent() {
         </Select>
 
         <Select
-          value={marca ? String(marca) : undefined}
+          value={marca ? String(marca) : ''}
           onValueChange={(v) =>
             navigate({ search: (prev) => ({ ...prev, marca: Number(v) }), replace: true })
           }
@@ -246,7 +249,7 @@ function RouteComponent() {
         </Select>
 
         <Select
-          value={equipo ? String(equipo) : undefined}
+          value={equipo ? String(equipo) : ''}
           onValueChange={(v) =>
             navigate({ search: (prev) => ({ ...prev, equipo: Number(v) }), replace: true })
           }
@@ -259,7 +262,8 @@ function RouteComponent() {
               .filter((eq) => (marca ? eq.marca.id === marca : true))
               .map((eq) => (
                 <SelectItem key={eq.id} value={String(eq.id)}>
-                  {eq.nombre}
+                  {eq.nombre}{' '}
+                  {!marca && <span className='text-xs text-muted-foreground'>{eq.marca.nombre}</span>}
                 </SelectItem>
               ))}
           </SelectContent>
@@ -280,7 +284,11 @@ function RouteComponent() {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={filtered} emptyComponent={emptyComponent} />
+      {isMobile ? (
+        filtered.slice(0, 10).map((producto) => <ProductCard key={producto.id} producto={producto} />)
+      ) : (
+        <DataTable columns={columns} data={filtered} emptyComponent={emptyComponent} />
+      )}
 
       <div className='fixed bottom-4 right-3 md:bottom-8 md:right-8'>
         <AddProductDialog
@@ -292,23 +300,5 @@ function RouteComponent() {
         />
       </div>
     </div>
-  );
-}
-
-function statusFromStock(stock: number, min_stock: number) {
-  if (stock === 0) return <Badge variant='destructive'>Agotado</Badge>;
-  if (stock < min_stock)
-    return (
-      <Badge variant='default' className='bg-orange-500 dark:bg-orange-700'>
-        Bajo en stock
-      </Badge>
-    );
-  return (
-    <Badge
-      variant='outline'
-      className='border-green-500 text-green-600 dark:border-green-700 dark:text-green-400'
-    >
-      Disponible
-    </Badge>
   );
 }

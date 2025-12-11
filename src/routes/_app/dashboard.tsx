@@ -177,7 +177,7 @@ export default function RouteComponent() {
                 </tr>
               </thead>
               <tbody>
-                {productosBajos.map((p, i) => (
+                {(productosBajos as any[]).map((p, i) => ( // ! fix any
                   <tr key={i} className='border-b last:border-none'>
                     <td className='py-2'>{p.nombre}</td>
                     <td>{p.categoria}</td>

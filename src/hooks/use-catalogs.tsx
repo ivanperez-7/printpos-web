@@ -1,13 +1,22 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 import { fetchCatalogs } from '@/api/catalogo';
-import type { CategoriaResponse, EquipoResponse, MarcaResponse, ProveedorResponse } from '@/lib/types';
+import type {
+  CategoriaResponse,
+  ClienteResponse,
+  EquipoResponse,
+  MarcaResponse,
+  ProveedorResponse,
+  UserResponse,
+} from '@/lib/types';
 
 type CatalogsProps = {
   categorias: CategoriaResponse[];
   marcas: MarcaResponse[];
   equipos: EquipoResponse[];
   proveedores: ProveedorResponse[];
+  users: UserResponse[];
+  clientes: ClienteResponse[];
 };
 
 const CatalogsContext = createContext<CatalogsProps | undefined>(undefined);
@@ -24,6 +33,8 @@ export function CatalogsProvider({ children }: React.PropsWithChildren) {
     marcas: [],
     equipos: [],
     proveedores: [],
+    users: [],
+    clientes: [],
   });
 
   useEffect(() => {
@@ -34,6 +45,8 @@ export function CatalogsProvider({ children }: React.PropsWithChildren) {
         marcas: data.marcas,
         equipos: data.equipos,
         proveedores: data.proveedores,
+        users: data.users,
+        clientes: data.clientes,
       });
     };
     load();

@@ -10,31 +10,44 @@ export const ENDPOINTS = {
     list: '/clientes/',
     detail: (id: string | number) => `/clientes/${id}/`,
   },
+  clientes: {
+    list: '/organizacion/clientes/',
+    detail: (id: string | number) => `/organizacion/clientes/${id}/`,
+  },
+  users: {
+    list: '/organizacion/users/',
+    detail: (id: string | number) => `/organizacion/users/${id}/`,
+  },
   products: {
     list: '/productos/productos/',
     detail: (id: string | number) => `/productos/productos/${id}/`,
   },
   lotes: {
     list: '/productos/lotes/',
+    detail: (id: string | number) => `/productos/lotes/${id}/`,
   },
   categorias: {
     list: '/productos/categorias/',
+    detail: (id: string | number) => `/productos/categorias/${id}/`,
   },
   marcas: {
     list: '/productos/marcas/',
+    detail: (id: string | number) => `/productos/marcas/${id}/`,
   },
   equipos: {
     list: '/productos/equipos/',
+    detail: (id: string | number) => `/productos/equipos/${id}/`,
   },
   proveedores: {
-    list: '/productos/proveedores/'
+    list: '/productos/proveedores/',
+    detail: (id: string | number) => `/productos/proveedores/${id}/`,
   },
   movimientos: {
     list: '/movimientos/movimientos/',
-    detail: (id: string | number) => `/movimientos/movimientos/${id}/`
+    detail: (id: string | number) => `/movimientos/movimientos/${id}/`,
   },
   sysvars: {
     list: '/system/configuracion/',
-    detail: (id: string | number) => `/system/configuracion/${id}/`
+    detail: (id: string | number) => `/system/configuracion/${id}/`,
   }
 } as const;

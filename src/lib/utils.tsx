@@ -3,6 +3,8 @@ import { twMerge } from 'tailwind-merge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+import { Badge } from '@/components/ui/badge';
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -23,6 +25,24 @@ export function humanTime(iso?: string) {
   } catch {
     return iso;
   }
+}
+
+export function statusFromStock(stock: number, min_stock: number) {
+  if (stock === 0) return <Badge variant='destructive'>Agotado</Badge>;
+  if (stock < min_stock)
+    return (
+      <Badge variant='default' className='bg-orange-500 dark:bg-orange-700'>
+        Bajo en stock
+      </Badge>
+    );
+  return (
+    <Badge
+      variant='outline'
+      className='border-green-500 text-green-600 dark:border-green-700 dark:text-green-400'
+    >
+      Disponible
+    </Badge>
+  );
 }
 
 export function plural(word: string, count: number) {
