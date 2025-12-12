@@ -39,6 +39,7 @@ export function AddProductDialog({
   trigger: React.ReactNode;
   producto?: ProductoResponse;
 }) {
+  const [open, setOpen] = useState(false);
   const { categorias, proveedores } = useCatalogs();
   const router = useRouter();
 
@@ -63,6 +64,7 @@ export function AddProductDialog({
         if (res.status === 200 || res.status === 201) {
           toast.success(`¡Producto ${producto ? 'editado' : 'registrado'} correctamente!`);
           if (!producto) form.reset();
+          setOpen(false);
           router.invalidate();
         }
       } catch (error: any) {
@@ -72,7 +74,7 @@ export function AddProductDialog({
   });
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className='max-w-full md:max-w-xl lg:max-w-2xl'>
@@ -128,12 +130,12 @@ export function AddProductDialog({
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <Field className='space-y-1' data-invalid={isInvalid}>
-                    <FieldLabel htmlFor='select-categoria'>Categoría</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Categoría</FieldLabel>
                     <Select
                       value={field.state.value ? String(field.state.value) : ''}
                       onValueChange={(v) => field.handleChange(Number(v))}
                     >
-                      <SelectTrigger id='select-categoria'>
+                      <SelectTrigger id={field.name}>
                         <SelectValue placeholder='Seleccione una categoría' />
                       </SelectTrigger>
                       <SelectContent>
@@ -153,9 +155,10 @@ export function AddProductDialog({
             <form.Field name='min_stock'>
               {(field) => (
                 <Field className='space-y-1'>
-                  <FieldLabel>Stock mínimo</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Stock mínimo</FieldLabel>
                   <InputGroup>
                     <InputGroupInput
+                      id={field.name}
                       value={field.state.value}
                       onChange={(e) => field.handleChange(Number(e.target.value))}
                     />
@@ -172,8 +175,9 @@ export function AddProductDialog({
             <form.Field name='sku'>
               {(field) => (
                 <Field className='space-y-1'>
-                  <FieldLabel>SKU</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>SKU</FieldLabel>
                   <Input
+                    id={field.name}
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
@@ -187,12 +191,12 @@ export function AddProductDialog({
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <Field className='space-y-1' data-invalid={isInvalid}>
-                    <FieldLabel htmlFor='select-proveedor'>Proveedor</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Proveedor</FieldLabel>
                     <Select
                       value={field.state.value ? String(field.state.value) : ''}
                       onValueChange={(v) => field.handleChange(Number(v) || null)}
                     >
-                      <SelectTrigger id='select-proveedor'>
+                      <SelectTrigger id={field.name}>
                         <SelectValue placeholder='Seleccione un proveedor' />
                       </SelectTrigger>
                       <SelectContent>

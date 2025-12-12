@@ -3,7 +3,6 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 import axios from 'axios';
 import { PackageOpen } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import * as z from 'zod';
 
 import { useTheme } from '@/components/theme-provider';
 import { Button } from '@/components/ui/button';
@@ -13,11 +12,6 @@ import { Spinner } from '@/components/ui/spinner';
 
 import { API_BASE, ENDPOINTS } from '@/api/endpoints';
 import { authActions } from '@/stores/authStore';
-
-export const loginSchema = z.object({
-  username: z.string(),
-  password: z.string().min(3),
-});
 
 export const Route = createFileRoute('/login')({
   validateSearch: ({ redirect }) => ({
@@ -57,7 +51,6 @@ function LoginForm() {
       username: '',
       password: '',
     },
-    validators: { onSubmit: loginSchema },
     onSubmit: async ({ value }) => {
       try {
         const res = await axios.post(ENDPOINTS.auth.login, value, {
@@ -98,6 +91,7 @@ function LoginForm() {
                   id={field.name}
                   type='text'
                   placeholder='usuario_07'
+                  autoComplete='username'
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value.toLocaleLowerCase())}
                   onBlur={field.handleBlur}
@@ -110,7 +104,7 @@ function LoginForm() {
             {(field) => (
               <Field>
                 <div className='flex items-center'>
-                  <FieldLabel htmlFor='password'>Contraseña</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Contraseña</FieldLabel>
                   <a href='#' className='ml-auto text-sm underline-offset-2 hover:underline'>
                     ¿Olvidó su contraseña?
                   </a>
@@ -120,6 +114,7 @@ function LoginForm() {
                   id={field.name}
                   type='password'
                   placeholder='********'
+                  autoComplete='current-password'
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}

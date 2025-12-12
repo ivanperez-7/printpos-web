@@ -34,8 +34,10 @@ export function AddMovementForm({
   trigger: React.ReactNode;
   movimiento?: MovimientoResponse;
 }) {
+  const [open, setOpen] = useState(false);
   const [scanCode, setScanCode] = useState('');
   const [searching, setSearching] = useState(false);
+
   const [productosMap, setProductosMap] = useState<Record<number, ProductoResponse>>({});
   const { users, clientes } = useCatalogs();
   const router = useRouter();
@@ -81,8 +83,16 @@ export function AddMovementForm({
       try {
         const res = await withAuth.post(ENDPOINTS.movimientos.list, value);
         if (res.status === 200 || res.status === 201) {
-          toast.success(`¡Movimiento ${movimiento ? 'editado' : 'registrado'} correctamente!`);
-          form.reset();
+          const mov = res.data as MovimientoResponse;
+          toast.success(`¡Movimiento ${movimiento ? 'editado' : 'registrado'} correctamente!`, {
+            action: {
+              label: 'Ver',
+              onClick: () => router.navigate({ to: '/movements/$id', params: { id: String(mov.id) } }),
+            },
+          });
+          if(!movimiento) form.reset();
+          setOpen(false);
+          setScanCode('');
           router.invalidate();
         }
       } catch (error: any) {
@@ -98,7 +108,7 @@ export function AddMovementForm({
   });
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className='max-w-full md:max-w-xl lg:max-w-2xl'>
@@ -146,6 +156,7 @@ export function AddMovementForm({
                     id='sku'
                     ref={scanInputRef}
                     value={scanCode}
+                    autoFocus
                     onChange={(e) => setScanCode(e.target.value)}
                     placeholder='Escanee el código...'
                   />
@@ -224,9 +235,9 @@ export function AddMovementForm({
               <form.Field name='detalle_entrada.numero_factura'>
                 {(field) => (
                   <Field>
-                    <FieldLabel htmlFor='numero-factura'>Número de factura</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Número de factura</FieldLabel>
                     <Input
-                      id='numero-factura'
+                      id={field.name}
                       value={field.state.value ?? ''}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
@@ -238,12 +249,12 @@ export function AddMovementForm({
               <form.Field name='detalle_entrada.recibido_por_id'>
                 {(field) => (
                   <Field>
-                    <FieldLabel htmlFor='select-usuario'>Recibido por</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Recibido por</FieldLabel>
                     <Select
                       value={field.state.value ? String(field.state.value) : ''}
                       onValueChange={(v) => field.handleChange(Number(v))}
                     >
-                      <SelectTrigger id='select-usuario'>
+                      <SelectTrigger id={field.name}>
                         <SelectValue placeholder='Seleccione un usuario' />
                       </SelectTrigger>
                       <SelectContent>
@@ -266,12 +277,12 @@ export function AddMovementForm({
               <form.Field name='detalle_salida.cliente_id'>
                 {(field) => (
                   <Field>
-                    <FieldLabel htmlFor='select-cliente'>Cliente</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Cliente</FieldLabel>
                     <Select
                       value={field.state.value ? String(field.state.value) : ''}
                       onValueChange={(v) => field.handleChange(Number(v))}
                     >
-                      <SelectTrigger id='select-cliente'>
+                      <SelectTrigger id={field.name}>
                         <SelectValue placeholder='Seleccione un cliente' />
                       </SelectTrigger>
                       <SelectContent>
@@ -289,9 +300,9 @@ export function AddMovementForm({
               <form.Field name='detalle_salida.tecnico'>
                 {(field) => (
                   <Field>
-                    <FieldLabel htmlFor='text-tecnico'>Técnico</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Técnico</FieldLabel>
                     <Input
-                      id='text-tecnico'
+                      id={field.name}
                       value={field.state.value || ''}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder='Nombre del técnico'

@@ -23,7 +23,7 @@ const ELLIPSIS = -1;
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  initialPage?: number,
+  initialPage?: number;
   transparent?: boolean;
   emptyComponent?: React.ReactNode;
 }

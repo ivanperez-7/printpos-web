@@ -129,10 +129,10 @@ export const Route = createFileRoute('/_app/catalogo/')({
     equipo: Number(search.equipo) || undefined,
   }),
   loader: fetchAllProductos,
-  component: RouteComponent,
+  component: ProductListPage,
 });
 
-function RouteComponent() {
+function ProductListPage() {
   const productos = Route.useLoaderData();
   const { text, categoria, marca, equipo } = Route.useSearch();
   const { categorias, marcas, equipos } = useCatalogs();

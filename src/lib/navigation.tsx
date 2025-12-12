@@ -52,7 +52,7 @@ const navigation: NavSection[] = [
     items: [
       {
         to: '/movements',
-        content: 'Registrar movimiento',
+        content: 'Ver movimientos',
         icon: <ArrowLeftRight />,
       },
     ],

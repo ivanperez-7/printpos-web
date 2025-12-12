@@ -127,11 +127,11 @@ const lotesColumns: ColumnDef<LoteResponse>[] = [
 ];
 
 export const Route = createFileRoute('/_app/catalogo/$id')({
-  component: RouteComponent,
+  component: ProductDetailPage,
   loader: async ({ params }) => await fetchProductoById(Number(params.id)),
 });
 
-function RouteComponent() {
+function ProductDetailPage() {
   const { producto, movimientos, lotes } = Route.useLoaderData();
   const { setContent } = useHeader();
   const router = useRouter();

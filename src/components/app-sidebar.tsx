@@ -11,12 +11,14 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { PackageOpen, Settings } from 'lucide-react';
+import { PackageOpen, Plus, Settings } from 'lucide-react';
 import * as React from 'react';
 import { CustomSidebarLink } from './custom-link';
 import { NavFooter } from './nav-footer';
 
 import navigation from '@/lib/navigation';
+import { Button } from './ui/button';
+import { AddMovementForm } from './add-movement-dialog';
 
 export function AppSidebar({
   onLogout,
@@ -31,8 +33,8 @@ export function AppSidebar({
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <div className='flex gap-2 mx-2 mt-2 items-center'>
-          <div className='bg-blue-700 text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+        <div className='flex gap-2 mx-2 my-2 items-center'>
+          <div className='flex aspect-square size-8 items-center justify-center rounded-lg'>
             <PackageOpen className='size-4' />
           </div>
           <div className='flex flex-col gap-1 leading-none text-sm'>
@@ -42,6 +44,19 @@ export function AppSidebar({
         </div>
       </SidebarHeader>
       <SidebarContent>
+        <SidebarGroup className='-mb-1.5'>
+          <SidebarGroupContent>
+            <SidebarMenuItem>
+              <AddMovementForm
+                trigger={
+                  <Button size='sm' className='w-full'>
+                    <Plus /> Registrar movimiento
+                  </Button>
+                }
+              />
+            </SidebarMenuItem>
+          </SidebarGroupContent>
+        </SidebarGroup>
         {navigation.map((section) => (
           <SidebarGroup key={section.title}>
             {section.title && <SidebarGroupLabel>{section.title}</SidebarGroupLabel>}

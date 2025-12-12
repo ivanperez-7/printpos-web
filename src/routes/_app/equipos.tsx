@@ -102,7 +102,7 @@ function RouteComponent() {
                           onClick={() =>
                             withAuth
                               .patch(ENDPOINTS.marcas.detail(marca.id), { activo: false })
-                              .then(reloadAll)
+                              .then(() => toast.success('Se eliminó la marca exitosamente'))
                           }
                         >
                           Eliminar

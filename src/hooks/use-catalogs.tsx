@@ -1,23 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 import { fetchCatalogs } from '@/api/catalogo';
-import type {
-  CategoriaResponse,
-  ClienteResponse,
-  EquipoResponse,
-  MarcaResponse,
-  ProveedorResponse,
-  UserResponse,
-} from '@/lib/types';
 
-type CatalogsProps = {
-  categorias: CategoriaResponse[];
-  marcas: MarcaResponse[];
-  equipos: EquipoResponse[];
-  proveedores: ProveedorResponse[];
-  users: UserResponse[];
-  clientes: ClienteResponse[];
-};
+type CatalogsProps = Awaited<ReturnType<typeof fetchCatalogs>>;
 
 const CatalogsContext = createContext<CatalogsProps | undefined>(undefined);
 
@@ -40,14 +25,7 @@ export function CatalogsProvider({ children }: React.PropsWithChildren) {
   useEffect(() => {
     const load = async () => {
       const data = await fetchCatalogs();
-      setCatalogs({
-        categorias: data.categorias,
-        marcas: data.marcas,
-        equipos: data.equipos,
-        proveedores: data.proveedores,
-        users: data.users,
-        clientes: data.clientes,
-      });
+      setCatalogs(data);
     };
     load();
   }, []);
