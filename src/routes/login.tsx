@@ -3,15 +3,21 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 import axios from 'axios';
 import { PackageOpen } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import z from 'zod';
 
 import { useTheme } from '@/components/theme-provider';
 import { Button } from '@/components/ui/button';
-import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 
 import { API_BASE, ENDPOINTS } from '@/api/endpoints';
 import { authActions } from '@/stores/authStore';
+
+const loginSchema = z.object({
+  username: z.string().min(3),
+  password: z.string().min(3),
+});
 
 export const Route = createFileRoute('/login')({
   validateSearch: ({ redirect }) => ({
@@ -51,6 +57,10 @@ function LoginForm() {
       username: '',
       password: '',
     },
+    validators: {
+      onSubmit: loginSchema,
+      onChange: loginSchema,
+    },
     onSubmit: async ({ value }) => {
       try {
         const res = await axios.post(ENDPOINTS.auth.login, value, {
@@ -67,7 +77,9 @@ function LoginForm() {
         if (redirect) router.history.push(redirect);
         else router.navigate({ to: '/dashboard' });
       } catch (error: any) {
-        toast.error(error.response ? error.response.data.detail : 'No se pudo conectar al servidor');
+        toast.error(
+          error.response ? error.response.data.detail || 'Error' : 'No se pudo conectar al servidor'
+        );
       }
     },
   });
@@ -80,65 +92,56 @@ function LoginForm() {
         form.handleSubmit();
       }}
     >
-      <FieldSet>
-        <FieldGroup>
-          <form.Field name='username'>
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Usuario</FieldLabel>
-                <Input
-                  tabIndex={1}
-                  id={field.name}
-                  type='text'
-                  placeholder='usuario_07'
-                  autoComplete='username'
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value.toLocaleLowerCase())}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
+      <FieldGroup>
+        <form.Field name='username'>
+          {(field) => (
+            <Field>
+              <FieldLabel htmlFor={field.name}>Usuario</FieldLabel>
+              <Input
+                tabIndex={1}
+                id={field.name}
+                type='text'
+                placeholder='usuario_07'
+                autoComplete='username'
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value.toLocaleLowerCase())}
+                onBlur={field.handleBlur}
+              />
+            </Field>
+          )}
+        </form.Field>
 
-          <form.Field name='password'>
-            {(field) => (
-              <Field>
-                <div className='flex items-center'>
-                  <FieldLabel htmlFor={field.name}>Contraseña</FieldLabel>
-                  <a href='#' className='ml-auto text-sm underline-offset-2 hover:underline'>
-                    ¿Olvidó su contraseña?
-                  </a>
-                </div>
-                <Input
-                  tabIndex={2}
-                  id={field.name}
-                  type='password'
-                  placeholder='********'
-                  autoComplete='current-password'
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
+        <form.Field name='password'>
+          {(field) => (
+            <Field>
+              <div className='flex items-center'>
+                <FieldLabel htmlFor={field.name}>Contraseña</FieldLabel>
+                <a href='#' className='ml-auto text-sm underline-offset-2 hover:underline'>
+                  ¿Olvidó su contraseña?
+                </a>
+              </div>
+              <Input
+                tabIndex={2}
+                id={field.name}
+                type='password'
+                placeholder='********'
+                autoComplete='current-password'
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Field>
+          )}
+        </form.Field>
 
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(isSubmitting) => (
-              <Field>
-                <Button
-                  tabIndex={3}
-                  type='submit'
-                  form='login-form'
-                  disabled={isSubmitting || !form.state.canSubmit}
-                >
-                  {isSubmitting && <Spinner />} Iniciar sesión
-                </Button>
-              </Field>
-            )}
-          </form.Subscribe>
-        </FieldGroup>
-      </FieldSet>
+        <form.Subscribe selector={(state) => [state.isSubmitting, state.canSubmit]}>
+          {([isSubmitting, canSubmit]) => (
+            <Button tabIndex={3} type='submit' form='login-form' disabled={isSubmitting || !canSubmit}>
+              {isSubmitting && <Spinner />} Iniciar sesión
+            </Button>
+          )}
+        </form.Subscribe>
+      </FieldGroup>
     </form>
   );
 }

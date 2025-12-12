@@ -126,30 +126,27 @@ export function AddProductDialog({
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             {/* Categoría */}
             <form.Field name='categoria_id'>
-              {(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field className='space-y-1' data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Categoría</FieldLabel>
-                    <Select
-                      value={field.state.value ? String(field.state.value) : ''}
-                      onValueChange={(v) => field.handleChange(Number(v))}
-                    >
-                      <SelectTrigger id={field.name}>
-                        <SelectValue placeholder='Seleccione una categoría' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categorias.map((cat) => (
-                          <SelectItem key={cat.id} value={String(cat.id)}>
-                            {cat.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                );
-              }}
+              {(field) => (
+                <Field className='space-y-1'>
+                  <FieldLabel htmlFor={field.name}>Categoría</FieldLabel>
+                  <Select
+                    value={field.state.value ? String(field.state.value) : ''}
+                    onValueChange={(v) => field.handleChange(Number(v))}
+                  >
+                    <SelectTrigger id={field.name}>
+                      <SelectValue placeholder='Seleccione una categoría' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categorias.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)}>
+                          {cat.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={field.state.meta.errors} />
+                </Field>
+              )}
             </form.Field>
 
             <form.Field name='min_stock'>

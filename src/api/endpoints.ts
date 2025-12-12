@@ -18,6 +18,7 @@ export const ENDPOINTS = {
     list: '/organizacion/users/',
     detail: (id: string | number) => `/organizacion/users/${id}/`,
   },
+  dashboard: '/productos/dashboard/',
   products: {
     list: '/productos/productos/',
     detail: (id: string | number) => `/productos/productos/${id}/`,
@@ -49,5 +50,5 @@ export const ENDPOINTS = {
   sysvars: {
     list: '/system/configuracion/',
     detail: (id: string | number) => `/system/configuracion/${id}/`,
-  }
+  },
 } as const;

@@ -15,6 +15,7 @@ import {
   YAxis,
 } from 'recharts';
 
+import { DataTable } from '@/components/data-table';
 import { useHeader } from '@/components/site-header';
 import {
   Breadcrumb,
@@ -22,19 +23,24 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { getDashboardData } from '@/api/dashboard';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp } from 'lucide-react';
+
+const lowStockColumns = [
+  {
+    accessorKey: 'descripcion',
+    header: 'Descripción',
+  },
+  {
+    accessorKey: 'categoria__nombre',
+    header: 'Categoría',
+  },
+  {
+    accessorKey: 'stock',
+    header: 'Stock',
+  },
+];
 
 export const Route = createFileRoute('/_app/dashboard')({
   component: RouteComponent,
@@ -63,28 +69,12 @@ export default function RouteComponent() {
 
   return (
     <div className='space-y-4'>
-      <h2 className='text-2xl'>Dashboard</h2>
-
       <div className='grid md:grid-cols-2 lg:grid-cols-4 gap-4'>
-        <Card className='@container/card'>
+        <Card>
           <CardHeader>
-            <CardDescription>Total Revenue</CardDescription>
-            <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-              $1,250.00
-            </CardTitle>
-            <CardAction>
-              <Badge variant='outline'>
-                <TrendingUp />
-                +12.5%
-              </Badge>
-            </CardAction>
+            <CardTitle>Productos</CardTitle>
           </CardHeader>
-          <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-            <div className='line-clamp-1 flex gap-2 font-medium'>
-              Trending up this month <TrendingUp className='size-4' />
-            </div>
-            <div className='text-muted-foreground'>Visitors for the last 6 months</div>
-          </CardFooter>
+          <CardContent className='text-3xl font-semibold'>{stats.productos}</CardContent>
         </Card>
 
         <Card>
@@ -112,12 +102,12 @@ export default function RouteComponent() {
       <div className='grid lg:grid-cols-2 gap-6'>
         <Card>
           <CardHeader>
-            <CardTitle>Productos por Categoría</CardTitle>
+            <CardTitle>Productos por categoría</CardTitle>
           </CardHeader>
           <CardContent className='h-[300px]'>
             <ResponsiveContainer width='100%' height='100%'>
               <BarChart data={categoriasChart}>
-                <XAxis dataKey='categoria' />
+                <XAxis dataKey='nombre' />
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey='cantidad' fill='#3b82f6' />
@@ -133,10 +123,10 @@ export default function RouteComponent() {
           <CardContent className='h-[300px]'>
             <ResponsiveContainer width='100%' height='100%'>
               <LineChart data={entradasChart}>
-                <XAxis dataKey='fecha' />
+                <XAxis dataKey='fecha_creado' />
                 <YAxis />
                 <Tooltip />
-                <Line type='monotone' dataKey='lotes' stroke='#10b981' strokeWidth={2} />
+                <Line type='monotone' dataKey='total' stroke='#10b981' strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -146,7 +136,7 @@ export default function RouteComponent() {
       <div className='grid lg:grid-cols-2 gap-6'>
         <Card>
           <CardHeader>
-            <CardTitle>Clientes por Tipo (Física vs Moral)</CardTitle>
+            <CardTitle>Clientes por tipo (física vs moral)</CardTitle>
           </CardHeader>
           <CardContent className='h-[300px] flex justify-center'>
             <ResponsiveContainer width='100%' height='100%'>
@@ -165,27 +155,10 @@ export default function RouteComponent() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Productos con Bajo Inventario</CardTitle>
+            <CardTitle>Productos con bajo inventario</CardTitle>
           </CardHeader>
           <CardContent>
-            <table className='w-full text-sm'>
-              <thead className='text-left border-b'>
-                <tr>
-                  <th className='py-2'>Producto</th>
-                  <th>Categoría</th>
-                  <th>Stock</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(productosBajos as any[]).map((p, i) => ( // ! fix any
-                  <tr key={i} className='border-b last:border-none'>
-                    <td className='py-2'>{p.nombre}</td>
-                    <td>{p.categoria}</td>
-                    <td className='font-semibold text-red-500'>{p.stock}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable transparent data={productosBajos} columns={lowStockColumns} />
           </CardContent>
         </Card>
       </div>

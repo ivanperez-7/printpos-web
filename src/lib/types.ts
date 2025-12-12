@@ -73,7 +73,7 @@ export const productoCreateSchema = z.object({
     .max(50, 'Máximo 50 caracteres'),
   descripcion: z.string().min(1, 'La descripción es obligatoria'),
 
-  categoria_id: z.number(),
+  categoria_id: z.number('La categoría es obligatoria'),
   equipos_id: z.array(z.number()),
   min_stock: z.number(),
 
