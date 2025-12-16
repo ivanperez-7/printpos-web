@@ -13,7 +13,7 @@ export type DashboardData = {
   };
   categoriasChart: Array<{ nombre: string; cantidad: number }>;
   entradasChart: Array<{ fecha_creado: string; total: number }>;
-  productosBajos: Array<{descripcion: string; categoria__nombre: string; stock: number }>;
+  productosBajos: Array<{ descripcion: string; categoria__nombre: string; stock: number }>;
   clientesChart: any[];
 };
 

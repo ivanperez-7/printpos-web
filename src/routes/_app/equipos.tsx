@@ -23,10 +23,10 @@ import { withAuth } from '@/lib/auth';
 import { type MarcaResponse } from '@/lib/types';
 
 export const Route = createFileRoute('/_app/equipos')({
-  component: RouteComponent,
+  component: EquiposPage,
 });
 
-function RouteComponent() {
+function EquiposPage() {
   const { marcas, equipos } = useCatalogs();
   const [selectedMarca, setSelectedMarca] = useState<number | null>(null);
   const [marcaParaEditar, setMarcaParaEditar] = useState<MarcaResponse | null>(null);
@@ -34,7 +34,7 @@ function RouteComponent() {
 
   const equiposFiltrados = selectedMarca ? equipos.filter((e) => e.marca.id === selectedMarca) : [];
 
-  const reloadAll = () => {};
+  const reloadAll = () => { };
 
   return (
     <div className='space-y-4'>

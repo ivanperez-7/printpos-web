@@ -50,10 +50,10 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
 
 export const Route = createFileRoute('/_app/movements/$id')({
   loader: async ({ params }) => await fetchMovimientoById(Number(params.id)),
-  component: RouteComponent,
+  component: MovementDetailPage
 });
 
-function RouteComponent() {
+function MovementDetailPage() {
   const movimiento = Route.useLoaderData();
   const { setContent } = useHeader();
   const router = useRouter();

@@ -30,8 +30,8 @@ import type { MovimientoResponse } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
 
 export const Route = createFileRoute('/_app/movements/')({
-  component: RouteComponent,
   loader: fetchMovimientos,
+  component: MovementsListPage,
 });
 
 const columns: ColumnDef<MovimientoResponse>[] = [
@@ -122,7 +122,7 @@ const columns: ColumnDef<MovimientoResponse>[] = [
   },
 ];
 
-function RouteComponent() {
+function MovementsListPage() {
   const movimientos = Route.useLoaderData();
   const { setContent } = useHeader();
 

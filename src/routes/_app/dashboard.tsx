@@ -43,11 +43,11 @@ const lowStockColumns = [
 ];
 
 export const Route = createFileRoute('/_app/dashboard')({
-  component: RouteComponent,
+  component: DashboardPage,
   loader: getDashboardData,
 });
 
-export default function RouteComponent() {
+export default function DashboardPage() {
   const { stats, categoriasChart, entradasChart, productosBajos, clientesChart } =
     Route.useLoaderData();
   const { setContent } = useHeader();

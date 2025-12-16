@@ -15,10 +15,10 @@ import { authActions } from '@/stores/authStore';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async () => await authGuard(),
-  component: RouteComponent,
+  component: AppLayout,
 });
 
-function RouteComponent() {
+function AppLayout() {
   const [loadingLogout, setLoadingLogout] = useState(false);
   const { theme } = useTheme();
   const router = useRouter();

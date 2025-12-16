@@ -15,10 +15,10 @@ import type { VariableSistemaResponse } from '@/lib/types';
 
 export const Route = createFileRoute('/_app/settings')({
   loader: fetchAllSysvars,
-  component: RouteComponent,
+  component: SettingsPage,
 });
 
-function RouteComponent() {
+function SettingsPage() {
   const sysvars = Route.useLoaderData();
 
   return (
