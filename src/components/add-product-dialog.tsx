@@ -184,31 +184,29 @@ export function AddProductDialog({
             </form.Field>
 
             <form.Field name='proveedor_id'>
-              {(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field className='space-y-1' data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Proveedor</FieldLabel>
-                    <Select
-                      value={field.state.value ? String(field.state.value) : ''}
-                      onValueChange={(v) => field.handleChange(Number(v) || null)}
-                    >
-                      <SelectTrigger id={field.name}>
-                        <SelectValue placeholder='Seleccione un proveedor' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='0'>---------</SelectItem>
-                        {proveedores.map((cat) => (
-                          <SelectItem key={cat.id} value={String(cat.id)}>
-                            {cat.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                );
-              }}
+              {(field) => (
+                <Field className='space-y-1'>
+                  <FieldLabel htmlFor={field.name}>Proveedor</FieldLabel>
+                  <Select
+                    value={field.state.value ? String(field.state.value) : ''}
+                    onValueChange={(v) => field.handleChange(Number(v) || null)}
+                  >
+                    <SelectTrigger id={field.name}>
+                      <SelectValue placeholder='Seleccione un proveedor' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='0'>---------</SelectItem>
+                      {proveedores.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)}>
+                          {cat.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={field.state.meta.errors} />
+                </Field>
+              )
+              }
             </form.Field>
           </div>
 
