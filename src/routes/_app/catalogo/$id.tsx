@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
+import { createFileRoute, ErrorComponent, Link, useRouter } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
   ArrowDownToDot,
@@ -129,6 +129,7 @@ const lotesColumns: ColumnDef<LoteResponse>[] = [
 export const Route = createFileRoute('/_app/catalogo/$id')({
   component: ProductDetailPage,
   loader: async ({ params }) => await fetchProductoById(Number(params.id)),
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 function ProductDetailPage() {

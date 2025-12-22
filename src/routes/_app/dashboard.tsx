@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, ErrorComponent } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import {
   Bar,
@@ -45,6 +45,7 @@ const lowStockColumns = [
 export const Route = createFileRoute('/_app/dashboard')({
   component: DashboardPage,
   loader: getDashboardData,
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 export default function DashboardPage() {

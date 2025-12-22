@@ -1,7 +1,6 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { EllipsisVertical, Plus } from 'lucide-react';
+import { createFileRoute, ErrorComponent, useRouter } from '@tanstack/react-router';
+import { EllipsisVertical, Plus, X } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,28 +12,25 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Item, ItemActions, ItemContent, ItemTitle } from '@/components/ui/item';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Spinner } from '@/components/ui/spinner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { ENDPOINTS } from '@/api/endpoints';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import { type MarcaResponse } from '@/lib/types';
 
 export const Route = createFileRoute('/_app/equipos')({
   component: EquiposPage,
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 function EquiposPage() {
   const { marcas, equipos } = useCatalogs();
   const [selectedMarca, setSelectedMarca] = useState<number | null>(null);
-  const [marcaParaEditar, setMarcaParaEditar] = useState<MarcaResponse | null>(null);
-  const [openMarcaPopover, setOpenMarcaPopover] = useState(false);
+  const router = useRouter();
 
   const equiposFiltrados = selectedMarca ? equipos.filter((e) => e.marca.id === selectedMarca) : [];
 
-  const reloadAll = () => { };
+  const reloadAll = () => {};
 
   return (
     <div className='space-y-4'>
@@ -45,24 +41,6 @@ function EquiposPage() {
         <Card className='h-fit'>
           <CardHeader className='flex justify-between items-center'>
             <CardTitle>Marcas</CardTitle>
-            <Popover open={openMarcaPopover} onOpenChange={setOpenMarcaPopover}>
-              <PopoverTrigger asChild>
-                <Button
-                  size='sm'
-                  onClick={() => {
-                    setMarcaParaEditar(null);
-                    setOpenMarcaPopover(true);
-                  }}
-                >
-                  <Plus /> Crear marca
-                </Button>
-              </PopoverTrigger>
-
-              <MarcaPopover
-                marca={marcaParaEditar ?? undefined}
-                onSaved={() => setOpenMarcaPopover(false)}
-              />
-            </Popover>
           </CardHeader>
 
           <CardContent>
@@ -79,36 +57,9 @@ function EquiposPage() {
                   </ItemContent>
 
                   <ItemActions>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' size='icon-sm'>
-                          <EllipsisVertical />
-                        </Button>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setMarcaParaEditar(marca);
-                            setOpenMarcaPopover(true);
-                          }}
-                          onSelect={(e) => e.preventDefault()}
-                        >
-                          Editar
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem
-                          variant='destructive'
-                          onClick={() =>
-                            withAuth
-                              .patch(ENDPOINTS.marcas.detail(marca.id), { activo: false })
-                              .then(() => toast.success('Se eliminó la marca exitosamente'))
-                          }
-                        >
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button variant='ghost' size='icon-sm'>
+                      <X />
+                    </Button>
                   </ItemActions>
                 </Item>
               ))}
@@ -126,9 +77,16 @@ function EquiposPage() {
         <Card>
           <CardHeader className='flex justify-between items-center'>
             <CardTitle>
-              {selectedMarca
-                ? `Equipos de ${marcas.find((m) => m.id === selectedMarca)?.nombre}`
-                : 'Selecciona una marca'}
+              <Input
+                ghost
+                defaultValue={marcas.find((m) => m.id === selectedMarca)?.nombre}
+                onBlur={(e) =>
+                  selectedMarca &&
+                  withAuth
+                    .patch(ENDPOINTS.marcas.detail(selectedMarca), { nombre: e.target.value })
+                    .then(() => router.invalidate())
+                }
+              />
             </CardTitle>
 
             {selectedMarca && (
@@ -198,38 +156,5 @@ function EquiposPage() {
         </Card>
       </div>
     </div>
-  );
-}
-
-export function MarcaPopover({ marca, onSaved }: { marca?: MarcaResponse; onSaved: () => void }) {
-  const [nombre, setNombre] = useState(marca?.nombre || '');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      if (marca) await withAuth.patch(ENDPOINTS.marcas.detail(marca.id), { nombre });
-      else await withAuth.post(ENDPOINTS.marcas.list, { nombre });
-
-      router.invalidate();
-      onSaved();
-    } catch (error: any) {
-      toast.error(error.response?.data?.nombre || error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <PopoverContent className='w-80 space-y-4'>
-      <h4 className='leading-none font-medium'>{marca ? 'Editar esta marca' : 'Crear nueva marca'}</h4>
-
-      <Input placeholder='Canon' defaultValue={nombre} onChange={(e) => setNombre(e.target.value)} />
-
-      <Button className='w-full' disabled={loading} onClick={handleSave}>
-        {loading && <Spinner />} Guardar
-      </Button>
-    </PopoverContent>
   );
 }

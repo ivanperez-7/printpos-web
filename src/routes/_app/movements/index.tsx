@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, ErrorComponent, Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { CheckCircle, EllipsisVertical, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -32,6 +32,7 @@ import { humanDate, humanTime } from '@/lib/utils';
 export const Route = createFileRoute('/_app/movements/')({
   loader: fetchMovimientos,
   component: MovementsListPage,
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 const columns: ColumnDef<MovimientoResponse>[] = [

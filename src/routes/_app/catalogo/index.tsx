@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, ErrorComponent, Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { EllipsisVertical, FunnelX, Package2, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -30,12 +30,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 // OTRAS UTILIDADES
 import { fetchAllProductos } from '@/api/catalogo';
+import { ProductCard } from '@/components/product-card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { ProductoResponse } from '@/lib/types';
 import { plural, statusFromStock } from '@/lib/utils';
-import { ProductCard } from '@/components/product-card';
 
 const columns: ColumnDef<ProductoResponse>[] = [
   {
@@ -130,7 +130,8 @@ export const Route = createFileRoute('/_app/catalogo/')({
   }),
   loader: fetchAllProductos,
   component: ProductListPage,
-  staleTime: 30_000
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
+  staleTime: 30_000,
 });
 
 function ProductListPage() {

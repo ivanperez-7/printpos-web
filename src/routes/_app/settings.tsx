@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, ErrorComponent } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -16,6 +16,7 @@ import type { VariableSistemaResponse } from '@/lib/types';
 export const Route = createFileRoute('/_app/settings')({
   loader: fetchAllSysvars,
   component: SettingsPage,
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 function SettingsPage() {

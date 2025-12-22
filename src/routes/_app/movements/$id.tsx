@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
+import { createFileRoute, ErrorComponent, Link, useRouter } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowLeft, CheckCircle, PackageOpen, XCircle } from 'lucide-react';
 import { useEffect } from 'react';
@@ -50,7 +50,8 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
 
 export const Route = createFileRoute('/_app/movements/$id')({
   loader: async ({ params }) => await fetchMovimientoById(Number(params.id)),
-  component: MovementDetailPage
+  component: MovementDetailPage,
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 function MovementDetailPage() {
