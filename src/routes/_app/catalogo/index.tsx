@@ -130,6 +130,7 @@ export const Route = createFileRoute('/_app/catalogo/')({
   }),
   loader: fetchAllProductos,
   component: ProductListPage,
+  staleTime: 30_000
 });
 
 function ProductListPage() {
