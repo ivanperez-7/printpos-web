@@ -4,7 +4,9 @@ import { fetchCatalogs } from '@/api/catalogo';
 
 type CatalogsProps = Awaited<ReturnType<typeof fetchCatalogs>>;
 
-const CatalogsContext = createContext<CatalogsProps | undefined>(undefined);
+const CatalogsContext = createContext<
+  (CatalogsProps & { reloadCatalogs: () => Promise<void> }) | undefined
+>(undefined);
 
 export function useCatalogs() {
   const ctx = useContext(CatalogsContext);
@@ -22,13 +24,18 @@ export function CatalogsProvider({ children }: React.PropsWithChildren) {
     clientes: [],
   });
 
+  const load = async () => {
+    const data = await fetchCatalogs();
+    setCatalogs(data);
+  };
+
   useEffect(() => {
-    const load = async () => {
-      const data = await fetchCatalogs();
-      setCatalogs(data);
-    };
     load();
   }, []);
 
-  return <CatalogsContext.Provider value={catalogs}>{children}</CatalogsContext.Provider>;
+  return (
+    <CatalogsContext.Provider value={{ ...catalogs, reloadCatalogs: load }}>
+      {children}
+    </CatalogsContext.Provider>
+  );
 }

@@ -5,9 +5,7 @@ import { es } from 'date-fns/locale';
 
 import { Badge } from '@/components/ui/badge';
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
 export function humanDate(iso?: string) {
   if (!iso) return '';

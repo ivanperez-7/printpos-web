@@ -43,12 +43,12 @@ const lowStockColumns = [
 ];
 
 export const Route = createFileRoute('/_app/dashboard')({
-  component: DashboardPage,
   loader: getDashboardData,
+  component: DashboardPage,
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
-export default function DashboardPage() {
+function DashboardPage() {
   const { stats, categoriasChart, entradasChart, productosBajos, clientesChart } =
     Route.useLoaderData();
   const { setContent } = useHeader();

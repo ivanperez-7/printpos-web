@@ -34,7 +34,12 @@ import { Separator } from '@/components/ui/separator';
 
 // OTRAS UTILIDADES
 import { fetchProductoById } from '@/api/catalogo';
-import type { LoteResponse, MovimientoResponse } from '@/lib/types';
+import type {
+  LoteResponse,
+  MovimientoResponse,
+  ProductoResponse,
+  ProveedorResponse,
+} from '@/lib/types';
 import { humanDate, humanTime, plural } from '@/lib/utils';
 
 const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: number }>[] = [
@@ -127,8 +132,8 @@ const lotesColumns: ColumnDef<LoteResponse>[] = [
 ];
 
 export const Route = createFileRoute('/_app/catalogo/$id')({
+  loader: async ({ params }) => await fetchProductoById(params.id),
   component: ProductDetailPage,
-  loader: async ({ params }) => await fetchProductoById(Number(params.id)),
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
@@ -188,165 +193,175 @@ function ProductDetailPage() {
         </div>
       </header>
 
-      {/* Product Information Card */}
-      <Card className='my-6'>
-        <CardHeader>
-          <CardTitle className='text-lg'>Información General</CardTitle>
-          <Separator />
-        </CardHeader>
-        <CardContent>
-          <div className='grid grid-cols-2 gap-8'>
-            <div className='space-y-4'>
-              <div>
-                <p className='text-sm text-muted-foreground'>Código</p>
-                <p className='font-semibold'>{producto.codigo_interno}</p>
-              </div>
-              <div>
-                <p className='text-sm text-muted-foreground'>Categoría</p>
-                <p>{producto.categoria?.nombre}</p>
-              </div>
-              <div>
-                <p className='text-sm text-muted-foreground'>SKU</p>
-                <p>{producto.sku}</p>
-              </div>
-            </div>
-            <div className='space-y-4'>
-              <div>
-                <p className='text-sm text-muted-foreground'>Existencia</p>
-                <p>{plural('unidad', producto.cantidad_disponible)}</p>
-              </div>
-              <div>
-                <p className='text-sm text-muted-foreground '>Equipos compatibles</p>
-                {producto.equipos?.length > 0 ? (
-                  <div className='flex flex-wrap gap-2 mt-2'>
-                    {producto.equipos.map((eq) => (
-                      <Badge key={eq.id} variant='secondary' className='px-3 py-1 gap-2'>
-                        {eq.nombre}{' '}
-                        <span className='text-xs text-muted-foreground'>{eq.marca.nombre}</span>
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p>N/A</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {producto.proveedor && (
-        <Card className='my-6'>
-          <CardHeader>
-            <CardTitle className='text-lg'>Proveedor de este producto</CardTitle>
-            <Separator />
-          </CardHeader>
-          <CardContent>
-            <div className='grid grid-cols-2 gap-8'>
-              <div className='space-y-4'>
-                <div>
-                  <p className='text-sm text-muted-foreground'>Razón social</p>
-                  <p className='font-semibold'>{producto.proveedor.nombre}</p>
-                </div>
-                <div>
-                  <p className='text-sm text-muted-foreground'>Nombre de contacto</p>
-                  <p className='font-semibold'>{producto.proveedor.nombre_contacto}</p>
-                </div>
-              </div>
-              <div className='space-y-4'>
-                <div>
-                  <p className='text-sm text-muted-foreground'>Teléfono</p>
-                  <p className='font-semibold'>{producto.proveedor.telefono || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className='text-sm text-muted-foreground'>Correo</p>
-                  <a className='font-semibold' href={'mailto:' + producto.proveedor.correo}>
-                    {producto.proveedor.correo || 'N/A'}
-                  </a>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Tabla de lotes */}
-      <Card className='mb-6'>
-        <CardHeader className='grid items-center md:flex md:justify-between'>
-          <CardTitle className='text-lg'>Lotes en el almacén</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={lotes}
-            columns={lotesColumns}
-            transparent
-            emptyComponent={
-              <Empty className='my-0 py-0'>
-                <EmptyHeader>
-                  <EmptyMedia variant='icon'>
-                    <PackageOpen />
-                  </EmptyMedia>
-                  <EmptyTitle>No se ha registrado ningún lote</EmptyTitle>
-                  <EmptyDescription>
-                    Comienza registrando un lote por medio de una entrada
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            }
-          />
-        </CardContent>
-      </Card>
-
-      <Card className='mb-6'>
-        <CardHeader className='grid items-center md:flex md:justify-between'>
-          <CardTitle className='text-lg'>Últimos movimientos</CardTitle>
-          <div className='grid md:flex gap-3'>
-            <AddMovementForm
-              trigger={
-                <Button size='sm'>
-                  <ArrowDownToDot />
-                  Registrar entrada
-                </Button>
-              }
-            />
-            <AddMovementForm
-              trigger={
-                <Button variant='secondary' size='sm'>
-                  <ArrowUpFromDot />
-                  Registrar salida
-                </Button>
-              }
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            // hacemos básicamente un cross product de cada movimiento con su array de items
-            data={movimientos.flatMap((mov) =>
-              mov.items.map((item) => ({
-                cantidad: item.cantidad,
-                producto_id: item.producto.id,
-                ...mov,
-              }))
-            )}
-            columns={columns}
-            transparent
-            emptyComponent={
-              <Empty className='my-0 py-0'>
-                <EmptyHeader>
-                  <EmptyMedia variant='icon'>
-                    <ArrowLeftRight />
-                  </EmptyMedia>
-                  <EmptyTitle>No se ha hecho ningún movimiento</EmptyTitle>
-                  <EmptyDescription>
-                    Comienza registrando una entrada o salida de este producto
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            }
-          />
-        </CardContent>
-      </Card>
+      <ProductInfoCard producto={producto} />
+      <ProductProviderCard proveedor={producto.proveedor} />
+      <ProductBatchesCard lotes={lotes} />
+      <ProductMovementsCard movimientos={movimientos} />
     </>
   );
 }
+
+const ProductInfoCard = ({ producto }: { producto: ProductoResponse }) => (
+  <Card className='my-6'>
+    <CardHeader>
+      <CardTitle className='text-lg'>Información General</CardTitle>
+      <Separator />
+    </CardHeader>
+    <CardContent>
+      <div className='grid grid-cols-2 gap-8'>
+        <div className='space-y-4'>
+          <div>
+            <p className='text-sm text-muted-foreground'>Código</p>
+            <p className='font-semibold'>{producto.codigo_interno}</p>
+          </div>
+          <div>
+            <p className='text-sm text-muted-foreground'>Categoría</p>
+            <p>{producto.categoria?.nombre}</p>
+          </div>
+          <div>
+            <p className='text-sm text-muted-foreground'>SKU</p>
+            <p>{producto.sku}</p>
+          </div>
+        </div>
+        <div className='space-y-4'>
+          <div>
+            <p className='text-sm text-muted-foreground'>Existencia</p>
+            <p>{plural('unidad', producto.cantidad_disponible)}</p>
+          </div>
+          <div>
+            <p className='text-sm text-muted-foreground '>Equipos compatibles</p>
+            {producto.equipos?.length > 0 ? (
+              <div className='flex flex-wrap gap-2 mt-2'>
+                {producto.equipos.map((eq) => (
+                  <Badge key={eq.id} variant='secondary' className='px-3 py-1 gap-2'>
+                    {eq.nombre}{' '}
+                    <span className='text-xs text-muted-foreground'>{eq.marca.nombre}</span>
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p>N/A</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const ProductProviderCard = ({ proveedor }: { proveedor?: ProveedorResponse }) =>
+  proveedor && (
+    <Card className='my-6'>
+      <CardHeader>
+        <CardTitle className='text-lg'>Proveedor de este producto</CardTitle>
+        <Separator />
+      </CardHeader>
+      <CardContent>
+        <div className='grid grid-cols-2 gap-8'>
+          <div className='space-y-4'>
+            <div>
+              <p className='text-sm text-muted-foreground'>Razón social</p>
+              <p className='font-semibold'>{proveedor.nombre}</p>
+            </div>
+            <div>
+              <p className='text-sm text-muted-foreground'>Nombre de contacto</p>
+              <p className='font-semibold'>{proveedor.nombre_contacto}</p>
+            </div>
+          </div>
+          <div className='space-y-4'>
+            <div>
+              <p className='text-sm text-muted-foreground'>Teléfono</p>
+              <p className='font-semibold'>{proveedor.telefono || 'N/A'}</p>
+            </div>
+            <div>
+              <p className='text-sm text-muted-foreground'>Correo</p>
+              <a className='font-semibold' href={'mailto:' + proveedor.correo}>
+                {proveedor.correo || 'N/A'}
+              </a>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+const ProductBatchesCard = ({ lotes }: { lotes: LoteResponse[] }) => (
+  <Card className='mb-6'>
+    <CardHeader className='grid items-center md:flex md:justify-between'>
+      <CardTitle className='text-lg'>Lotes en el almacén</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <DataTable
+        data={lotes}
+        columns={lotesColumns}
+        transparent
+        emptyComponent={
+          <Empty className='my-0 py-0'>
+            <EmptyHeader>
+              <EmptyMedia variant='icon'>
+                <PackageOpen />
+              </EmptyMedia>
+              <EmptyTitle>No se ha registrado ningún lote</EmptyTitle>
+              <EmptyDescription>
+                Comienza registrando un lote por medio de una entrada
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        }
+      />
+    </CardContent>
+  </Card>
+);
+
+const ProductMovementsCard = ({ movimientos }: { movimientos: MovimientoResponse[] }) => (
+  <Card className='mb-6'>
+    <CardHeader className='grid items-center md:flex md:justify-between'>
+      <CardTitle className='text-lg'>Últimos movimientos</CardTitle>
+      <div className='grid md:flex gap-3'>
+        <AddMovementForm
+          trigger={
+            <Button size='sm'>
+              <ArrowDownToDot />
+              Registrar entrada
+            </Button>
+          }
+        />
+        <AddMovementForm
+          trigger={
+            <Button variant='secondary' size='sm'>
+              <ArrowUpFromDot />
+              Registrar salida
+            </Button>
+          }
+        />
+      </div>
+    </CardHeader>
+    <CardContent>
+      <DataTable
+        // hacemos básicamente un cross product de cada movimiento con su array de items
+        data={movimientos.flatMap((mov) =>
+          mov.items.map((item) => ({
+            cantidad: item.cantidad,
+            producto_id: item.producto.id,
+            ...mov,
+          }))
+        )}
+        columns={columns}
+        transparent
+        emptyComponent={
+          <Empty className='my-0 py-0'>
+            <EmptyHeader>
+              <EmptyMedia variant='icon'>
+                <ArrowLeftRight />
+              </EmptyMedia>
+              <EmptyTitle>No se ha hecho ningún movimiento</EmptyTitle>
+              <EmptyDescription>
+                Comienza registrando una entrada o salida de este producto
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        }
+      />
+    </CardContent>
+  </Card>
+);

@@ -1,8 +1,6 @@
-import { useForm } from '@tanstack/react-form';
 import { useRouter } from '@tanstack/react-router';
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import type z from 'zod';
 
 // COMPONENTES DEL PROYECTO
 import { Badge } from './ui/badge';
@@ -27,9 +25,10 @@ import { Spinner } from './ui/spinner';
 
 // OTRAS UTILIDADES
 import { ENDPOINTS } from '@/api/endpoints';
+import { useAppForm } from '@/hooks/use-app-form';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import { productoCreateSchema, type ProductoResponse } from '@/lib/types';
+import { productoCreateSchema, type ProductoCreate, type ProductoResponse } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export function AddProductDialog({
@@ -43,7 +42,7 @@ export function AddProductDialog({
   const { categorias, proveedores } = useCatalogs();
   const router = useRouter();
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       codigo_interno: producto?.codigo_interno ?? '',
       descripcion: producto?.descripcion ?? '',
@@ -53,7 +52,7 @@ export function AddProductDialog({
       sku: producto?.sku ?? '',
       min_stock: producto?.min_stock ?? 0,
       status: producto?.status ?? 'activo',
-    } as z.input<typeof productoCreateSchema>,
+    } as ProductoCreate,
     validators: { onSubmit: productoCreateSchema },
     onSubmit: async ({ value }) => {
       try {
@@ -93,33 +92,13 @@ export function AddProductDialog({
         >
           {/* Datos generales */}
           <div className='space-y-4'>
-            <form.Field name='codigo_interno'>
-              {(field) => (
-                <Field className='space-y-1'>
-                  <FieldLabel htmlFor={field.name}>Código interno</FieldLabel>
-                  <Input
-                    id={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                  <FieldError errors={field.state.meta.errors} />
-                </Field>
-              )}
-            </form.Field>
+            <form.AppField name='codigo_interno'>
+              {(field) => <field.InputField label='Código interno' />}
+            </form.AppField>
 
-            <form.Field name='descripcion'>
-              {(field) => (
-                <Field className='space-y-1'>
-                  <FieldLabel htmlFor={field.name}>Descripción</FieldLabel>
-                  <Input
-                    id={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                  <FieldError errors={field.state.meta.errors} />
-                </Field>
-              )}
-            </form.Field>
+            <form.AppField name='descripcion'>
+              {(field) => <field.InputField label='Descripción' />}
+            </form.AppField>
           </div>
 
           {/* Marca / Categoría */}
@@ -169,19 +148,7 @@ export function AddProductDialog({
 
           {/* Cantidad / Stock */}
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <form.Field name='sku'>
-              {(field) => (
-                <Field className='space-y-1'>
-                  <FieldLabel htmlFor={field.name}>SKU</FieldLabel>
-                  <Input
-                    id={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                  <FieldError errors={field.state.meta.errors} />
-                </Field>
-              )}
-            </form.Field>
+            <form.AppField name='sku'>{(field) => <field.InputField label='SKU' />}</form.AppField>
 
             <form.Field name='proveedor_id'>
               {(field) => (
@@ -189,7 +156,7 @@ export function AddProductDialog({
                   <FieldLabel htmlFor={field.name}>Proveedor</FieldLabel>
                   <Select
                     value={field.state.value ? String(field.state.value) : ''}
-                    onValueChange={(v) => field.handleChange(Number(v) || null)}
+                    onValueChange={(v) => field.handleChange(Number(v))}
                   >
                     <SelectTrigger id={field.name}>
                       <SelectValue placeholder='Seleccione un proveedor' />
@@ -205,8 +172,7 @@ export function AddProductDialog({
                   </Select>
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
-              )
-              }
+              )}
             </form.Field>
           </div>
 
@@ -231,12 +197,7 @@ export function AddProductDialog({
             </DialogClose>
             <form.Subscribe selector={(state) => state.isSubmitting}>
               {(isSubmitting) => (
-                <Button
-                  type='submit'
-                  disabled={isSubmitting}
-                  className='w-full md:w-auto'
-                  form='product-form'
-                >
+                <Button type='submit' disabled={isSubmitting} className='w-full md:w-auto'>
                   {isSubmitting && <Spinner />} Guardar
                 </Button>
               )}

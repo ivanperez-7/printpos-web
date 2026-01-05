@@ -77,10 +77,10 @@ export const productoCreateSchema = z.object({
   equipos_id: z.array(z.number()),
   min_stock: z.number(),
 
-  proveedor_id: z.number().nullable().optional(),
+  proveedor_id: z.number().optional(),
   sku: z.string().min(1, 'El SKU es obligatorio'),
 
-  status: z.enum(['activo', 'inactivo', 'descontinuado']).default('activo'),
+  status: z.enum(['activo', 'inactivo', 'descontinuado']),
 });
 
 export const productoResponseSchema = productoCreateSchema.extend({
@@ -89,7 +89,7 @@ export const productoResponseSchema = productoCreateSchema.extend({
 
   categoria: categoriaResponseSchema,
   equipos: z.array(equipoResponseSchema),
-  proveedor: proveedorResponseSchema.nullable(),
+  proveedor: proveedorResponseSchema.optional(),
 
   creado: z.iso.datetime(),
   actualizado: z.iso.datetime(),
@@ -177,7 +177,7 @@ export type DetalleEntradaResponse = z.infer<typeof detalleEntradaResponseSchema
 export const detalleSalidaCreateSchema = z.object({
   cliente_id: z.number(),
   tecnico: z.string().nullable().optional(),
-  requiere_aprobacion: z.boolean().default(true),
+  requiere_aprobacion: z.boolean(),
 });
 export const detalleSalidaResponseSchema = detalleSalidaCreateSchema.extend({
   id: z.number(),

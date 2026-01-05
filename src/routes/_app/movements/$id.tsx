@@ -49,7 +49,7 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
 ];
 
 export const Route = createFileRoute('/_app/movements/$id')({
-  loader: async ({ params }) => await fetchMovimientoById(Number(params.id)),
+  loader: async ({ params }) => await fetchMovimientoById(params.id),
   component: MovementDetailPage,
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });

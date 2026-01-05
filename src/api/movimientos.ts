@@ -13,7 +13,7 @@ export const fetchMovimientos = async () =>
       return [];
     });
 
-export const fetchMovimientoById = async (id: number | string) =>
+export const fetchMovimientoById = async (id: string | number) =>
   await withAuth
     .get(ENDPOINTS.movimientos.detail(id))
     .then((res) => res.data as MovimientoResponse)

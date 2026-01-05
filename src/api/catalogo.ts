@@ -23,7 +23,7 @@ export const fetchAllProductos = async () =>
       throw new Error(error.message);
     });
 
-export const fetchProductoById = async (id: number) => {
+export const fetchProductoById = async (id: string | number) => {
   const producto = await withAuth
     .get(ENDPOINTS.products.detail(id))
     .then((res) => res.data as ProductoResponse)
@@ -36,7 +36,7 @@ export const fetchProductoById = async (id: number) => {
     .then((res) => res.data as MovimientoResponse[])
     .catch((error) => {
       toast.error(error.message);
-      return [];
+      return [] as MovimientoResponse[];
     });
 
   const lotes = await withAuth
