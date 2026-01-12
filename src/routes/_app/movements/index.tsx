@@ -3,7 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { CheckCircle, EllipsisVertical, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { AddMovementForm } from '@/components/add-movement-dialog';
+import { AddMovementDialog } from '@/components/add-movement-dialog';
 import { DataTable } from '@/components/data-table';
 import { useHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
@@ -182,7 +182,7 @@ function MovementsListPage() {
       <DataTable columns={columns} data={filtered} />
 
       <div className='fixed bottom-4 right-3 md:bottom-8 md:right-8'>
-        <AddMovementForm
+        <AddMovementDialog
           trigger={
             <Button className='rounded-full' size='icon-lg' variant='default'>
               <Plus />

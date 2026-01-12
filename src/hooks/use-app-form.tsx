@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Key } from 'react';
 
 const { fieldContext, formContext, useFormContext, useFieldContext } = createFormHookContexts();
 
 export const { useAppForm, withForm } = createFormHook({
   fieldContext,
   formContext,
-  fieldComponents: { InputField },
+  fieldComponents: { InputField, NumberSelectField },
   formComponents: { SaveButton },
 });
 
@@ -24,6 +26,39 @@ function InputField({ label }: { label: string }) {
         value={field.state.value}
         onChange={(e) => field.handleChange(e.target.value)}
       />
+      <FieldError errors={field.state.meta.errors} />
+    </Field>
+  );
+}
+
+function NumberSelectField({
+  label,
+  placeholder,
+  options,
+}: {
+  label: string;
+  placeholder: string;
+  options: { key: Key; value: number; label: string }[];
+}) {
+  const field = useFieldContext<number>();
+  return (
+    <Field className='space-y-1'>
+      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <Select
+        value={String(field.state.value ?? '')}
+        onValueChange={(v) => field.handleChange(Number(v))}
+      >
+        <SelectTrigger id={field.name}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.key} value={String(opt.value)}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <FieldError errors={field.state.meta.errors} />
     </Field>
   );

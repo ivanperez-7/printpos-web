@@ -77,7 +77,7 @@ export const productoCreateSchema = z.object({
   equipos_id: z.array(z.number()),
   min_stock: z.number(),
 
-  proveedor_id: z.number().optional(),
+  proveedor_id: z.number().nullable(),
   sku: z.string().min(1, 'El SKU es obligatorio'),
 
   status: z.enum(['activo', 'inactivo', 'descontinuado']),

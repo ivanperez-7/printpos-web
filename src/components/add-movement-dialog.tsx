@@ -1,8 +1,9 @@
-import { useForm, useStore } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-form';
 import { useRouter } from '@tanstack/react-router';
 import { ArrowDownToDot, ArrowUpFromDot, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import type z from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,21 +18,16 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { Spinner } from './ui/spinner';
 
 import { ENDPOINTS } from '@/api/endpoints';
+import { useAppForm } from '@/hooks/use-app-form';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import {
-  movimientoCreateSchema,
-  type MovimientoCreate,
-  type MovimientoResponse,
-  type ProductoResponse,
-} from '@/lib/types';
+import { movimientoCreateSchema, type MovimientoResponse, type ProductoResponse } from '@/lib/types';
 
-export function AddMovementForm({
+export function AddMovementDialog({
   trigger,
   movimiento,
 }: {
@@ -95,7 +91,7 @@ function MovementForm({
       });
   };
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       tipo: movimiento?.tipo ?? 'entrada',
       items: movimiento?.items ?? [],
@@ -104,7 +100,7 @@ function MovementForm({
         recibido_por_id: 0,
       },
       comentarios: '',
-    } as MovimientoCreate,
+    } as z.input<typeof movimientoCreateSchema>,
     validators: { onSubmit: movimientoCreateSchema },
     onSubmit: async ({ value }) =>
       await withAuth
@@ -264,56 +260,37 @@ function MovementForm({
             )}
           </form.Field>
 
-          <form.Field name='detalle_entrada.recibido_por_id'>
+          <form.AppField name='detalle_entrada.recibido_por_id'>
             {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Recibido por</FieldLabel>
-                <Select
-                  value={field.state.value ? String(field.state.value) : ''}
-                  onValueChange={(v) => field.handleChange(Number(v))}
-                >
-                  <SelectTrigger id={field.name}>
-                    <SelectValue placeholder='Seleccione un usuario' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((cat) => (
-                      <SelectItem key={cat.id} value={String(cat.id)}>
-                        {cat.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FieldError errors={field.state.meta.errors} />
-              </Field>
+              <field.NumberSelectField
+                label='Recibido por'
+                placeholder='Seleccione un usuario'
+                options={users.map((user) => ({
+                  key: user.id,
+                  value: user.id,
+                  label: user.full_name,
+                }))}
+              />
             )}
-          </form.Field>
+          </form.AppField>
         </div>
       )}
 
       {tipo === 'salida' && (
         <div className='grid grid-cols-2 gap-4 mt-4'>
-          <form.Field name='detalle_salida.cliente_id'>
+          <form.AppField name='detalle_salida.cliente_id'>
             {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Cliente</FieldLabel>
-                <Select
-                  value={field.state.value ? String(field.state.value) : ''}
-                  onValueChange={(v) => field.handleChange(Number(v))}
-                >
-                  <SelectTrigger id={field.name}>
-                    <SelectValue placeholder='Seleccione un cliente' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientes.map((cat) => (
-                      <SelectItem key={cat.id} value={String(cat.id)}>
-                        {cat.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+              <field.NumberSelectField
+                label='Cliente'
+                placeholder='Seleccione un cliente'
+                options={clientes.map((cli) => ({
+                  key: cli.id,
+                  value: cli.id,
+                  label: cli.nombre,
+                }))}
+              />
             )}
-          </form.Field>
+          </form.AppField>
 
           <form.Field name='detalle_salida.tecnico'>
             {(field) => (

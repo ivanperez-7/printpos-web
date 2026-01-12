@@ -18,7 +18,7 @@ import { NavFooter } from './nav-footer';
 
 import navigation from '@/lib/navigation';
 import { Button } from './ui/button';
-import { AddMovementForm } from './add-movement-dialog';
+import { AddMovementDialog } from './add-movement-dialog';
 
 export function AppSidebar({
   onLogout,
@@ -47,7 +47,7 @@ export function AppSidebar({
         <SidebarGroup className='-mb-1.5'>
           <SidebarGroupContent>
             <SidebarMenuItem>
-              <AddMovementForm
+              <AddMovementDialog
                 trigger={
                   <Button size='sm' className='w-full'>
                     <Plus /> Registrar movimiento

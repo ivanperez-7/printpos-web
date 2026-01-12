@@ -8,6 +8,7 @@ import { useDebounce } from 'use-debounce';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { DataTable } from '@/components/data-table';
 import { DeleteProductDialog } from '@/components/delete-product-dialog';
+import { ProductCard } from '@/components/product-card';
 import { useHeader } from '@/components/site-header';
 import {
   Breadcrumb,
@@ -27,11 +28,10 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // OTRAS UTILIDADES
 import { fetchAllProductos } from '@/api/catalogo';
-import { ProductCard } from '@/components/product-card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { ProductoResponse } from '@/lib/types';
@@ -63,10 +63,12 @@ const columns: ColumnDef<ProductoResponse>[] = [
   {
     accessorKey: 'cantidad_disponible',
     header: 'Existencia',
-    cell: ({ row }) => {
-      const cantidad = row.getValue('cantidad_disponible') as number;
-      return <span className='inline-flex items-center gap-2'>{plural('unidad', cantidad)}</span>;
-    },
+    cell: ({ row }) =>
+      row.original.cantidad_disponible > 0 && (
+        <span className='inline-flex items-center gap-2'>
+          {plural('unidad', row.original.cantidad_disponible)}
+        </span>
+      ),
   },
   {
     id: 'status',
@@ -119,10 +121,10 @@ const columns: ColumnDef<ProductoResponse>[] = [
   },
 ];
 
+type CatalogoSearch = { text?: string; categoria?: number; marca?: number; equipo?: number };
+
 export const Route = createFileRoute('/_app/catalogo/')({
-  validateSearch: (
-    search
-  ): { text?: string; categoria?: number; marca?: number; equipo?: number } => ({
+  validateSearch: (search): CatalogoSearch => ({
     text: search.text as string,
     categoria: Number(search.categoria) || undefined,
     marca: Number(search.marca) || undefined,
@@ -137,10 +139,11 @@ export const Route = createFileRoute('/_app/catalogo/')({
 function ProductListPage() {
   const productos = Route.useLoaderData();
   const { text, categoria, marca, equipo } = Route.useSearch();
+  const navigate = Route.useNavigate();
+
   const { categorias, marcas, equipos } = useCatalogs();
   const { setContent } = useHeader();
   const isMobile = useIsMobile();
-  const navigate = Route.useNavigate();
 
   const [_localText, setLocalText] = useState(text);
   const [localText] = useDebounce(_localText, 800);
@@ -150,7 +153,8 @@ function ProductListPage() {
       if (
         text &&
         !prod.codigo_interno.toLowerCase().includes(text.toLowerCase()) &&
-        !prod.descripcion.toLowerCase().includes(text.toLowerCase())
+        !prod.descripcion.toLowerCase().includes(text.toLowerCase()) &&
+        !prod.sku.toLowerCase().includes(text.toLowerCase())
       )
         return false;
       if (categoria && prod.categoria.id !== categoria) return false;
@@ -215,7 +219,7 @@ function ProductListPage() {
         </InputGroup>
 
         <Select
-          value={categoria ? String(categoria) : ''}
+          value={String(categoria ?? '')}
           onValueChange={(v) =>
             navigate({ search: (prev) => ({ ...prev, categoria: Number(v) }), replace: true })
           }
@@ -233,7 +237,7 @@ function ProductListPage() {
         </Select>
 
         <Select
-          value={marca ? String(marca) : ''}
+          value={String(marca ?? '')}
           onValueChange={(v) =>
             navigate({ search: (prev) => ({ ...prev, marca: Number(v) }), replace: true })
           }
@@ -251,7 +255,7 @@ function ProductListPage() {
         </Select>
 
         <Select
-          value={equipo ? String(equipo) : ''}
+          value={String(equipo ?? '')}
           onValueChange={(v) =>
             navigate({ search: (prev) => ({ ...prev, equipo: Number(v) }), replace: true })
           }

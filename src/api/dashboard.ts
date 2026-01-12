@@ -11,9 +11,9 @@ export type DashboardData = {
     proveedores: number;
     clientes: number;
   };
-  categoriasChart: Array<{ nombre: string; cantidad: number }>;
-  entradasChart: Array<{ fecha_creado: string; total: number }>;
-  productosBajos: Array<{ descripcion: string; categoria__nombre: string; stock: number }>;
+  categoriasChart: { nombre: string; cantidad: number }[];
+  entradasChart: { fecha_creado: string; total: number }[];
+  productosBajos: { descripcion: string; categoria__nombre: string; stock: number }[];
   clientesChart: any[];
 };
 

@@ -1,5 +1,6 @@
-export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api/v1';
+export const API_BASE = import.meta.env.VITE_API_URL;
 
+type IdLike = string | number;
 export const ENDPOINTS = {
   auth: {
     login: '/token/',
@@ -8,47 +9,47 @@ export const ENDPOINTS = {
   },
   clients: {
     list: '/clientes/',
-    detail: (id: string | number) => `/clientes/${id}/`,
+    detail: (id: IdLike) => `/clientes/${id}/`,
   },
   clientes: {
     list: '/organizacion/clientes/',
-    detail: (id: string | number) => `/organizacion/clientes/${id}/`,
+    detail: (id: IdLike) => `/organizacion/clientes/${id}/`,
   },
   users: {
     list: '/organizacion/users/',
-    detail: (id: string | number) => `/organizacion/users/${id}/`,
+    detail: (id: IdLike) => `/organizacion/users/${id}/`,
   },
   dashboard: '/productos/dashboard/',
   products: {
     list: '/productos/productos/',
-    detail: (id: string | number) => `/productos/productos/${id}/`,
+    detail: (id: IdLike) => `/productos/productos/${id}/`,
   },
   lotes: {
     list: '/productos/lotes/',
-    detail: (id: string | number) => `/productos/lotes/${id}/`,
+    detail: (id: IdLike) => `/productos/lotes/${id}/`,
   },
   categorias: {
     list: '/productos/categorias/',
-    detail: (id: string | number) => `/productos/categorias/${id}/`,
+    detail: (id: IdLike) => `/productos/categorias/${id}/`,
   },
   marcas: {
     list: '/productos/marcas/',
-    detail: (id: string | number) => `/productos/marcas/${id}/`,
+    detail: (id: IdLike) => `/productos/marcas/${id}/`,
   },
   equipos: {
     list: '/productos/equipos/',
-    detail: (id: string | number) => `/productos/equipos/${id}/`,
+    detail: (id: IdLike) => `/productos/equipos/${id}/`,
   },
   proveedores: {
     list: '/productos/proveedores/',
-    detail: (id: string | number) => `/productos/proveedores/${id}/`,
+    detail: (id: IdLike) => `/productos/proveedores/${id}/`,
   },
   movimientos: {
     list: '/movimientos/movimientos/',
-    detail: (id: string | number) => `/movimientos/movimientos/${id}/`,
+    detail: (id: IdLike) => `/movimientos/movimientos/${id}/`,
   },
   sysvars: {
     list: '/system/configuracion/',
-    detail: (id: string | number) => `/system/configuracion/${id}/`,
+    detail: (id: IdLike) => `/system/configuracion/${id}/`,
   },
 } as const;

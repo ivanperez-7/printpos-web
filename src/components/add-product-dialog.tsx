@@ -28,7 +28,7 @@ import { ENDPOINTS } from '@/api/endpoints';
 import { useAppForm } from '@/hooks/use-app-form';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import { productoCreateSchema, type ProductoCreate, type ProductoResponse } from '@/lib/types';
+import { productoCreateSchema, type ProductoResponse } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export function AddProductDialog({
@@ -47,12 +47,12 @@ export function AddProductDialog({
       codigo_interno: producto?.codigo_interno ?? '',
       descripcion: producto?.descripcion ?? '',
       categoria_id: producto?.categoria.id,
-      equipos_id: producto?.equipos?.map((e) => e.id) ?? [],
-      proveedor_id: producto?.proveedor?.id,
+      equipos_id: producto?.equipos?.map((eq) => eq.id) ?? [],
+      proveedor_id: producto?.proveedor?.id || null,
       sku: producto?.sku ?? '',
       min_stock: producto?.min_stock ?? 0,
       status: producto?.status ?? 'activo',
-    } as ProductoCreate,
+    },
     validators: { onSubmit: productoCreateSchema },
     onSubmit: async ({ value }) => {
       try {
@@ -104,29 +104,19 @@ export function AddProductDialog({
           {/* Marca / Categoría */}
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             {/* Categoría */}
-            <form.Field name='categoria_id'>
+            <form.AppField name='categoria_id'>
               {(field) => (
-                <Field className='space-y-1'>
-                  <FieldLabel htmlFor={field.name}>Categoría</FieldLabel>
-                  <Select
-                    value={field.state.value ? String(field.state.value) : ''}
-                    onValueChange={(v) => field.handleChange(Number(v))}
-                  >
-                    <SelectTrigger id={field.name}>
-                      <SelectValue placeholder='Seleccione una categoría' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categorias.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FieldError errors={field.state.meta.errors} />
-                </Field>
+                <field.NumberSelectField
+                  label='Categoría'
+                  placeholder='Seleccione una categoría'
+                  options={categorias.map((cat) => ({
+                    key: cat.id,
+                    value: cat.id,
+                    label: cat.nombre,
+                  }))}
+                />
               )}
-            </form.Field>
+            </form.AppField>
 
             <form.Field name='min_stock'>
               {(field) => (
@@ -155,17 +145,17 @@ export function AddProductDialog({
                 <Field className='space-y-1'>
                   <FieldLabel htmlFor={field.name}>Proveedor</FieldLabel>
                   <Select
-                    value={field.state.value ? String(field.state.value) : ''}
-                    onValueChange={(v) => field.handleChange(Number(v))}
+                    value={String(field.state.value ?? '')}
+                    onValueChange={(v) => field.handleChange(Number(v) || null)}
                   >
                     <SelectTrigger id={field.name}>
                       <SelectValue placeholder='Seleccione un proveedor' />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='0'>---------</SelectItem>
-                      {proveedores.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.nombre}
+                      {proveedores.map((prov) => (
+                        <SelectItem key={prov.id} value={String(prov.id)}>
+                          {prov.nombre}
                         </SelectItem>
                       ))}
                     </SelectContent>

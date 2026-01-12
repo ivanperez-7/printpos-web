@@ -13,7 +13,7 @@ import {
 import { useEffect } from 'react';
 
 // COMPONENTES DEL PROYECTO
-import { AddMovementForm } from '@/components/add-movement-dialog';
+import { AddMovementDialog } from '@/components/add-movement-dialog';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { DataTable } from '@/components/data-table';
 import { DeleteProductDialog } from '@/components/delete-product-dialog';
@@ -318,7 +318,7 @@ const ProductMovementsCard = ({ movimientos }: { movimientos: MovimientoResponse
     <CardHeader className='grid items-center md:flex md:justify-between'>
       <CardTitle className='text-lg'>Últimos movimientos</CardTitle>
       <div className='grid md:flex gap-3'>
-        <AddMovementForm
+        <AddMovementDialog
           trigger={
             <Button size='sm'>
               <ArrowDownToDot />
@@ -326,7 +326,7 @@ const ProductMovementsCard = ({ movimientos }: { movimientos: MovimientoResponse
             </Button>
           }
         />
-        <AddMovementForm
+        <AddMovementDialog
           trigger={
             <Button variant='secondary' size='sm'>
               <ArrowUpFromDot />
