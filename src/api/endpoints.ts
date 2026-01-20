@@ -7,10 +7,6 @@ export const ENDPOINTS = {
     refresh: '/token/refresh/',
     logout: '/logout/',
   },
-  clients: {
-    list: '/clientes/',
-    detail: (id: IdLike) => `/clientes/${id}/`,
-  },
   clientes: {
     list: '/organizacion/clientes/',
     detail: (id: IdLike) => `/organizacion/clientes/${id}/`,

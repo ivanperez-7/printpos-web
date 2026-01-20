@@ -141,7 +141,7 @@ function MovementForm({
       <TableBody>
         <form.Field name='items' mode='array'>
           {(field) =>
-            field.state.value.length > 0 ? (
+            field.state.value.length > 0 ?
               field.state.value.map(({ producto_id }, index) => {
                 const producto = productosMap[producto_id];
                 return (
@@ -168,13 +168,11 @@ function MovementForm({
                   </TableRow>
                 );
               })
-            ) : (
-              <TableRow>
+            : <TableRow>
                 <TableCell colSpan={4} className='text-muted-foreground'>
                   No hay productos
                 </TableCell>
               </TableRow>
-            )
           }
         </form.Field>
       </TableBody>
@@ -288,6 +286,24 @@ function MovementForm({
                   value: cli.id,
                   label: cli.nombre,
                 }))}
+                onValueChange={async (v) => {
+                  const selectedEquipos = form.getFieldValue('items').map((item) => item.producto_id);
+                  if (selectedEquipos.length === 0) return;
+
+                  withAuth
+                    .get(ENDPOINTS.clientes.detail(v) + 'equipos', {
+                      params: { productos: selectedEquipos },
+                    })
+                    .then(
+                      (res) =>
+                        res.data as {
+                          contador_uso: number;
+                          equipo__id: number;
+                          equipo__nombre: string;
+                        }[]
+                    )
+                    .then((data) => console.log(data));
+                }}
               />
             )}
           </form.AppField>
