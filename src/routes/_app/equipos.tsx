@@ -135,52 +135,50 @@ function MarcaNombre({ marca, onRename }: { marca: MarcaResponse; onRename: () =
   );
 }
 
-function EquiposTable({ equipos }: { equipos: EquipoResponse[] }) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Nombre</TableHead>
-          <TableHead className='w-10'></TableHead>
+const EquiposTable = ({ equipos }: { equipos: EquipoResponse[] }) => (
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead>Nombre</TableHead>
+        <TableHead className='w-10'></TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {equipos.map((eq) => (
+        <TableRow key={eq.id}>
+          <TableCell>{eq.nombre}</TableCell>
+          <TableCell>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant='ghost' size='icon'>
+                  <EllipsisVertical className='w-5 h-5' />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align='end'>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Editar</DropdownMenuItem>
+
+                <DropdownMenuItem
+                  variant='destructive'
+                  onClick={() =>
+                    withAuth.patch(ENDPOINTS.equipos.detail(eq.id), { activo: false }).then(() => {})
+                  }
+                >
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
         </TableRow>
-      </TableHeader>
-      <TableBody>
-        {equipos.map((eq) => (
-          <TableRow key={eq.id}>
-            <TableCell>{eq.nombre}</TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant='ghost' size='icon'>
-                    <EllipsisVertical className='w-5 h-5' />
-                  </Button>
-                </DropdownMenuTrigger>
+      ))}
 
-                <DropdownMenuContent align='end'>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Editar</DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    variant='destructive'
-                    onClick={() =>
-                      withAuth.patch(ENDPOINTS.equipos.detail(eq.id), { activo: false }).then(() => {})
-                    }
-                  >
-                    Eliminar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
-
-        {equipos.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={3} className='py-6 text-center text-muted-foreground'>
-              No hay equipos para esta marca
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  );
-}
+      {equipos.length === 0 && (
+        <TableRow>
+          <TableCell colSpan={3} className='py-6 text-center text-muted-foreground'>
+            No hay equipos para esta marca
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+);
