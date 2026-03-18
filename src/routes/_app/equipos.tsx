@@ -1,8 +1,11 @@
 import { createFileRoute, ErrorComponent } from '@tanstack/react-router';
-import { EllipsisVertical, Plus, X } from 'lucide-react';
+import { EllipsisVertical, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { CreateEquipoPopover } from '@/components/create-equipo-popover';
+import { CreateMarcaPopover } from '@/components/create-marca-popover';
+import { DeleteMarcaDialog } from '@/components/delete-marca-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -18,7 +21,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ENDPOINTS } from '@/api/endpoints';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import type { EquipoResponse } from '@/lib/types';
+import type { EquipoResponse, MarcaResponse } from '@/lib/types';
 
 export const Route = createFileRoute('/_app/equipos')({
   component: EquiposPage,
@@ -40,6 +43,7 @@ function EquiposPage() {
         <Card className='h-fit'>
           <CardHeader className='flex justify-between items-center'>
             <CardTitle>Marcas</CardTitle>
+            <CreateMarcaPopover onSuccess={reloadCatalogs} />
           </CardHeader>
 
           <CardContent>
@@ -56,9 +60,15 @@ function EquiposPage() {
                   </ItemContent>
 
                   <ItemActions>
-                    <Button variant='ghost' size='icon-sm'>
-                      <X />
-                    </Button>
+                    <DeleteMarcaDialog
+                      trigger={
+                        <Button variant='ghost' size='icon-sm'>
+                          <X />
+                        </Button>
+                      }
+                      marcaId={marca.id}
+                      onSuccess={reloadCatalogs}
+                    />
                   </ItemActions>
                 </Item>
               ))}
@@ -77,24 +87,14 @@ function EquiposPage() {
           <Card>
             <CardHeader className='flex justify-between items-center'>
               <CardTitle>
-                <Input
+                <MarcaNombre
                   key={selectedMarca}
-                  ghost
-                  defaultValue={marcas.find((m) => m.id === selectedMarca)?.nombre}
-                  onBlur={(e) =>
-                    toast.promise(
-                      withAuth
-                        .patch(ENDPOINTS.marcas.detail(selectedMarca), { nombre: e.target.value })
-                        .then(reloadCatalogs),
-                      { loading: 'Guardando cambios...' }
-                    )
-                  }
+                  marca={marcas.find((m) => m.id === selectedMarca) || ({} as any)}
+                  onRename={reloadCatalogs}
                 />
               </CardTitle>
 
-              <Button size='sm'>
-                <Plus /> Agregar equipo
-              </Button>
+              <CreateEquipoPopover marcaId={selectedMarca} onSuccess={reloadCatalogs} />
             </CardHeader>
 
             <CardContent>
@@ -112,6 +112,26 @@ function EquiposPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function MarcaNombre({ marca, onRename }: { marca: MarcaResponse; onRename: () => void }) {
+  const [name, setName] = useState(marca.nombre);
+  const isDirty = marca.nombre !== name;
+
+  return (
+    <Input
+      ghost
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+      onBlur={(e) =>
+        !isDirty ||
+        toast.promise(
+          withAuth.patch(ENDPOINTS.marcas.detail(marca.id), { nombre: e.target.value }).then(onRename),
+          { loading: 'Guardando cambios...' },
+        )
+      }
+    />
   );
 }
 

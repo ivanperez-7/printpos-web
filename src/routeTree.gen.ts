@@ -18,8 +18,10 @@ import { Route as AppEquiposRouteImport } from './routes/_app/equipos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppChatbotRouteImport } from './routes/_app/chatbot'
 import { Route as AppMovementsIndexRouteImport } from './routes/_app/movements/index'
+import { Route as AppClientsIndexRouteImport } from './routes/_app/clients/index'
 import { Route as AppCatalogoIndexRouteImport } from './routes/_app/catalogo/index'
 import { Route as AppMovementsIdRouteImport } from './routes/_app/movements/$id'
+import { Route as AppClientsIdRouteImport } from './routes/_app/clients/$id'
 import { Route as AppCatalogoIdRouteImport } from './routes/_app/catalogo/$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -66,6 +68,11 @@ const AppMovementsIndexRoute = AppMovementsIndexRouteImport.update({
   path: '/movements/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppClientsIndexRoute = AppClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCatalogoIndexRoute = AppCatalogoIndexRouteImport.update({
   id: '/catalogo/',
   path: '/catalogo/',
@@ -74,6 +81,11 @@ const AppCatalogoIndexRoute = AppCatalogoIndexRouteImport.update({
 const AppMovementsIdRoute = AppMovementsIdRouteImport.update({
   id: '/movements/$id',
   path: '/movements/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientsIdRoute = AppClientsIdRouteImport.update({
+  id: '/clients/$id',
+  path: '/clients/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCatalogoIdRoute = AppCatalogoIdRouteImport.update({
@@ -91,8 +103,10 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/suppliers': typeof AppSuppliersRoute
   '/catalogo/$id': typeof AppCatalogoIdRoute
+  '/clients/$id': typeof AppClientsIdRoute
   '/movements/$id': typeof AppMovementsIdRoute
   '/catalogo': typeof AppCatalogoIndexRoute
+  '/clients': typeof AppClientsIndexRoute
   '/movements': typeof AppMovementsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -104,8 +118,10 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/suppliers': typeof AppSuppliersRoute
   '/catalogo/$id': typeof AppCatalogoIdRoute
+  '/clients/$id': typeof AppClientsIdRoute
   '/movements/$id': typeof AppMovementsIdRoute
   '/catalogo': typeof AppCatalogoIndexRoute
+  '/clients': typeof AppClientsIndexRoute
   '/movements': typeof AppMovementsIndexRoute
 }
 export interface FileRoutesById {
@@ -119,8 +135,10 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/suppliers': typeof AppSuppliersRoute
   '/_app/catalogo/$id': typeof AppCatalogoIdRoute
+  '/_app/clients/$id': typeof AppClientsIdRoute
   '/_app/movements/$id': typeof AppMovementsIdRoute
   '/_app/catalogo/': typeof AppCatalogoIndexRoute
+  '/_app/clients/': typeof AppClientsIndexRoute
   '/_app/movements/': typeof AppMovementsIndexRoute
 }
 export interface FileRouteTypes {
@@ -134,8 +152,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/catalogo/$id'
+    | '/clients/$id'
     | '/movements/$id'
     | '/catalogo'
+    | '/clients'
     | '/movements'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -147,8 +167,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/catalogo/$id'
+    | '/clients/$id'
     | '/movements/$id'
     | '/catalogo'
+    | '/clients'
     | '/movements'
   id:
     | '__root__'
@@ -161,8 +183,10 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/suppliers'
     | '/_app/catalogo/$id'
+    | '/_app/clients/$id'
     | '/_app/movements/$id'
     | '/_app/catalogo/'
+    | '/_app/clients/'
     | '/_app/movements/'
   fileRoutesById: FileRoutesById
 }
@@ -237,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMovementsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/clients/': {
+      id: '/_app/clients/'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AppClientsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/catalogo/': {
       id: '/_app/catalogo/'
       path: '/catalogo'
@@ -249,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/movements/$id'
       fullPath: '/movements/$id'
       preLoaderRoute: typeof AppMovementsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/clients/$id': {
+      id: '/_app/clients/$id'
+      path: '/clients/$id'
+      fullPath: '/clients/$id'
+      preLoaderRoute: typeof AppClientsIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/catalogo/$id': {
@@ -268,8 +306,10 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppSuppliersRoute: typeof AppSuppliersRoute
   AppCatalogoIdRoute: typeof AppCatalogoIdRoute
+  AppClientsIdRoute: typeof AppClientsIdRoute
   AppMovementsIdRoute: typeof AppMovementsIdRoute
   AppCatalogoIndexRoute: typeof AppCatalogoIndexRoute
+  AppClientsIndexRoute: typeof AppClientsIndexRoute
   AppMovementsIndexRoute: typeof AppMovementsIndexRoute
 }
 
@@ -280,8 +320,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppSuppliersRoute: AppSuppliersRoute,
   AppCatalogoIdRoute: AppCatalogoIdRoute,
+  AppClientsIdRoute: AppClientsIdRoute,
   AppMovementsIdRoute: AppMovementsIdRoute,
   AppCatalogoIndexRoute: AppCatalogoIndexRoute,
+  AppClientsIndexRoute: AppClientsIndexRoute,
   AppMovementsIndexRoute: AppMovementsIndexRoute,
 }
 

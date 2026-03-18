@@ -1,5 +1,13 @@
 import type { Link, LinkComponentProps } from '@tanstack/react-router';
-import { ArrowLeftRight, BookUser, LayoutDashboard, Package2, Printer, Sparkles } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  BookUser,
+  LayoutDashboard,
+  Package2,
+  Printer,
+  Sparkles,
+  TruckIcon
+} from 'lucide-react';
 
 type NavItem = LinkComponentProps<typeof Link> & {
   content: string;
@@ -41,9 +49,14 @@ const navigation: NavSection[] = [
         icon: <Printer />,
       },
       {
+        to: '/clients',
+        content: 'Clientes',
+        icon: <BookUser />,
+      },
+      {
         to: '/suppliers',
         content: 'Proveedores',
-        icon: <BookUser />,
+        icon: <TruckIcon />,
       },
     ],
   },

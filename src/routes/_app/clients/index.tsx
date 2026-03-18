@@ -1,0 +1,173 @@
+import { createFileRoute, Link } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
+import { EllipsisVertical, PackageOpen, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+import { DataTable } from '@/components/data-table';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+import { ENDPOINTS } from '@/api/endpoints';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useCatalogs } from '@/hooks/use-catalogs';
+import { withAuth } from '@/lib/auth';
+import type { ClienteResponse } from '@/lib/types';
+
+const clientesColumns: ColumnDef<ClienteResponse>[] = [
+  {
+    id: 'check',
+    header: () => <Checkbox />,
+    cell: () => <Checkbox />,
+  },
+  {
+    header: 'Nombre',
+    accessorKey: 'nombre',
+    cell: ({ row }) => (
+      <Link to='/clients/$id' params={{ id: String(row.original.id) }} className='font-semibold'>
+        {row.original.nombre}
+      </Link>
+    ),
+  },
+  {
+    header: 'Tipo',
+    accessorKey: 'tipo',
+  },
+  {
+    header: 'Teléfono',
+    accessorKey: 'telefono',
+  },
+  {
+    id: 'menu',
+    cell: ({ row }) => <ClientTableDropdown clientId={row.original.id} />,
+  },
+];
+
+export const Route = createFileRoute('/_app/clients/')({
+  component: ClientesPage,
+});
+
+function ClientesPage() {
+  const { clientes, reloadCatalogs } = useCatalogs();
+
+  return (
+    <div className='space-y-4'>
+      <div className='flex justify-between items-center'>
+        <h1 className='text-2xl'>Clientes registrados</h1>
+
+        <CreateClientePopover onSuccess={reloadCatalogs} />
+      </div>
+
+      <DataTable
+        data={clientes}
+        columns={clientesColumns}
+        emptyComponent={
+          <Empty className='my-0 py-0'>
+            <EmptyHeader>
+              <EmptyMedia variant='icon'>
+                <PackageOpen />
+              </EmptyMedia>
+              <EmptyTitle>No hay clientes registrados</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        }
+      />
+    </div>
+  );
+}
+
+function CreateClientePopover({ onSuccess }: { onSuccess: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [nombre, setNombre] = useState('');
+  const [tipo, setTipo] = useState('fisica');
+
+  const handleSave = () => {
+    if (!nombre.trim()) return;
+
+    toast.promise(
+      withAuth.post(ENDPOINTS.clientes.list, { nombre, tipo }).then(() => {
+        setNombre('');
+        setOpen(false);
+        onSuccess();
+      }),
+      { loading: 'Creando cliente...' },
+    );
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button>
+          <Plus /> Nuevo cliente
+        </Button>
+      </PopoverTrigger>
+
+      <PopoverContent className='w-72 space-y-3'>
+        <Input
+          placeholder='Nombre'
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          autoFocus
+        />
+
+        <select
+          className='w-full border rounded px-2 py-1'
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value)}
+        >
+          <option value='fisica'>Persona Física</option>
+          <option value='moral'>Persona Moral</option>
+        </select>
+
+        <Button className='w-full' onClick={handleSave}>
+          Guardar
+        </Button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ClientTableDropdown({ clientId }: { clientId: number }) {
+  const navigate = Route.useNavigate();
+  const { reloadCatalogs } = useCatalogs();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant='ghost' size='icon'>
+          <EllipsisVertical className='w-5 h-5' />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align='end'>
+        <DropdownMenuItem
+          onClick={() =>
+            navigate({
+              to: '/clients/$id',
+              params: { id: String(clientId) },
+            })
+          }
+        >
+          Ver / Editar
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          variant='destructive'
+          onClick={() =>
+            withAuth.patch(ENDPOINTS.clientes.detail(clientId), { activo: false }).then(reloadCatalogs)
+          }
+        >
+          Eliminar
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

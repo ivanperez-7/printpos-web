@@ -20,12 +20,18 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from './ui/separator';
 import { Spinner } from './ui/spinner';
+import UsoEquipoDisplay from './uso-equipo-display';
 
 import { ENDPOINTS } from '@/api/endpoints';
 import { useAppForm } from '@/hooks/use-app-form';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import { movimientoCreateSchema, type MovimientoResponse, type ProductoResponse } from '@/lib/types';
+import {
+  movimientoCreateSchema,
+  type MovimientoResponse,
+  type ProductoResponse,
+  type UsoEquipo,
+} from '@/lib/types';
 
 export function AddMovementDialog({
   trigger,
@@ -40,7 +46,7 @@ export function AddMovementDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className='max-w-full md:max-w-xl lg:max-w-2xl'>
+      <DialogContent className='max-w-full md:max-w-4xl lg:max-w-5xl'>
         <DialogHeader>
           <DialogTitle>Registrar movimiento</DialogTitle>
         </DialogHeader>
@@ -61,35 +67,14 @@ function MovementForm({
 }) {
   const [scanCode, setScanCode] = useState('');
   const [searching, setSearching] = useState(false);
-
   const [productosMap, setProductosMap] = useState<Record<number, ProductoResponse>>({});
+  const [clientEquipos, setClientEquipos] = useState<UsoEquipo[]>([]); // info de los equipos ligados al cliente selecc.
+  const [loadingClientEquipos, setLoadingClientEquipos] = useState(false);
+
   const { users, clientes } = useCatalogs();
   const router = useRouter();
 
   const scanInputRef = useRef<HTMLInputElement>(null);
-
-  const handleScanSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!scanCode.trim()) return;
-    setSearching(true);
-
-    withAuth
-      .get(ENDPOINTS.products.list, { params: { sku: encodeURIComponent(scanCode) } })
-      .then((res) => res.data as ProductoResponse[])
-      .then((data) => {
-        if (!data.length) throw new Error('No se encontró ningún producto con este código');
-
-        const producto = data[0];
-        setProductosMap((prev) => ({ ...prev, [producto.id]: producto }));
-        form.pushFieldValue('items', { producto_id: producto.id, cantidad: 1 });
-      })
-      .catch((error) => toast.error(error.message))
-      .finally(() => {
-        setSearching(false);
-        setScanCode('');
-        scanInputRef.current?.focus();
-      });
-  };
 
   const form = useAppForm({
     defaultValues: {
@@ -98,6 +83,11 @@ function MovementForm({
       detalle_entrada: {
         numero_factura: '',
         recibido_por_id: 0,
+      },
+      detalle_salida: {
+        cliente_id: 1, // requiere cliente existente en db
+        tecnico: '',
+        requiere_aprobacion: true,
       },
       comentarios: '',
     } as z.input<typeof movimientoCreateSchema>,
@@ -122,10 +112,60 @@ function MovementForm({
           router.invalidate();
           onSuccess();
         })
-        .catch((error) => toast.error(error.message)),
+        .catch((error) => toast.error(error.response?.data + '' || error.message)),
   });
 
-  const tipo = useStore(form.store, (state) => state.values.tipo);
+  const handleScanSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scanCode.trim()) return;
+    setSearching(true);
+
+    withAuth
+      .get(ENDPOINTS.products.list, { params: { sku: encodeURIComponent(scanCode) } })
+      .then((res) => res.data as ProductoResponse[])
+      .then((data) => {
+        if (!data.length) throw new Error('No se encontró ningún producto con este código');
+
+        const producto = data[0];
+        setProductosMap((prev) => ({ ...prev, [producto.id]: producto }));
+        form.pushFieldValue('items', { producto_id: producto.id, cantidad: 1, equipo_id: undefined });
+      })
+      .catch((error) => toast.error(error.message))
+      .finally(() => {
+        setSearching(false);
+        setScanCode('');
+        scanInputRef.current?.focus();
+      });
+  };
+
+  const checkClientEquipos = async (v: string) => {
+    const selectedProductos = form.getFieldValue('items').map((item) => item.producto_id);
+    if (selectedProductos.length === 0) return;
+    setLoadingClientEquipos(true);
+
+    withAuth
+      .get(ENDPOINTS.clientes.detail(v) + 'equipos/', { params: { productos: selectedProductos } })
+      .then((res) => setClientEquipos(res.data))
+      .finally(() => setLoadingClientEquipos(false));
+  };
+
+  const tipo = useStore(form.store, ({ values }) => values.tipo);
+  const cliente = useStore(
+    form.store,
+    ({ values }) => (tipo == 'salida' && values.detalle_salida?.cliente_id) || 0,
+  );
+  const items = useStore(form.store, (state) => state.values.items);
+
+  const hasClientWarnings =
+    Boolean(cliente) &&
+    items.some(({ producto_id }) => {
+      const producto = productosMap[producto_id];
+      if (!producto) return false;
+
+      return !clientEquipos.some(({ equipo__id }) =>
+        producto.equipos.map((eq) => eq.id).includes(equipo__id),
+      );
+    });
 
   const ItemsTable = () => (
     <Table>
@@ -134,6 +174,7 @@ function MovementForm({
           <TableHead>Código</TableHead>
           <TableHead>Descripción</TableHead>
           <TableHead>Cantidad</TableHead>
+          {Boolean(cliente) && <TableHead>Equipo</TableHead>}
           <TableHead className='w-10'></TableHead>
         </TableRow>
       </TableHeader>
@@ -141,7 +182,7 @@ function MovementForm({
       <TableBody>
         <form.Field name='items' mode='array'>
           {(field) =>
-            field.state.value.length > 0 ?
+            field.state.value.length > 0 ? (
               field.state.value.map(({ producto_id }, index) => {
                 const producto = productosMap[producto_id];
                 return (
@@ -161,6 +202,25 @@ function MovementForm({
                       </form.Field>
                     </TableCell>
                     <TableCell>
+                      <form.AppField name={`items[${index}].equipo_id`}>
+                        {(field) =>
+                          Boolean(cliente) &&
+                          (loadingClientEquipos ? (
+                            <span className='text-muted-foreground'>...</span>
+                          ) : (
+                            <UsoEquipoDisplay
+                              matchingEquipos={clientEquipos.filter(({ equipo__id }) =>
+                                producto.equipos.map((eq) => eq.id).includes(equipo__id),
+                              )}
+                              value={field.state.value}
+                              onChange={field.handleChange}
+                              NumberSelectField={field.NumberSelectField}
+                            />
+                          ))
+                        }
+                      </form.AppField>
+                    </TableCell>
+                    <TableCell>
                       <Button variant='ghost' size='icon-sm' onClick={() => field.removeValue(index)}>
                         <X />
                       </Button>
@@ -168,11 +228,13 @@ function MovementForm({
                   </TableRow>
                 );
               })
-            : <TableRow>
+            ) : (
+              <TableRow>
                 <TableCell colSpan={4} className='text-muted-foreground'>
                   No hay productos
                 </TableCell>
               </TableRow>
+            )
           }
         </form.Field>
       </TableBody>
@@ -200,14 +262,22 @@ function MovementForm({
                 <FieldLabel>Tipo</FieldLabel>
                 <div className='flex gap-2'>
                   <Button
+                    type='button'
                     variant={field.state.value === 'entrada' ? 'default' : 'outline'}
-                    onClick={() => field.handleChange('entrada')}
+                    onClick={() => {
+                      field.handleChange('entrada');
+                      form.setFieldValue('detalle_salida', undefined);
+                    }}
                   >
                     <ArrowDownToDot /> Entrada
                   </Button>
                   <Button
+                    type='button'
                     variant={field.state.value === 'salida' ? 'default' : 'outline'}
-                    onClick={() => field.handleChange('salida')}
+                    onClick={() => {
+                      field.handleChange('salida');
+                      form.setFieldValue('detalle_entrada', undefined);
+                    }}
                   >
                     <ArrowUpFromDot /> Salida
                   </Button>
@@ -229,6 +299,7 @@ function MovementForm({
               />
             </Field>
             <Button
+              type='button'
               variant='secondary'
               className='w-full'
               disabled={searching}
@@ -286,24 +357,7 @@ function MovementForm({
                   value: cli.id,
                   label: cli.nombre,
                 }))}
-                onValueChange={async (v) => {
-                  const selectedEquipos = form.getFieldValue('items').map((item) => item.producto_id);
-                  if (selectedEquipos.length === 0) return;
-
-                  withAuth
-                    .get(ENDPOINTS.clientes.detail(v) + 'equipos', {
-                      params: { productos: selectedEquipos },
-                    })
-                    .then(
-                      (res) =>
-                        res.data as {
-                          contador_uso: number;
-                          equipo__id: number;
-                          equipo__nombre: string;
-                        }[]
-                    )
-                    .then((data) => console.log(data));
-                }}
+                onValueChange={checkClientEquipos}
               />
             )}
           </form.AppField>
@@ -330,7 +384,7 @@ function MovementForm({
         </DialogClose>
         <form.Subscribe selector={(state) => state.isSubmitting}>
           {(isSubmitting) => (
-            <Button type='submit' disabled={isSubmitting}>
+            <Button type='submit' disabled={isSubmitting || hasClientWarnings}>
               {isSubmitting && <Spinner />} Guardar movimiento
             </Button>
           )}

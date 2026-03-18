@@ -73,11 +73,7 @@ const columns: ColumnDef<MovimientoResponse>[] = [
   {
     accessorKey: 'creado_por.username',
     header: 'Usuario',
-    cell: ({ row }) => (
-      <span>
-        {row.original.creado_por.first_name} {row.original.creado_por.last_name}
-      </span>
-    ),
+    cell: ({ row }) => <span>{row.original.creado_por.full_name}</span>,
   },
   {
     accessorKey: 'comentarios',
@@ -90,9 +86,7 @@ const columns: ColumnDef<MovimientoResponse>[] = [
       row.getValue('aprobado') && (
         <div className='flex gap-1.5 items-center'>
           <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
-          <span className='text-muted-foreground'>
-            {row.original.user_aprueba?.first_name} {row.original.user_aprueba?.last_name}
-          </span>
+          <span className='text-muted-foreground'>{row.original.user_aprueba?.full_name}</span>
         </div>
       ),
   },
@@ -147,7 +141,7 @@ function MovementsListPage() {
             <BreadcrumbPage>Movimientos</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
+      </Breadcrumb>,
     );
     return () => setContent(null);
   }, []);

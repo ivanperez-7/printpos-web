@@ -37,7 +37,7 @@ function NumberSelectField({
   options,
   onValueChange,
 }: {
-  label: string;
+  label?: string;
   placeholder: string;
   options: { key: Key; value: number; label: string }[];
   onValueChange?: (v: string) => void;
@@ -45,9 +45,9 @@ function NumberSelectField({
   const field = useFieldContext<number>();
   return (
     <Field className='space-y-1'>
-      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      {label && <FieldLabel htmlFor={field.name}>{label}</FieldLabel>}
       <Select
-        value={String(field.state.value ?? '')}
+        value={String(field.state.value || '')}
         onValueChange={(v) => {
           field.handleChange(Number(v));
           if (onValueChange) onValueChange(v);
@@ -57,13 +57,15 @@ function NumberSelectField({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {options.length > 0 ?
+          {options.length > 0 ? (
             options.map((opt) => (
               <SelectItem key={opt.key} value={String(opt.value)}>
                 {opt.label}
               </SelectItem>
             ))
-          : <SelectItem value='0'>No hay opciones</SelectItem>}
+          ) : (
+            <SelectItem value='0'>No hay opciones</SelectItem>
+          )}
         </SelectContent>
       </Select>
       <FieldError errors={field.state.meta.errors} />

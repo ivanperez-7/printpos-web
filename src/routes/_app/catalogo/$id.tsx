@@ -96,7 +96,7 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
         <div className='flex gap-1.5 items-center'>
           <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
           <span className='text-muted-foreground'>
-            {row.original.user_aprueba?.first_name} {row.original.user_aprueba?.last_name}
+            {row.original.user_aprueba?.full_name}
           </span>
         </div>
       ),

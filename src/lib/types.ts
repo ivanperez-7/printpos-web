@@ -153,6 +153,7 @@ export type PerfilUsuarioResponse = z.infer<typeof perfilUsuarioResponseSchema>;
 export const movimientoItemCreateSchema = z.object({
   producto_id: z.number(),
   cantidad: z.number().min(1),
+  equipo_id: z.number().optional(),
 });
 export const movimientoItemResponseSchema = movimientoItemCreateSchema.extend({
   id: z.number(),
@@ -168,7 +169,7 @@ export const detalleEntradaCreateSchema = z.object({
 });
 export const detalleEntradaResponseSchema = detalleEntradaCreateSchema.extend({
   id: z.number(),
-  recibido_por: z.object({ username: z.string(), first_name: z.string(), last_name: z.string() }),
+  recibido_por: userResponseSchema,
 });
 
 export type DetalleEntradaCreate = z.infer<typeof detalleEntradaCreateSchema>;
@@ -187,21 +188,13 @@ export const detalleSalidaResponseSchema = detalleSalidaCreateSchema.extend({
 export type DetalleSalidaCreate = z.infer<typeof detalleSalidaCreateSchema>;
 export type DetalleSalidaResponse = z.infer<typeof detalleSalidaResponseSchema>;
 
-export const movimientoCreateSchema = z.discriminatedUnion('tipo', [
-  z.object({
-    tipo: z.literal('entrada'),
-    items: z.array(movimientoItemCreateSchema).min(1),
-    detalle_entrada: detalleEntradaCreateSchema,
-    comentarios: z.string().optional(),
-  }),
-
-  z.object({
-    tipo: z.literal('salida'),
-    items: z.array(movimientoItemCreateSchema).min(1),
-    detalle_salida: detalleSalidaCreateSchema,
-    comentarios: z.string().optional(),
-  }),
-]);
+export const movimientoCreateSchema = z.object({
+  tipo: z.enum(['entrada', 'salida']),
+  items: z.array(movimientoItemCreateSchema).min(1),
+  detalle_entrada: detalleEntradaCreateSchema.optional(),
+  detalle_salida: detalleSalidaCreateSchema.optional(),
+  comentarios: z.string().optional(),
+});
 
 export const movimientoResponseSchema = z.object({
   id: z.number(),
@@ -210,12 +203,10 @@ export const movimientoResponseSchema = z.object({
   detalle_entrada: detalleEntradaResponseSchema.nullable().optional(),
   detalle_salida: detalleSalidaResponseSchema.nullable(),
   creado: z.iso.datetime(),
-  creado_por: z.object({ username: z.string(), first_name: z.string(), last_name: z.string() }),
+  creado_por: userResponseSchema,
   aprobado: z.boolean(),
   aprobado_fecha: z.iso.datetime().nullable(),
-  user_aprueba: z
-    .object({ username: z.string(), first_name: z.string(), last_name: z.string() })
-    .nullable(),
+  user_aprueba: userResponseSchema.nullable(),
   comentarios: z.string().optional(),
 });
 
@@ -234,3 +225,9 @@ export const variableSistemaResponseSchema = variableSistemaCreateSchema.extend(
 
 export type VariableSistemaCreate = z.infer<typeof variableSistemaCreateSchema>;
 export type VariableSistemaResponse = z.infer<typeof variableSistemaResponseSchema>;
+
+export type UsoEquipo = {
+  contador_uso: number;
+  equipo__id: number;
+  equipo__nombre: string;
+};
