@@ -1,11 +1,11 @@
 import { createFormHook, createFormHookContexts } from '@tanstack/react-form';
+import type { Key } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Key } from 'react';
+import { Spinner } from '@/components/ui/spinner';
 
 const { fieldContext, formContext, useFormContext, useFieldContext } = createFormHookContexts();
 
@@ -16,16 +16,25 @@ export const { useAppForm, withForm } = createFormHook({
   formComponents: { SaveButton },
 });
 
-function InputField({ label }: { label: string }) {
+function InputField({
+  label,
+  readOnly,
+  ...props
+}: { label: string; readOnly?: boolean } & React.ComponentProps<'input'>) {
   const field = useFieldContext<string>();
   return (
     <Field className='space-y-1'>
       <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
-      <Input
-        id={field.name}
-        value={field.state.value}
-        onChange={(e) => field.handleChange(e.target.value)}
-      />
+      {readOnly ? (
+        <span>{field.state.value || '—'}</span>
+      ) : (
+        <Input
+          id={field.name}
+          value={field.state.value}
+          onChange={(e) => field.handleChange(e.target.value)}
+          {...props}
+        />
+      )}
       <FieldError errors={field.state.meta.errors} />
     </Field>
   );
@@ -73,13 +82,18 @@ function NumberSelectField({
   );
 }
 
-function SaveButton() {
+function SaveButton({ label, ...props }: React.ComponentProps<'button'> & { label?: string }) {
   const form = useFormContext();
   return (
     <form.Subscribe selector={(state) => state.isSubmitting}>
       {(isSubmitting) => (
-        <Button type='submit' disabled={isSubmitting} className='w-full md:w-auto'>
-          {isSubmitting && <Spinner />} Guardar
+        <Button
+          type='submit'
+          disabled={isSubmitting || props.disabled}
+          className='w-full md:w-auto'
+          {...props}
+        >
+          {isSubmitting && <Spinner />} {label || 'Guardar'}
         </Button>
       )}
     </form.Subscribe>

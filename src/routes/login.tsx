@@ -74,11 +74,11 @@ function LoginForm() {
         localStorage.setItem('email', email);
         localStorage.setItem('avatar', avatar);
 
-        if (redirect) router.history.push(redirect);
+        if (redirect) router.history.replace(redirect);
         else router.navigate({ to: '/dashboard' });
       } catch (error: any) {
         toast.error(
-          error.response ? error.response.data.detail || 'Error' : 'No se pudo conectar al servidor'
+          error.response ? error.response.data.detail || 'Error' : 'No se pudo conectar al servidor',
         );
       }
     },

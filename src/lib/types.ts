@@ -165,7 +165,7 @@ export type MovimientoItemResponse = z.infer<typeof movimientoItemResponseSchema
 
 export const detalleEntradaCreateSchema = z.object({
   numero_factura: z.string().min(3, 'El número de factura es obligatorio'),
-  recibido_por_id: z.union([z.number(), z.string()]),
+  recibido_por_id: z.number().gt(0, 'Seleccione un usuario válido'),
 });
 export const detalleEntradaResponseSchema = detalleEntradaCreateSchema.extend({
   id: z.number(),
@@ -176,9 +176,9 @@ export type DetalleEntradaCreate = z.infer<typeof detalleEntradaCreateSchema>;
 export type DetalleEntradaResponse = z.infer<typeof detalleEntradaResponseSchema>;
 
 export const detalleSalidaCreateSchema = z.object({
-  cliente_id: z.number(),
+  cliente_id: z.number().gt(0, 'Seleccione un cliente válido'),
   tecnico: z.string().nullable().optional(),
-  requiere_aprobacion: z.boolean(),
+  requiere_aprobacion: z.boolean().default(true),
 });
 export const detalleSalidaResponseSchema = detalleSalidaCreateSchema.extend({
   id: z.number(),
@@ -227,6 +227,7 @@ export type VariableSistemaCreate = z.infer<typeof variableSistemaCreateSchema>;
 export type VariableSistemaResponse = z.infer<typeof variableSistemaResponseSchema>;
 
 export type UsoEquipo = {
+  id: number;
   contador_uso: number;
   equipo__id: number;
   equipo__nombre: string;

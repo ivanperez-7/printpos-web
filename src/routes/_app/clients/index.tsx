@@ -1,10 +1,17 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { EllipsisVertical, PackageOpen, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { DataTable } from '@/components/data-table';
+import { useHeader } from '@/components/site-header';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,6 +28,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
 import type { ClienteResponse } from '@/lib/types';
+
+const prettierTypes: Record<ClienteResponse['tipo'], string> = { fisica: 'Física', moral: 'Moral' };
 
 const clientesColumns: ColumnDef<ClienteResponse>[] = [
   {
@@ -40,14 +49,23 @@ const clientesColumns: ColumnDef<ClienteResponse>[] = [
   {
     header: 'Tipo',
     accessorKey: 'tipo',
+    cell: ({ row }) => <span>{prettierTypes[row.original.tipo]}</span>,
   },
   {
     header: 'Teléfono',
     accessorKey: 'telefono',
   },
   {
+    header: 'Correo',
+    accessorKey: 'email',
+  },
+  {
+    header: 'Dirección',
+    accessorKey: 'direccion',
+  },
+  {
     id: 'menu',
-    cell: ({ row }) => <ClientTableDropdown clientId={row.original.id} />,
+    cell: ({ row }) => <ClientTableDropdown clientId={row.original.id} />, // en otro componente para usar hooks
   },
 ];
 
@@ -57,6 +75,20 @@ export const Route = createFileRoute('/_app/clients/')({
 
 function ClientesPage() {
   const { clientes, reloadCatalogs } = useCatalogs();
+  const { setContent } = useHeader();
+
+  useEffect(() => {
+    setContent(
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Clientes</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>,
+    );
+    return () => setContent(null);
+  }, []);
 
   return (
     <div className='space-y-4'>

@@ -101,5 +101,13 @@ export const fetchClientById = async (id: string | number) => {
       throw new Error(error.message);
     });
 
-  return { cliente, equiposCliente };
+  const movimientos = await withAuth
+    .get(ENDPOINTS.movimientos.list, { params: { detalle_salida__cliente: id } })
+    .then((res) => res.data as Types.MovimientoResponse[])
+    .catch((error) => {
+      toast.error(error.message);
+      return [] as Types.MovimientoResponse[];
+    });
+
+  return { cliente, equiposCliente, movimientos };
 };

@@ -1,5 +1,5 @@
 import { useRouter } from '@tanstack/react-router';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 // COMPONENTES DEL PROYECTO
@@ -21,7 +21,6 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
 import { ScrollArea } from './ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
-import { Spinner } from './ui/spinner';
 
 // OTRAS UTILIDADES
 import { ENDPOINTS } from '@/api/endpoints';
@@ -185,13 +184,9 @@ export function AddProductDialog({
                 Cancelar
               </Button>
             </DialogClose>
-            <form.Subscribe selector={(state) => state.isSubmitting}>
-              {(isSubmitting) => (
-                <Button type='submit' disabled={isSubmitting} className='w-full md:w-auto'>
-                  {isSubmitting && <Spinner />} Guardar
-                </Button>
-              )}
-            </form.Subscribe>
+            <form.AppForm>
+              <form.SaveButton />
+            </form.AppForm>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -228,7 +223,7 @@ function EquipoSelector({
             variant={selectedMarca === m.id ? 'default' : 'secondary'}
             className={cn(
               'cursor-pointer px-3 py-1 rounded-md',
-              selectedMarca === m.id && 'ring-2 ring-primary'
+              selectedMarca === m.id && 'ring-2 ring-primary',
             )}
             onClick={() => setSelectedMarca(selectedMarca === m.id ? undefined : m.id)}
           >

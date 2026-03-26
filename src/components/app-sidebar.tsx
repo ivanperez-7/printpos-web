@@ -1,3 +1,10 @@
+import { PackageOpen, Plus, Settings } from 'lucide-react';
+import * as React from 'react';
+
+import { AddMovementDialog } from './add-movement-dialog';
+import { CustomSidebarLink } from './custom-link';
+import { NavFooter } from './nav-footer';
+import { Button } from './ui/button';
 import {
   Sidebar,
   SidebarContent,
@@ -10,15 +17,9 @@ import {
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { PackageOpen, Plus, Settings } from 'lucide-react';
-import * as React from 'react';
-import { CustomSidebarLink } from './custom-link';
-import { NavFooter } from './nav-footer';
+} from './ui/sidebar';
 
 import navigation from '@/lib/navigation';
-import { Button } from './ui/button';
-import { AddMovementDialog } from './add-movement-dialog';
 
 export function AppSidebar({
   onLogout,

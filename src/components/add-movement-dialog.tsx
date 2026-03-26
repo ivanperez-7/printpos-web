@@ -1,11 +1,11 @@
 import { useStore } from '@tanstack/react-form';
 import { useRouter } from '@tanstack/react-router';
 import { ArrowDownToDot, ArrowUpFromDot, X } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type z from 'zod';
 
-import { Button } from '@/components/ui/button';
+import { Button } from './ui/button';
 import {
   Dialog,
   DialogClose,
@@ -14,12 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+} from './ui/dialog';
+import { Field, FieldGroup, FieldLabel, FieldSet } from './ui/field';
+import { Input } from './ui/input';
 import { Separator } from './ui/separator';
-import { Spinner } from './ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import UsoEquipoDisplay from './uso-equipo-display';
 
 import { ENDPOINTS } from '@/api/endpoints';
@@ -68,6 +67,7 @@ function MovementForm({
   const [scanCode, setScanCode] = useState('');
   const [searching, setSearching] = useState(false);
   const [productosMap, setProductosMap] = useState<Record<number, ProductoResponse>>({});
+
   const [clientEquipos, setClientEquipos] = useState<UsoEquipo[]>([]); // info de los equipos ligados al cliente selecc.
   const [loadingClientEquipos, setLoadingClientEquipos] = useState(false);
 
@@ -83,11 +83,6 @@ function MovementForm({
       detalle_entrada: {
         numero_factura: '',
         recibido_por_id: 0,
-      },
-      detalle_salida: {
-        cliente_id: 1, // requiere cliente existente en db
-        tecnico: '',
-        requiere_aprobacion: true,
       },
       comentarios: '',
     } as z.input<typeof movimientoCreateSchema>,
@@ -150,14 +145,13 @@ function MovementForm({
   };
 
   const tipo = useStore(form.store, ({ values }) => values.tipo);
-  const cliente = useStore(
-    form.store,
-    ({ values }) => (tipo == 'salida' && values.detalle_salida?.cliente_id) || 0,
+  const hasSelectedCliente = useStore(form.store, ({ values }) =>
+    Boolean(tipo == 'salida' && values.detalle_salida?.cliente_id),
   );
   const items = useStore(form.store, (state) => state.values.items);
 
   const hasClientWarnings =
-    Boolean(cliente) &&
+    hasSelectedCliente &&
     items.some(({ producto_id }) => {
       const producto = productosMap[producto_id];
       if (!producto) return false;
@@ -174,68 +168,65 @@ function MovementForm({
           <TableHead>Código</TableHead>
           <TableHead>Descripción</TableHead>
           <TableHead>Cantidad</TableHead>
-          {Boolean(cliente) && <TableHead>Equipo</TableHead>}
+          <TableHead hidden={!hasSelectedCliente}>Equipo</TableHead>
           <TableHead className='w-10'></TableHead>
         </TableRow>
       </TableHeader>
 
       <TableBody>
         <form.Field name='items' mode='array'>
-          {(field) =>
-            field.state.value.length > 0 ? (
-              field.state.value.map(({ producto_id }, index) => {
-                const producto = productosMap[producto_id];
-                return (
-                  <TableRow key={index}>
-                    <TableCell>{producto.codigo_interno}</TableCell>
-                    <TableCell>{producto.descripcion}</TableCell>
-                    <TableCell>
-                      <form.Field name={`items[${index}].cantidad`}>
-                        {(subField) => (
-                          <Input
-                            className='h-8 w-20'
-                            ghost
-                            value={subField.state.value}
-                            onChange={(e) => subField.handleChange(Number(e.target.value))}
-                          />
-                        )}
-                      </form.Field>
-                    </TableCell>
-                    <TableCell>
-                      <form.AppField name={`items[${index}].equipo_id`}>
-                        {(field) =>
-                          Boolean(cliente) &&
-                          (loadingClientEquipos ? (
-                            <span className='text-muted-foreground'>...</span>
-                          ) : (
-                            <UsoEquipoDisplay
-                              matchingEquipos={clientEquipos.filter(({ equipo__id }) =>
-                                producto.equipos.map((eq) => eq.id).includes(equipo__id),
-                              )}
-                              value={field.state.value}
-                              onChange={field.handleChange}
-                              NumberSelectField={field.NumberSelectField}
-                            />
-                          ))
-                        }
-                      </form.AppField>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant='ghost' size='icon-sm' onClick={() => field.removeValue(index)}>
-                        <X />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} className='text-muted-foreground'>
-                  No hay productos
+          {(field) => {
+            if (field.state.value.length <= 0)
+              return (
+                <TableRow>
+                  <TableCell colSpan={4} className='text-muted-foreground'>
+                    No hay productos
+                  </TableCell>
+                </TableRow>
+              );
+
+            return field.state.value.map(({ producto_id }, index) => (
+              <TableRow key={index}>
+                <TableCell>{productosMap[producto_id].codigo_interno}</TableCell>
+                <TableCell>{productosMap[producto_id].descripcion}</TableCell>
+                <TableCell>
+                  <form.Field name={`items[${index}].cantidad`}>
+                    {(subfield) => (
+                      <Input
+                        className='h-8 w-20'
+                        ghost
+                        value={subfield.state.value}
+                        onChange={(e) => subfield.handleChange(Number(e.target.value))}
+                      />
+                    )}
+                  </form.Field>
+                </TableCell>
+                <TableCell hidden={!hasSelectedCliente}>
+                  {loadingClientEquipos ? (
+                    <span className='text-muted-foreground'>...</span>
+                  ) : (
+                    <form.AppField name={`items[${index}].equipo_id`}>
+                      {(subfield) => (
+                        <UsoEquipoDisplay
+                          matchingEquipos={clientEquipos.filter(({ equipo__id }) =>
+                            productosMap[producto_id].equipos.map((eq) => eq.id).includes(equipo__id),
+                          )}
+                          value={subfield.state.value}
+                          onChange={subfield.handleChange}
+                          NumberSelectField={subfield.NumberSelectField}
+                        />
+                      )}
+                    </form.AppField>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Button variant='ghost' size='icon-sm' onClick={() => field.removeValue(index)}>
+                    <X />
+                  </Button>
                 </TableCell>
               </TableRow>
-            )
-          }
+            ));
+          }}
         </form.Field>
       </TableBody>
     </Table>
@@ -315,19 +306,9 @@ function MovementForm({
 
       {tipo === 'entrada' && (
         <div className='grid grid-cols-2 gap-4 mt-4'>
-          <form.Field name='detalle_entrada.numero_factura'>
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Número de factura</FieldLabel>
-                <Input
-                  id={field.name}
-                  value={field.state.value ?? ''}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </Field>
-            )}
-          </form.Field>
+          <form.AppField name='detalle_entrada.numero_factura'>
+            {(field) => <field.InputField label='Número de factura' placeholder='XXX-00110011-RKO' />}
+          </form.AppField>
 
           <form.AppField name='detalle_entrada.recibido_por_id'>
             {(field) => (
@@ -362,19 +343,9 @@ function MovementForm({
             )}
           </form.AppField>
 
-          <form.Field name='detalle_salida.tecnico'>
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Técnico</FieldLabel>
-                <Input
-                  id={field.name}
-                  value={field.state.value || ''}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder='Nombre del técnico'
-                />
-              </Field>
-            )}
-          </form.Field>
+          <form.AppField name='detalle_salida.tecnico'>
+            {(field) => <field.InputField label='Técnico' placeholder='Nombre del técnico' />}
+          </form.AppField>
         </div>
       )}
 
@@ -382,13 +353,9 @@ function MovementForm({
         <DialogClose asChild>
           <Button variant='ghost'>Cerrar</Button>
         </DialogClose>
-        <form.Subscribe selector={(state) => state.isSubmitting}>
-          {(isSubmitting) => (
-            <Button type='submit' disabled={isSubmitting || hasClientWarnings}>
-              {isSubmitting && <Spinner />} Guardar movimiento
-            </Button>
-          )}
-        </form.Subscribe>
+        <form.AppForm>
+          <form.SaveButton label='Guardar movimiento' disabled={hasClientWarnings} />
+        </form.AppForm>
       </DialogFooter>
     </form>
   );

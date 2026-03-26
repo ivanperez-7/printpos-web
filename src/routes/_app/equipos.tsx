@@ -53,7 +53,7 @@ function EquiposPage() {
                   key={marca.id}
                   size='sm'
                   onClick={() => setSelectedMarca(marca.id)}
-                  className={`${selectedMarca === marca.id ? 'bg-muted' : 'hover:bg-muted/50'}`}
+                  className={selectedMarca === marca.id ? 'bg-muted' : 'hover:bg-muted/50'}
                 >
                   <ItemContent>
                     <ItemTitle>{marca.nombre}</ItemTitle>
@@ -89,7 +89,7 @@ function EquiposPage() {
               <CardTitle>
                 <MarcaNombre
                   key={selectedMarca}
-                  marca={marcas.find((m) => m.id === selectedMarca) || ({} as any)}
+                  marca={marcas.find((m) => m.id === selectedMarca) || ({} as MarcaResponse)}
                   onRename={reloadCatalogs}
                 />
               </CardTitle>

@@ -1,19 +1,97 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { ArrowLeft, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
+import { ArrowLeft, ArrowUpFromDot, CheckCircle, Plus, Printer, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { DataTable } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { fetchClientById } from '@/api/catalogo';
 import { ENDPOINTS } from '@/api/endpoints';
+import { useAppForm } from '@/hooks/use-app-form';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
-import type { ClienteResponse, UsoEquipo } from '@/lib/types';
+import { type ClienteResponse, type MovimientoResponse, type UsoEquipo } from '@/lib/types';
+import { humanDate, humanTime } from '@/lib/utils';
+import { useHeader } from '@/components/site-header';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+
+const movementsColumns: ColumnDef<MovimientoResponse>[] = [
+  {
+    accessorKey: 'id',
+    header: 'Folio',
+    cell: ({ row }) => (
+      <Link to='/movements/$id' params={{ id: String(row.original.id) }} className='font-semibold'>
+        {row.getValue('id')}
+      </Link>
+    ),
+  },
+  {
+    accessorKey: 'creado',
+    header: 'Fecha',
+    cell: ({ row }) => humanDate(row.getValue('creado')),
+  },
+  {
+    id: 'hora',
+    accessorKey: 'creado',
+    header: 'Hora',
+    cell: ({ row }) => humanTime(row.getValue('creado')),
+  },
+  {
+    accessorKey: 'creado_por.username',
+    header: 'Usuario',
+    cell: ({ row }) => <span>{row.original.creado_por.full_name}</span>,
+  },
+  {
+    accessorKey: 'comentarios',
+    header: 'Comentarios',
+  },
+  {
+    accessorKey: 'aprobado',
+    header: '¿Aprobado?',
+    cell: ({ row }) =>
+      row.getValue('aprobado') && (
+        <div className='flex gap-1.5 items-center'>
+          <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
+          <span className='text-muted-foreground'>{row.original.user_aprueba?.full_name}</span>
+        </div>
+      ),
+  },
+];
+
+const equiposColumns: ColumnDef<UsoEquipo>[] = [
+  {
+    header: 'Equipo',
+    accessorKey: 'equipo__nombre',
+  },
+  {
+    header: 'Contador',
+    accessorKey: 'contador_uso',
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => (
+      <Button
+        variant='ghost'
+        size='icon'
+        onClick={() => withAuth.delete(ENDPOINTS.clientes.detail(row.original.id) + 'del_equipo/')}
+      >
+        <X />
+      </Button>
+    ),
+  },
+];
 
 export const Route = createFileRoute('/_app/clients/$id')({
   component: ClienteDetailPage,
@@ -21,8 +99,29 @@ export const Route = createFileRoute('/_app/clients/$id')({
 });
 
 function ClienteDetailPage() {
-  const { cliente, equiposCliente } = Route.useLoaderData();
+  const { cliente, equiposCliente, movimientos } = Route.useLoaderData();
   const router = useRouter();
+
+  const { setContent } = useHeader();
+
+  useEffect(() => {
+    setContent(
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to='/clients'>Clientes</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{cliente.nombre}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>,
+    );
+    return () => setContent(null);
+  }, []);
 
   return (
     <div className='space-y-4'>
@@ -36,103 +135,145 @@ function ClienteDetailPage() {
       <div className='grid grid-cols-1 md:grid-cols-[400px_1fr] gap-6'>
         <ClienteForm cliente={cliente} onSuccess={router.invalidate} />
 
-        <EquiposClienteCard
-          clienteId={cliente.id}
-          equiposCliente={equiposCliente}
-          onSuccess={router.invalidate}
-        />
+        <Card>
+          <CardHeader className='flex justify-between items-center'>
+            <CardTitle>Equipos asignados</CardTitle>
+
+            <AssignEquipoPopover clienteId={cliente.id} onSuccess={router.invalidate} />
+          </CardHeader>
+
+          <CardContent>
+            <DataTable
+              data={equiposCliente}
+              columns={equiposColumns}
+              transparent
+              emptyComponent={
+                <Empty className='my-0 py-0'>
+                  <EmptyHeader>
+                    <EmptyMedia variant='icon'>
+                      <Printer />
+                    </EmptyMedia>
+                    <EmptyTitle>No se ha asignado ningún equipo</EmptyTitle>
+                    <EmptyDescription>Comienza registrando un equipo de este cliente</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              }
+            />
+          </CardContent>
+        </Card>
       </div>
+
+      <Card className='mb-6'>
+        <CardHeader className='grid items-center md:flex md:justify-between'>
+          <CardTitle className='text-lg'>Últimos movimientos de salida</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            data={movimientos}
+            columns={movementsColumns}
+            transparent
+            emptyComponent={
+              <Empty className='my-0 py-0'>
+                <EmptyHeader>
+                  <EmptyMedia variant='icon'>
+                    <ArrowUpFromDot />
+                  </EmptyMedia>
+                  <EmptyTitle>No se ha hecho ningún movimiento</EmptyTitle>
+                  <EmptyDescription>Comienza registrando una salida de este cliente</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            }
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
 function ClienteForm({ cliente, onSuccess }: { cliente: ClienteResponse; onSuccess: () => void }) {
-  const [form, setForm] = useState(cliente);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const updateField = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
-  const save = () =>
-    toast.promise(withAuth.patch(ENDPOINTS.clientes.detail(cliente.id), form).then(onSuccess), {
-      loading: 'Guardando cliente...',
-    });
+  const form = useAppForm({
+    defaultValues: cliente,
+    onSubmit: async ({ value }) =>
+      toast.promise(
+        withAuth.patch(ENDPOINTS.clientes.detail(cliente.id), value).then(() => {
+          setIsEditing(false);
+          onSuccess();
+        }),
+        { loading: 'Guardando cliente...' },
+      ),
+  });
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Datos del cliente</CardTitle>
-      </CardHeader>
+      <form
+        id='client-form'
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+      >
+        <CardHeader className='flex flex-row items-center justify-between'>
+          <CardTitle>Datos del cliente</CardTitle>
 
-      <CardContent className='space-y-3'>
-        <Input
-          value={form.nombre}
-          onChange={(e) => updateField('nombre', e.target.value)}
-          onBlur={save}
-          placeholder='Nombre'
-        />
+          {!isEditing ? (
+            <Button type='button' variant='ghost' size='sm' onClick={() => setIsEditing(true)}>
+              Editar
+            </Button>
+          ) : (
+            <div className='flex gap-2'>
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                onClick={() => {
+                  form.reset();
+                  setIsEditing(false);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button size='sm' type='submit'>
+                Guardar
+              </Button>
+            </div>
+          )}
+        </CardHeader>
 
-        <Input
-          value={form.rfc || ''}
-          onChange={(e) => updateField('rfc', e.target.value)}
-          onBlur={save}
-          placeholder='RFC'
-        />
-
-        <Input
-          value={form.telefono || ''}
-          onChange={(e) => updateField('telefono', e.target.value)}
-          onBlur={save}
-          placeholder='Teléfono'
-        />
-
-        <Input
-          value={form.email || ''}
-          onChange={(e) => updateField('email', e.target.value)}
-          onBlur={save}
-          placeholder='Email'
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
-function EquiposClienteCard({
-  clienteId,
-  equiposCliente,
-  onSuccess,
-}: {
-  clienteId: number;
-  equiposCliente: UsoEquipo[];
-  onSuccess: () => void;
-}) {
-  return (
-    <Card>
-      <CardHeader className='flex justify-between items-center'>
-        <CardTitle>Equipos asignados</CardTitle>
-
-        <AssignEquipoPopover clienteId={clienteId} onSuccess={onSuccess} />
-      </CardHeader>
-
-      <CardContent>
-        <EquiposClienteTable equiposCliente={equiposCliente} onSuccess={onSuccess} />
-      </CardContent>
+        <CardContent className='space-y-4 mt-4'>
+          <form.AppField name='nombre'>
+            {(Field) => <Field.InputField label='Nombre' readOnly={!isEditing} />}
+          </form.AppField>
+          <form.AppField name='telefono'>
+            {(Field) => <Field.InputField label='Teléfono' readOnly={!isEditing} />}
+          </form.AppField>
+          <form.AppField name='rfc'>
+            {(Field) => <Field.InputField label='RFC' readOnly={!isEditing} />}
+          </form.AppField>
+          <form.AppField name='email'>
+            {(Field) => <Field.InputField label='Email' readOnly={!isEditing} />}
+          </form.AppField>
+        </CardContent>
+      </form>
     </Card>
   );
 }
 
 function AssignEquipoPopover({ clienteId, onSuccess }: { clienteId: number; onSuccess: () => void }) {
-  const [equipoId, setEquipoId] = useState<number | null>(null);
-  const [contador, setContador] = useState(0);
   const { equipos } = useCatalogs();
 
-  const handleSave = () => {
-    if (!equipoId) return;
-
-    toast.promise(
-      withAuth
-        .post(ENDPOINTS.clientes.detail(clienteId) + 'equipos/', { equipoId, contador_uso: contador })
-        .then(onSuccess),
-      { loading: 'Asignando equipo...' },
-    );
-  };
+  const form = useAppForm({
+    defaultValues: {
+      equipoId: 0,
+      contadorUso: 0,
+    },
+    onSubmit: async ({ value }) =>
+      toast.promise(
+        withAuth.post(ENDPOINTS.clientes.detail(clienteId) + 'equipos/', value).then(onSuccess),
+        { loading: 'Asignando equipo...', error: (data) => 'Error: ' + data.message },
+      ),
+  });
 
   return (
     <Popover>
@@ -143,77 +284,47 @@ function AssignEquipoPopover({ clienteId, onSuccess }: { clienteId: number; onSu
       </PopoverTrigger>
 
       <PopoverContent className='w-72 space-y-3'>
-        <select
-          className='w-full border rounded px-2 py-1'
-          onChange={(e) => setEquipoId(Number(e.target.value))}
+        <form
+          id='uso-equipo-form'
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+          className='space-y-6'
         >
-          <option value=''>Seleccionar equipo</option>
-          {equipos.map((eq) => (
-            <option key={eq.id} value={eq.id}>
-              {eq.nombre}
-            </option>
-          ))}
-        </select>
+          <form.AppField
+            name='equipoId'
+            validators={{
+              onChange: ({ value }) => (value <= 0 ? 'Equipo no seleccionado' : undefined),
+            }}
+          >
+            {(field) => (
+              <field.NumberSelectField
+                label='Equipo'
+                placeholder='Seleccione un equipo'
+                options={equipos.map((eq) => ({
+                  key: eq.id,
+                  value: eq.id,
+                  label: eq.nombre,
+                }))}
+              />
+            )}
+          </form.AppField>
 
-        <Input
-          type='number'
-          value={contador}
-          onChange={(e) => setContador(Number(e.target.value))}
-          placeholder='Contador inicial'
-        />
+          <form.AppField
+            name='contadorUso'
+            validators={{
+              onChange: ({ value }) => (value <= 0 ? 'Contador no válido' : undefined),
+            }}
+          >
+            {(field) => <field.InputField label='Contador de uso' placeholder='1500' />}
+          </form.AppField>
 
-        <Button className='w-full' onClick={handleSave}>
-          Guardar
-        </Button>
+          <form.AppForm>
+            <form.SaveButton className='w-full' />
+          </form.AppForm>
+        </form>
       </PopoverContent>
     </Popover>
-  );
-}
-
-function EquiposClienteTable({
-  equiposCliente,
-  onSuccess,
-}: {
-  equiposCliente: UsoEquipo[];
-  onSuccess: () => void;
-}) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Equipo</TableHead>
-          <TableHead>Contador</TableHead>
-          <TableHead className='w-10'></TableHead>
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        {equiposCliente.map((ec) => (
-          <TableRow key={ec.equipo__id}>
-            <TableCell>{ec.equipo__id}</TableCell>
-            <TableCell>{ec.contador_uso}</TableCell>
-
-            <TableCell>
-              <Button
-                variant='ghost'
-                size='icon'
-                onClick={onSuccess}
-                // withAuth.delete(ENDPOINTS.equiposCliente.detail(ec.equipo__id)).then(onSuccess)
-              >
-                <X />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-
-        {equiposCliente.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={3} className='text-center py-6'>
-              No hay equipos asignados
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
   );
 }
