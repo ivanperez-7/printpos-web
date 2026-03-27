@@ -28,6 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
 import type { ClienteResponse } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const prettierTypes: Record<ClienteResponse['tipo'], string> = { fisica: 'Física', moral: 'Moral' };
 
@@ -150,14 +151,15 @@ function CreateClientePopover({ onSuccess }: { onSuccess: () => void }) {
           autoFocus
         />
 
-        <select
-          className='w-full border rounded px-2 py-1'
-          value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
-        >
-          <option value='fisica'>Persona Física</option>
-          <option value='moral'>Persona Moral</option>
-        </select>
+        <Select value={tipo} onValueChange={setTipo}>
+          <SelectTrigger className='w-full'>
+            <SelectValue placeholder='Tipo de cliente' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='fisica'>Persona Física</SelectItem>
+            <SelectItem value='moral'>Persona Moral</SelectItem>
+          </SelectContent>
+        </Select>
 
         <Button className='w-full' onClick={handleSave}>
           Guardar

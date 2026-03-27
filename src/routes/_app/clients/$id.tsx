@@ -1,3 +1,4 @@
+import { useMask } from '@react-input/mask';
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowLeft, ArrowUpFromDot, CheckCircle, Plus, Printer, X } from 'lucide-react';
@@ -12,11 +13,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 import { fetchClientById } from '@/api/catalogo';
 import { ENDPOINTS } from '@/api/endpoints';
-import { useAppForm } from '@/hooks/use-app-form';
-import { useCatalogs } from '@/hooks/use-catalogs';
-import { withAuth } from '@/lib/auth';
-import { type ClienteResponse, type MovimientoResponse, type UsoEquipo } from '@/lib/types';
-import { humanDate, humanTime } from '@/lib/utils';
 import { useHeader } from '@/components/site-header';
 import {
   Breadcrumb,
@@ -26,6 +22,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { useAppForm } from '@/hooks/use-app-form';
+import { useCatalogs } from '@/hooks/use-catalogs';
+import { withAuth } from '@/lib/auth';
+import { type ClienteResponse, type MovimientoResponse, type UsoEquipo } from '@/lib/types';
+import { humanDate, humanTime } from '@/lib/utils';
 
 const movementsColumns: ColumnDef<MovimientoResponse>[] = [
   {
@@ -192,6 +193,7 @@ function ClienteDetailPage() {
 
 function ClienteForm({ cliente, onSuccess }: { cliente: ClienteResponse; onSuccess: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
+  const inputRef = useMask({ mask: '+52 (___) ___ ____', replacement: { _: /\d/ }, showMask: true });
 
   const form = useAppForm({
     defaultValues: cliente,
@@ -246,7 +248,7 @@ function ClienteForm({ cliente, onSuccess }: { cliente: ClienteResponse; onSucce
             {(Field) => <Field.InputField label='Nombre' readOnly={!isEditing} />}
           </form.AppField>
           <form.AppField name='telefono'>
-            {(Field) => <Field.InputField label='Teléfono' readOnly={!isEditing} />}
+            {(Field) => <Field.InputField ref={inputRef} label='Teléfono' readOnly={!isEditing} />}
           </form.AppField>
           <form.AppField name='rfc'>
             {(Field) => <Field.InputField label='RFC' readOnly={!isEditing} />}

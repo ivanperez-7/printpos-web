@@ -79,7 +79,7 @@ function MovementDetailPage() {
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
+      </Breadcrumb>,
     );
     return () => setContent(null);
   }, []);
@@ -178,12 +178,16 @@ function MovementDetailPage() {
             <Separator />
           </CardHeader>
           <CardContent>
-            <p>
-              <strong>Número de factura:</strong> {detalleEntrada.numero_factura || '—'}
-            </p>
-            <p>
-              <strong>Recibido por:</strong> {detalleEntrada.recibido_por.full_name}
-            </p>
+            <div className='grid grid-cols-2'>
+              <span>
+                <p className='text-sm text-muted-foreground'>Número de factura</p>{' '}
+                {detalleEntrada.numero_factura || '—'}
+              </span>
+              <span>
+                <p className='text-sm text-muted-foreground'>Recibido por</p>{' '}
+                {detalleEntrada.recibido_por.full_name}
+              </span>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -196,15 +200,21 @@ function MovementDetailPage() {
             <Separator />
           </CardHeader>
           <CardContent>
-            <p>
-              <strong>Cliente:</strong> {detalleSalida.cliente.nombre || '—'}
-            </p>
-            <p>
-              <strong>Técnico:</strong> {detalleSalida.tecnico || '—'}
-            </p>
-            <p>
-              <strong>Requiere aprobación:</strong> {detalleSalida.requiere_aprobacion ? 'Sí' : 'No'}
-            </p>
+            <div className='grid grid-cols-2 gap-4'>
+              <span>
+                <p className='text-sm text-muted-foreground'>Cliente</p>{' '}
+                <Link to='/clients/$id' params={{ id: String(detalleSalida.cliente.id) }}>
+                  {detalleSalida.cliente.nombre}
+                </Link>
+              </span>
+              <span>
+                <p className='text-sm text-muted-foreground'>Técnico</p> {detalleSalida.tecnico || '—'}
+              </span>
+              <span>
+                <p className='text-sm text-muted-foreground'>¿Requiere aprobación?</p>{' '}
+                {detalleSalida.requiere_aprobacion ? 'Sí' : 'No'}
+              </span>
+            </div>
           </CardContent>
         </Card>
       )}
