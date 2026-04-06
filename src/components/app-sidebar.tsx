@@ -1,4 +1,4 @@
-import { PackageOpen, Plus, Settings } from 'lucide-react';
+import { PackageOpen, Settings } from 'lucide-react';
 import * as React from 'react';
 
 import { AddMovementDialog } from './add-movement-dialog';
@@ -20,6 +20,7 @@ import {
 } from './ui/sidebar';
 
 import navigation from '@/lib/navigation';
+import { Kbd, KbdGroup } from './ui/kbd';
 
 export function AppSidebar({
   onLogout,
@@ -51,9 +52,14 @@ export function AppSidebar({
               <AddMovementDialog
                 trigger={
                   <Button size='sm' className='w-full'>
-                    <Plus /> Registrar movimiento
+                    Registrar movimiento
+                    <KbdGroup>
+                      <Kbd className='bg-blue-800 text-white'>Ctrl</Kbd>
+                      <Kbd className='bg-blue-800 text-white font-extrabold'>⏎</Kbd>
+                    </KbdGroup>
                   </Button>
                 }
+                useShortcut
               />
             </SidebarMenuItem>
           </SidebarGroupContent>

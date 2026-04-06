@@ -35,11 +35,29 @@ import {
 export function AddMovementDialog({
   trigger,
   movimiento,
+  useShortcut,
 }: {
   trigger: React.ReactNode;
   movimiento?: MovimientoResponse;
+  useShortcut?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
+  // añade atajo de teclado ctrl + enter para abrir modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !open && useShortcut) {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
