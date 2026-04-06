@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AddMovementDialog } from '@/components/add-movement-dialog';
 import { DataTable } from '@/components/data-table';
 import { useHeader } from '@/components/site-header';
-import { Badge } from '@/components/ui/badge';
+import TipoMovimientoBadge from '@/components/tipo-movimiento-badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -64,11 +64,7 @@ const columns: ColumnDef<MovimientoResponse>[] = [
   {
     accessorKey: 'tipo',
     header: 'Tipo',
-    cell: ({ row }) => (
-      <Badge variant={row.original.tipo === 'entrada' ? 'default' : 'destructive'}>
-        {row.original.tipo === 'entrada' ? 'Entrada' : 'Salida' /* cringe */}
-      </Badge>
-    ),
+    cell: ({ row }) => <TipoMovimientoBadge tipo={row.original.tipo} />,
   },
   {
     accessorKey: 'creado_por.username',
@@ -141,7 +137,7 @@ function MovementsListPage() {
             <BreadcrumbPage>Movimientos</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>,
+      </Breadcrumb>
     );
     return () => setContent(null);
   }, []);

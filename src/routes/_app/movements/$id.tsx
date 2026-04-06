@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 import { DataTable } from '@/components/data-table';
 import { useHeader } from '@/components/site-header';
-import { Badge } from '@/components/ui/badge';
+import TipoMovimientoBadge from '@/components/tipo-movimiento-badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -79,7 +79,7 @@ function MovementDetailPage() {
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>,
+      </Breadcrumb>
     );
     return () => setContent(null);
   }, []);
@@ -112,12 +112,7 @@ function MovementDetailPage() {
               {/* Tipo */}
               <div>
                 <p className='text-sm text-muted-foreground'>Tipo de movimiento</p>
-                <Badge
-                  variant={movimiento.tipo === 'entrada' ? 'default' : 'destructive'}
-                  className='font-semibold'
-                >
-                  {movimiento.tipo === 'entrada' ? 'Entrada' : 'Salida'}
-                </Badge>
+                <TipoMovimientoBadge tipo={movimiento.tipo} />
               </div>
 
               {/* Fecha */}

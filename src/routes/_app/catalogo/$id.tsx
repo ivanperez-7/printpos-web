@@ -18,6 +18,7 @@ import { AddProductDialog } from '@/components/add-product-dialog';
 import { DataTable } from '@/components/data-table';
 import { DeleteProductDialog } from '@/components/delete-product-dialog';
 import { useHeader } from '@/components/site-header';
+import TipoMovimientoBadge from '@/components/tipo-movimiento-badge';
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
@@ -67,11 +68,7 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
     id: 'tipo',
     accessorKey: 'cantidad',
     header: 'Tipo',
-    cell: ({ row }) => (
-      <Badge variant={row.original.tipo === 'entrada' ? 'default' : 'destructive'}>
-        {row.original.tipo === 'entrada' ? 'Entrada' : 'Salida' /* cringe */}
-      </Badge>
-    ),
+    cell: ({ row }) => <TipoMovimientoBadge tipo={row.original.tipo} />,
   },
   {
     accessorKey: 'cantidad',
@@ -95,9 +92,7 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
       row.getValue('aprobado') && (
         <div className='flex gap-1.5 items-center'>
           <CheckCircle className='size-4 text-green-700 dark:text-green-400' />{' '}
-          <span className='text-muted-foreground'>
-            {row.original.user_aprueba?.full_name}
-          </span>
+          <span className='text-muted-foreground'>{row.original.user_aprueba?.full_name}</span>
         </div>
       ),
   },

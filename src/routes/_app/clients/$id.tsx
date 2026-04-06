@@ -27,6 +27,7 @@ import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
 import { type ClienteResponse, type MovimientoResponse, type UsoEquipo } from '@/lib/types';
 import { humanDate, humanTime } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const movementsColumns: ColumnDef<MovimientoResponse>[] = [
   {
@@ -119,7 +120,7 @@ function ClienteDetailPage() {
             <BreadcrumbPage>{cliente.nombre}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>,
+      </Breadcrumb>
     );
     return () => setContent(null);
   }, []);
@@ -166,7 +167,7 @@ function ClienteDetailPage() {
 
       <Card className='mb-6'>
         <CardHeader className='grid items-center md:flex md:justify-between'>
-          <CardTitle className='text-lg'>Últimos movimientos de salida</CardTitle>
+          <CardTitle>Últimos movimientos de salida</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTable
@@ -203,7 +204,7 @@ function ClienteForm({ cliente, onSuccess }: { cliente: ClienteResponse; onSucce
           setIsEditing(false);
           onSuccess();
         }),
-        { loading: 'Guardando cliente...' },
+        { loading: 'Guardando cliente...' }
       ),
   });
 
@@ -216,31 +217,34 @@ function ClienteForm({ cliente, onSuccess }: { cliente: ClienteResponse; onSucce
           form.handleSubmit();
         }}
       >
-        <CardHeader className='flex flex-row items-center justify-between'>
-          <CardTitle>Datos del cliente</CardTitle>
+        <CardHeader>
+          <header className='flex flex-row items-center justify-between'>
+            <CardTitle>Datos del cliente</CardTitle>
 
-          {!isEditing ? (
-            <Button type='button' variant='ghost' size='sm' onClick={() => setIsEditing(true)}>
-              Editar
-            </Button>
-          ) : (
-            <div className='flex gap-2'>
-              <Button
-                type='button'
-                variant='ghost'
-                size='sm'
-                onClick={() => {
-                  form.reset();
-                  setIsEditing(false);
-                }}
-              >
-                Cancelar
+            {!isEditing ? (
+              <Button type='button' variant='ghost' size='sm' onClick={() => setIsEditing(true)}>
+                Editar
               </Button>
-              <Button size='sm' type='submit'>
-                Guardar
-              </Button>
-            </div>
-          )}
+            ) : (
+              <div className='flex gap-2'>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => {
+                    form.reset();
+                    setIsEditing(false);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button size='sm' type='submit'>
+                  Guardar
+                </Button>
+              </div>
+            )}
+          </header>
+          <Separator />
         </CardHeader>
 
         <CardContent className='space-y-4 mt-4'>
@@ -273,7 +277,7 @@ function AssignEquipoPopover({ clienteId, onSuccess }: { clienteId: number; onSu
     onSubmit: async ({ value }) =>
       toast.promise(
         withAuth.post(ENDPOINTS.clientes.detail(clienteId) + 'equipos/', value).then(onSuccess),
-        { loading: 'Asignando equipo...', error: (data) => 'Error: ' + data.message },
+        { loading: 'Asignando equipo...', error: (data) => 'Error: ' + data.message }
       ),
   });
 
