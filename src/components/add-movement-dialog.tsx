@@ -164,7 +164,7 @@ function MovementForm({
       );
     });
 
-  const ItemsTable = () => (
+  const itemsTable = (
     <Table>
       <TableHeader>
         <TableRow>
@@ -237,7 +237,7 @@ function MovementForm({
 
   useEffect(() => {
     scanInputRef.current?.focus();
-  });
+  }, []);
 
   return (
     <form
@@ -311,7 +311,7 @@ function MovementForm({
         </FieldGroup>
       </FieldSet>
 
-      <ItemsTable />
+      {itemsTable}
 
       {tipo === 'entrada' && (
         <div className='grid grid-cols-2 gap-4 mt-4'>
