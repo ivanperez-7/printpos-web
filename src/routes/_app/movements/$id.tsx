@@ -147,7 +147,7 @@ function MovementDetailPage() {
             {/* Aprobación */}
             <div className='space-y-4'>
               <div>
-                <p className='text-sm text-muted-foreground'>Aprobado</p>
+                <p className='text-sm text-muted-foreground'>¿Aprobado?</p>
                 {movimiento.aprobado ? (
                   <span className='flex items-center gap-2 text-green-600 dark:text-green-400'>
                     <CheckCircle className='h-4 w-4' /> Sí
@@ -245,108 +245,3 @@ function MovementDetailPage() {
     </>
   );
 }
-/*
-const lotesColumns: ColumnDef<LoteResponse>[] = [
-  { header: 'Código', accessorKey: 'codigo_lote' },
-  {
-    header: 'Cantidad inicial',
-    accessorKey: 'cantidad_inicial',
-    cell: ({ row }) => `${row.getValue('cantidad_inicial')} unidades`,
-  },
-  {
-    header: 'Cantidad restante',
-    accessorKey: 'cantidad_restante',
-    cell: ({ row }) => `${row.getValue('cantidad_restante')} unidades`,
-  },
-  {
-    header: 'Fecha',
-    accessorKey: 'fecha_entrada',
-    cell: ({ row }) => humanDate(row.getValue('fecha_entrada')),
-  },
-  {
-    id: 'hora',
-    accessorKey: 'fecha_entrada',
-    cell: ({ row }) => humanTime(row.getValue('fecha_entrada')),
-  },
-];
-
-const unidadesColumns: ColumnDef<UnidadResponse>[] = [
-  {
-    header: 'Unidad',
-    accessorKey: 'codigo_unidad',
-  },
-  {
-    header: 'Lote',
-    accessorKey: 'lote.codigo_lote',
-    cell: ({ row }) => row.original.lote,
-  },
-  {
-    header: 'Estado',
-    accessorKey: 'status',
-    cell: ({ row }) => (
-      <Badge variant={row.original.status === 'retirada' ? 'destructive' : 'secondary'}>
-        {row.original.status}
-      </Badge>
-    ),
-  },
-  {
-    header: 'Actualizado',
-    accessorKey: 'actualizado',
-    cell: ({ row }) => `${humanDate(row.original.actualizado)} ${humanTime(row.original.actualizado)}`,
-  },
-];
-
-  {movimiento.tipo === 'entrada' && movimiento.lotes && (
-    <Card className='mb-6'>
-      <CardHeader>
-        <CardTitle className='text-lg'>Lotes generados</CardTitle>
-        <Separator />
-      </CardHeader>
-
-      <CardContent>
-        <DataTable
-          data={movimiento.lotes}
-          columns={lotesColumns}
-          transparent
-          emptyComponent={
-            <Empty className='my-0 py-0'>
-              <EmptyHeader>
-                <EmptyMedia variant='icon'>
-                  <PackageOpen />
-                </EmptyMedia>
-                <EmptyTitle>No hay lotes</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          }
-        />
-      </CardContent>
-    </Card>
-  )}
-
-  {movimiento.tipo === 'salida' && movimiento.unidades && (
-    <Card className='mb-6'>
-      <CardHeader>
-        <CardTitle className='text-lg'>Unidades asignadas</CardTitle>
-        <Separator />
-      </CardHeader>
-
-      <CardContent>
-        <DataTable
-          data={movimiento.unidades}
-          columns={unidadesColumns}
-          transparent
-          emptyComponent={
-            <Empty className='my-0 py-0'>
-              <EmptyHeader>
-                <EmptyMedia variant='icon'>
-                  <PackageOpen />
-                </EmptyMedia>
-                <EmptyTitle>No hay unidades</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          }
-        />
-      </CardContent>
-    </Card>
-  )}
-*/

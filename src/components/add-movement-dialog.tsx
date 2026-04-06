@@ -45,7 +45,10 @@ export function AddMovementDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className='max-w-full md:max-w-4xl lg:max-w-5xl'>
+      <DialogContent
+        className='max-w-full md:max-w-4xl lg:max-w-5xl'
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Registrar movimiento</DialogTitle>
         </DialogHeader>
@@ -285,6 +288,12 @@ function MovementForm({
                 ref={scanInputRef}
                 value={scanCode}
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleScanSubmit(e);
+                  }
+                }}
                 onChange={(e) => setScanCode(e.target.value)}
                 placeholder='Escanee el código...'
               />
