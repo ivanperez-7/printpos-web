@@ -55,10 +55,7 @@ const movementsColumns: ColumnDef<MovimientoResponse>[] = [
     header: 'Usuario',
     cell: ({ row }) => <span>{row.original.creado_por.full_name}</span>,
   },
-  {
-    accessorKey: 'comentarios',
-    header: 'Comentarios',
-  },
+  { accessorKey: 'comentarios', header: 'Comentarios' },
   {
     accessorKey: 'aprobado',
     header: '¿Aprobado?',
@@ -73,14 +70,8 @@ const movementsColumns: ColumnDef<MovimientoResponse>[] = [
 ];
 
 const equiposColumns: ColumnDef<UsoEquipo>[] = [
-  {
-    header: 'Equipo',
-    accessorKey: 'equipo__nombre',
-  },
-  {
-    header: 'Contador',
-    accessorKey: 'contador_uso',
-  },
+  { header: 'Equipo', accessorKey: 'equipo__nombre' },
+  { header: 'Contador', accessorKey: 'contador_uso' },
   {
     id: 'actions',
     cell: ({ row }) => (

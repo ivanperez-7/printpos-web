@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 
 import { fetchMovimientoById } from '@/api/movimientos';
 import type { MovimientoItemResponse } from '@/lib/types';
-import { humanDate, humanTime, plural } from '@/lib/utils';
+import { humanDate, humanTime } from '@/lib/utils';
 
 const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
   {
@@ -37,15 +37,8 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
       </Link>
     ),
   },
-  {
-    accessorKey: 'producto.descripcion',
-    header: 'Descripción',
-  },
-  {
-    accessorKey: 'cantidad',
-    header: 'Cantidad',
-    cell: ({ row }) => plural('unidad', row.getValue('cantidad')),
-  },
+  { accessorKey: 'producto.descripcion', header: 'Descripción' },
+  { accessorKey: 'cantidad', header: 'Cantidad' },
 ];
 
 export const Route = createFileRoute('/_app/movements/$id')({

@@ -142,7 +142,7 @@ function MovementForm({
       .then((data) => {
         if (!data.length) throw new Error('No se encontró ningún producto con este código');
 
-        const producto = data[0];
+        const [producto] = data;
         setProductosMap((prev) => ({ ...prev, [producto.id]: producto }));
         form.pushFieldValue('items', { producto_id: producto.id, cantidad: 1, equipo_id: undefined });
       })
@@ -167,7 +167,7 @@ function MovementForm({
 
   const tipo = useStore(form.store, ({ values }) => values.tipo);
   const hasSelectedCliente = useStore(form.store, ({ values }) =>
-    Boolean(tipo == 'salida' && values.detalle_salida?.cliente_id),
+    Boolean(tipo == 'salida' && values.detalle_salida?.cliente_id)
   );
   const items = useStore(form.store, (state) => state.values.items);
 
@@ -178,7 +178,7 @@ function MovementForm({
       if (!producto) return false;
 
       return !clientEquipos.some(({ equipo__id }) =>
-        producto.equipos.map((eq) => eq.id).includes(equipo__id),
+        producto.equipos.map((eq) => eq.id).includes(equipo__id)
       );
     });
 
@@ -230,7 +230,7 @@ function MovementForm({
                       {(subfield) => (
                         <UsoEquipoDisplay
                           matchingEquipos={clientEquipos.filter(({ equipo__id }) =>
-                            productosMap[producto_id].equipos.map((eq) => eq.id).includes(equipo__id),
+                            productosMap[producto_id].equipos.map((eq) => eq.id).includes(equipo__id)
                           )}
                           value={subfield.state.value}
                           onChange={subfield.handleChange}

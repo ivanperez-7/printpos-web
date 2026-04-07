@@ -205,13 +205,15 @@ function EquipoSelector({
   const [selectedMarca, setSelectedMarca] = useState<number | undefined>();
   const { marcas, equipos } = useCatalogs();
 
-  const equiposFiltrados = useMemo(() => {
-    return equipos.filter((eq) => {
-      const coincideMarca = selectedMarca ? eq.marca.id === selectedMarca : true;
-      const coincideBusqueda = eq.nombre.toLowerCase().includes(search.toLowerCase());
-      return coincideMarca && coincideBusqueda;
-    });
-  }, [equipos, selectedMarca, search]);
+  const equiposFiltrados = useMemo(
+    () =>
+      equipos.filter((eq) => {
+        const coincideMarca = selectedMarca ? eq.marca.id === selectedMarca : true;
+        const coincideBusqueda = eq.nombre.toLowerCase().includes(search.toLowerCase());
+        return coincideMarca && coincideBusqueda;
+      }),
+    [equipos, selectedMarca, search]
+  );
 
   return (
     <div className='space-y-4'>
@@ -223,7 +225,7 @@ function EquipoSelector({
             variant={selectedMarca === m.id ? 'default' : 'secondary'}
             className={cn(
               'cursor-pointer px-3 py-1 rounded-md',
-              selectedMarca === m.id && 'ring-2 ring-primary',
+              selectedMarca === m.id && 'ring-2 ring-primary'
             )}
             onClick={() => setSelectedMarca(selectedMarca === m.id ? undefined : m.id)}
           >
@@ -251,7 +253,7 @@ function EquipoSelector({
                 checked={selectedEquipos.includes(eq.id)}
                 onCheckedChange={(checked) => {
                   if (checked == true) onEquiposChange([...selectedEquipos, eq.id]);
-                  else onEquiposChange(selectedEquipos.filter((id) => id !== eq.id));
+                  else onEquiposChange(selectedEquipos.filter((eqId) => eqId !== eq.id));
                 }}
               />
               {eq.nombre}{' '}

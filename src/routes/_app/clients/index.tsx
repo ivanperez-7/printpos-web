@@ -52,18 +52,9 @@ const clientesColumns: ColumnDef<ClienteResponse>[] = [
     accessorKey: 'tipo',
     cell: ({ row }) => <span>{prettierTypes[row.original.tipo]}</span>,
   },
-  {
-    header: 'Teléfono',
-    accessorKey: 'telefono',
-  },
-  {
-    header: 'Correo',
-    accessorKey: 'email',
-  },
-  {
-    header: 'Dirección',
-    accessorKey: 'direccion',
-  },
+  { header: 'Teléfono', accessorKey: 'telefono' },
+  { header: 'Correo', accessorKey: 'email' },
+  { header: 'Dirección', accessorKey: 'direccion' },
   {
     id: 'menu',
     cell: ({ row }) => <ClientTableDropdown clientId={row.original.id} />, // en otro componente para usar hooks
@@ -86,7 +77,7 @@ function ClientesPage() {
             <BreadcrumbPage>Clientes</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>,
+      </Breadcrumb>
     );
     return () => setContent(null);
   }, []);
@@ -131,7 +122,7 @@ function CreateClientePopover({ onSuccess }: { onSuccess: () => void }) {
         setOpen(false);
         onSuccess();
       }),
-      { loading: 'Creando cliente...' },
+      { loading: 'Creando cliente...' }
     );
   };
 

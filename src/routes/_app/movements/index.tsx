@@ -71,10 +71,7 @@ const columns: ColumnDef<MovimientoResponse>[] = [
     header: 'Usuario',
     cell: ({ row }) => <span>{row.original.creado_por.full_name}</span>,
   },
-  {
-    accessorKey: 'comentarios',
-    header: 'Comentarios',
-  },
+  { accessorKey: 'comentarios', header: 'Comentarios' },
   {
     accessorKey: 'aprobado',
     header: '¿Aprobado?',

@@ -41,9 +41,9 @@ import type {
   ProductoResponse,
   ProveedorResponse,
 } from '@/lib/types';
-import { humanDate, humanTime, plural } from '@/lib/utils';
+import { cn, humanDate, humanTime, plural } from '@/lib/utils';
 
-const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: number }>[] = [
+const columns: ColumnDef<MovimientoResponse & { cantidad: number }>[] = [
   {
     accessorKey: 'id',
     header: 'Folio',
@@ -66,7 +66,6 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
   },
   {
     id: 'tipo',
-    accessorKey: 'cantidad',
     header: 'Tipo',
     cell: ({ row }) => <TipoMovimientoBadge tipo={row.original.tipo} />,
   },
@@ -75,13 +74,14 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
     header: 'Cantidad',
     cell: ({ row }) => (
       <span
-        className={
+        className={cn(
           row.original.tipo === 'entrada'
-            ? 'text-blue-600 dark:text-blue-400 font-semibold'
-            : 'text-red-600 dark:text-red-400 font-semibold'
-        }
+            ? 'text-blue-600 dark:text-blue-400'
+            : 'text-red-600 dark:text-red-400',
+          'font-semibold'
+        )}
       >
-        {row.getValue('cantidad') as number}
+        {row.getValue('cantidad')}
       </span>
     ),
   },
@@ -99,10 +99,7 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number; producto_id: n
 ];
 
 const lotesColumns: ColumnDef<LoteResponse>[] = [
-  {
-    accessorKey: 'codigo_lote',
-    header: 'Código',
-  },
+  { accessorKey: 'codigo_lote', header: 'Código' },
   {
     accessorKey: 'cantidad_inicial',
     header: 'Cantidad inicial',
@@ -308,55 +305,56 @@ const ProductBatchesCard = ({ lotes }: { lotes: LoteResponse[] }) => (
   </Card>
 );
 
-const ProductMovementsCard = ({ movimientos }: { movimientos: MovimientoResponse[] }) => (
-  <Card className='mb-6'>
-    <CardHeader className='grid items-center md:flex md:justify-between'>
-      <CardTitle className='text-lg'>Últimos movimientos</CardTitle>
-      <div className='grid md:flex gap-3'>
-        <AddMovementDialog
-          trigger={
-            <Button size='sm'>
-              <ArrowDownToDot />
-              Registrar entrada
-            </Button>
+const ProductMovementsCard = ({ movimientos }: { movimientos: MovimientoResponse[] }) => {
+  const { producto } = Route.useLoaderData();
+  return (
+    <Card className='mb-6'>
+      <CardHeader className='grid items-center md:flex md:justify-between'>
+        <CardTitle className='text-lg'>Últimos movimientos</CardTitle>
+        <div className='grid md:flex gap-3'>
+          <AddMovementDialog
+            trigger={
+              <Button size='sm'>
+                <ArrowDownToDot />
+                Registrar entrada
+              </Button>
+            }
+          />
+          <AddMovementDialog
+            trigger={
+              <Button variant='secondary' size='sm'>
+                <ArrowUpFromDot />
+                Registrar salida
+              </Button>
+            }
+          />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          // hacemos básicamente un cross product de cada movimiento con su array de items
+          data={movimientos.flatMap((mov) =>
+            mov.items
+              .filter((item) => item.producto.id == producto.id)
+              .map((item) => ({ cantidad: item.cantidad, ...mov }))
+          )}
+          columns={columns}
+          transparent
+          emptyComponent={
+            <Empty className='my-0 py-0'>
+              <EmptyHeader>
+                <EmptyMedia variant='icon'>
+                  <ArrowLeftRight />
+                </EmptyMedia>
+                <EmptyTitle>No se ha hecho ningún movimiento</EmptyTitle>
+                <EmptyDescription>
+                  Comienza registrando una entrada o salida de este producto
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           }
         />
-        <AddMovementDialog
-          trigger={
-            <Button variant='secondary' size='sm'>
-              <ArrowUpFromDot />
-              Registrar salida
-            </Button>
-          }
-        />
-      </div>
-    </CardHeader>
-    <CardContent>
-      <DataTable
-        // hacemos básicamente un cross product de cada movimiento con su array de items
-        data={movimientos.flatMap((mov) =>
-          mov.items.map((item) => ({
-            cantidad: item.cantidad,
-            producto_id: item.producto.id,
-            ...mov,
-          }))
-        )}
-        columns={columns}
-        transparent
-        emptyComponent={
-          <Empty className='my-0 py-0'>
-            <EmptyHeader>
-              <EmptyMedia variant='icon'>
-                <ArrowLeftRight />
-              </EmptyMedia>
-              <EmptyTitle>No se ha hecho ningún movimiento</EmptyTitle>
-              <EmptyDescription>
-                Comienza registrando una entrada o salida de este producto
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        }
-      />
-    </CardContent>
-  </Card>
-);
+      </CardContent>
+    </Card>
+  );
+};

@@ -38,7 +38,7 @@ export default function UsoEquipoDisplay({
 
   // SINGLE
   if (matchingEquipos.length === 1) {
-    const onlyEquipo = matchingEquipos[0];
+    const [onlyEquipo] = matchingEquipos;
 
     if (value !== onlyEquipo.equipo__id) onChange(onlyEquipo.equipo__id);
     return (

@@ -38,11 +38,7 @@ import type { ProductoResponse } from '@/lib/types';
 import { plural, statusFromStock } from '@/lib/utils';
 
 const columns: ColumnDef<ProductoResponse>[] = [
-  {
-    id: 'check',
-    header: () => <Checkbox />,
-    cell: () => <Checkbox />,
-  },
+  { id: 'check', header: () => <Checkbox />, cell: () => <Checkbox /> },
   {
     accessorKey: 'descripcion',
     header: 'Descripción',
@@ -52,14 +48,8 @@ const columns: ColumnDef<ProductoResponse>[] = [
       </Link>
     ),
   },
-  {
-    accessorKey: 'codigo_interno',
-    header: 'Código',
-  },
-  {
-    accessorKey: 'proveedor.nombre',
-    header: 'Proveedor',
-  },
+  { accessorKey: 'codigo_interno', header: 'Código' },
+  { accessorKey: 'proveedor.nombre', header: 'Proveedor' },
   {
     accessorKey: 'cantidad_disponible',
     header: 'Existencia',
