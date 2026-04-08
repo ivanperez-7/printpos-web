@@ -18,6 +18,8 @@ import {
 } from './ui/pagination';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
+import { cn } from '@/lib/utils';
+
 const ELLIPSIS = -1;
 
 interface DataTableProps<TData, TValue> {
@@ -51,9 +53,9 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <div className={transparent ? '' : 'overflow-hidden rounded-lg border'}>
+      <div className={cn(!transparent && 'overflow-hidden rounded-lg border')}>
         <Table>
-          <TableHeader className={transparent ? '' : 'bg-muted sticky top-0 z-10'}>
+          <TableHeader className={cn(!transparent && 'bg-muted sticky top-0 z-10')}>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -102,7 +104,7 @@ export function DataTable<TData, TValue>({
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => table.previousPage()}
-                className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : ''}
+                className={cn(!table.getCanPreviousPage() && 'pointer-events-none opacity-50')}
               />
             </PaginationItem>
 
@@ -132,7 +134,7 @@ export function DataTable<TData, TValue>({
             <PaginationItem>
               <PaginationNext
                 onClick={() => table.nextPage()}
-                className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : ''}
+                className={cn(!table.getCanNextPage() && 'pointer-events-none opacity-50')}
               />
             </PaginationItem>
           </PaginationContent>
