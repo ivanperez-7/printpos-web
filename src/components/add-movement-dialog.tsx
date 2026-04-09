@@ -108,7 +108,9 @@ function MovementForm({
       comentarios: '',
     } as z.input<typeof movimientoCreateSchema>,
     validators: { onSubmit: movimientoCreateSchema },
-    onSubmit: async ({ value }) =>
+    onSubmit: async ({ value }) => {
+      if (!value.detalle_entrada && !value.detalle_salida) return;
+
       await withAuth
         .post(ENDPOINTS.movimientos.list, value)
         .then((res) => {
@@ -128,7 +130,8 @@ function MovementForm({
           router.invalidate();
           onSuccess();
         })
-        .catch((error) => toast.error(error.response?.data + '' || error.message)),
+        .catch((error) => toast.error(error.response?.data + '' || error.message));
+    },
   });
 
   const handleScanSubmit = async (e: React.FormEvent) => {
