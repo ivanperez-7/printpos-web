@@ -1,7 +1,9 @@
-import { API_BASE, ENDPOINTS } from '@/api/endpoints';
-import { authActions, authStore } from '@/stores/authStore';
 import { redirect } from '@tanstack/react-router';
 import axios from 'axios';
+
+import { API_BASE, ENDPOINTS } from '@/api/endpoints';
+import { authActions, authStore } from '@/stores/authStore';
+import { userActions } from '@/stores/userStore';
 
 function isTokenExpired(token: string): boolean {
   try {
@@ -20,12 +22,12 @@ const tryRefresh = async (): Promise<boolean> =>
       if (res.status !== 200) return false;
       return res.data;
     })
-    .then(({ access }) => {
-      if (access) {
-        authActions.setAccessToken(access);
-        return true;
-      }
-      return false;
+    .then(async ({ access }) => {
+      if (!access) return false;
+
+      authActions.setAccessToken(access);
+      await withAuth.get(ENDPOINTS.auth.me).then((res) => userActions.setUserInfo(res.data));
+      return true;
     })
     .catch(() => false);
 
@@ -130,7 +132,6 @@ withAuth.interceptors.response.use(
       // Retry original request
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
       return withAuth(originalRequest);
-
     } catch {
       forceLogout();
     }

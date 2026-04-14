@@ -6,6 +6,7 @@ export const ENDPOINTS = {
     login: '/token/',
     refresh: '/token/refresh/',
     logout: '/logout/',
+    me: '/me/',
   },
   clientes: {
     list: '/organizacion/clientes/',

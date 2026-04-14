@@ -1,7 +1,8 @@
 import { createFileRoute, ErrorComponent, Link, useRouter } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowLeft, CheckCircle, PackageOpen, XCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { DataTable } from '@/components/data-table';
 import { useHeader } from '@/components/site-header';
@@ -19,9 +20,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Separator } from '@/components/ui/separator';
 
+import { ENDPOINTS } from '@/api/endpoints';
 import { fetchMovimientoById } from '@/api/movimientos';
+import { withAuth } from '@/lib/auth';
 import type { MovimientoItemResponse } from '@/lib/types';
-import { humanDate, humanTime } from '@/lib/utils';
+import { firstUpperCase, humanDate, humanTime } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
+import { userStore } from '@/stores/userStore';
 
 const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
   {
@@ -38,7 +43,11 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
     ),
   },
   { accessorKey: 'producto.descripcion', header: 'Descripción' },
-  { accessorKey: 'cantidad', header: 'Cantidad' },
+  {
+    accessorKey: 'cantidad',
+    header: 'Cantidad',
+    cell: ({ row }) => row.original.cantidad.toLocaleString('es-MX'),
+  },
 ];
 
 export const Route = createFileRoute('/_app/movements/$id')({
@@ -48,12 +57,32 @@ export const Route = createFileRoute('/_app/movements/$id')({
 });
 
 function MovementDetailPage() {
+  const [isApproving, setIsApproving] = useState(false);
+
   const movimiento = Route.useLoaderData();
   const { setContent } = useHeader();
   const router = useRouter();
 
   const detalleEntrada = movimiento.detalle_entrada;
   const detalleSalida = movimiento.detalle_salida;
+
+  const approveSalida = () => {
+    if (isApproving) return;
+    setIsApproving(true);
+
+    withAuth
+      .post(ENDPOINTS.movimientos.detail(movimiento.id) + 'aprobar/')
+      .then(() => {
+        router.invalidate();
+        toast.success(`${firstUpperCase(movimiento.tipo)} aprobada exitosamente`);
+      })
+      .catch((err) =>
+        toast.error(
+          `No se pudo aprobar la ${movimiento.tipo}. ` + (err.response?.data?.detail || err.message)
+        )
+      )
+      .finally(() => setIsApproving(false));
+  };
 
   useEffect(() => {
     setContent(
@@ -143,6 +172,17 @@ function MovementDetailPage() {
                 ) : (
                   <span className='flex items-center gap-2 text-red-600 dark:text-red-400'>
                     <XCircle className='h-4 w-4' /> No aprobado
+                    {userStore.state.profile?.rol === 'admin' && (
+                      <Button
+                        variant='secondary'
+                        className='text-sm ml-3'
+                        size='sm'
+                        onClick={approveSalida}
+                        disabled={isApproving}
+                      >
+                        {isApproving && <Spinner />} Aprobar
+                      </Button>
+                    )}
                   </span>
                 )}
               </div>
@@ -197,10 +237,6 @@ function MovementDetailPage() {
               </span>
               <span>
                 <p className='text-sm text-muted-foreground'>Técnico</p> {detalleSalida.tecnico || '—'}
-              </span>
-              <span>
-                <p className='text-sm text-muted-foreground'>¿Requiere aprobación?</p>{' '}
-                {detalleSalida.requiere_aprobacion ? 'Sí' : 'No'}
               </span>
             </div>
           </CardContent>

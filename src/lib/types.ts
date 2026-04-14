@@ -5,7 +5,7 @@ export const clienteCreateSchema = z.object({
   tipo: z.enum(['fisica', 'moral']).default('fisica'),
   rfc: z.string().length(13, 'El RFC debe tener 13 caracteres').optional().nullable(),
   telefono: z.string().optional().nullable(),
-  email: z.string().email('Email inválido').optional().nullable(),
+  email: z.email('Email inválido').optional().nullable(),
   direccion: z.string().optional().nullable(),
   activo: z.boolean().default(true),
 });
@@ -178,7 +178,6 @@ export type DetalleEntradaResponse = z.infer<typeof detalleEntradaResponseSchema
 export const detalleSalidaCreateSchema = z.object({
   cliente_id: z.number().gt(0, 'Seleccione un cliente válido'),
   tecnico: z.string().nullable().optional(),
-  requiere_aprobacion: z.boolean().default(true),
 });
 export const detalleSalidaResponseSchema = detalleSalidaCreateSchema.extend({
   id: z.number(),
@@ -231,4 +230,5 @@ export type UsoEquipo = {
   contador_uso: number;
   equipo__id: number;
   equipo__nombre: string;
+  alias: string;
 };

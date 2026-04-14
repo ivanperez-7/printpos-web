@@ -52,3 +52,8 @@ export function plural(word: string, count: number) {
 
   return `${count.toLocaleString('es-MX')} ${pluralWord}`;
 }
+
+export function firstUpperCase(str: string) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

@@ -21,6 +21,7 @@ import {
 
 import navigation from '@/lib/navigation';
 import { Kbd, KbdGroup } from './ui/kbd';
+import { userStore } from '@/stores/userStore';
 
 export function AppSidebar({
   onLogout,
@@ -95,9 +96,9 @@ export function AppSidebar({
         </SidebarMenuItem>
         <NavFooter
           user={{
-            name: localStorage.getItem('username') || 'N/A',
-            email: localStorage.getItem('email') || 'N/A',
-            avatar: localStorage.getItem('avatar') ?? undefined,
+            name: userStore.state.full_name || 'N/A',
+            email: userStore.state.email || 'N/A',
+            avatar: userStore.state.profile?.avatar ?? undefined,
           }}
           onLogout={onLogout}
           loadingLogout={loadingLogout}

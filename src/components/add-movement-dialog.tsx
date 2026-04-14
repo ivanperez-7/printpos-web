@@ -31,6 +31,7 @@ import {
   type ProductoResponse,
   type UsoEquipo,
 } from '@/lib/types';
+import { userStore } from '@/stores/userStore';
 
 export function AddMovementDialog({
   trigger,
@@ -97,13 +98,15 @@ function MovementForm({
 
   const scanInputRef = useRef<HTMLInputElement>(null);
 
+  const currentUserId = userStore.state.id;
+
   const form = useAppForm({
     defaultValues: {
       tipo: movimiento?.tipo ?? 'entrada',
       items: movimiento?.items ?? [],
       detalle_entrada: {
         numero_factura: '',
-        recibido_por_id: 0,
+        recibido_por_id: currentUserId,
       },
       comentarios: '',
     } as z.input<typeof movimientoCreateSchema>,
@@ -139,8 +142,10 @@ function MovementForm({
     if (!scanCode.trim()) return;
     setSearching(true);
 
+    const codigoBusqueda = tipo == 'entrada' ? 'sku' : 'lotes__codigo_lote';
+
     withAuth
-      .get(ENDPOINTS.products.list, { params: { sku: encodeURIComponent(scanCode) } })
+      .get(ENDPOINTS.products.list, { params: { [codigoBusqueda]: scanCode } })
       .then((res) => res.data as ProductoResponse[])
       .then((data) => {
         if (!data.length) throw new Error('No se encontró ningún producto con este código');
@@ -282,6 +287,7 @@ function MovementForm({
                     onClick={() => {
                       field.handleChange('entrada');
                       form.setFieldValue('detalle_salida', undefined);
+                      form.setFieldValue('detalle_entrada.recibido_por_id', currentUserId);
                     }}
                   >
                     <ArrowDownToDot /> Entrada
@@ -303,7 +309,7 @@ function MovementForm({
 
           <div className='space-y-4'>
             <Field>
-              <FieldLabel htmlFor='sku'>SKU</FieldLabel>
+              <FieldLabel htmlFor='sku'>{tipo == 'entrada' ? 'SKU' : 'Código de lote'}</FieldLabel>
               <Input
                 id='sku'
                 ref={scanInputRef}
@@ -335,11 +341,13 @@ function MovementForm({
       {itemsTable}
 
       {tipo === 'entrada' && (
-        <div className='grid grid-cols-2 gap-4 mt-4'>
+        <div className='grid grid-cols-3 gap-4 mt-4'>
+          <form.AppField name='detalle_entrada.numero_factura'>
+            {(field) => <field.InputField label='ID de prefactura' placeholder='XXX-00110011-RKO' />}
+          </form.AppField>
           <form.AppField name='detalle_entrada.numero_factura'>
             {(field) => <field.InputField label='Número de factura' placeholder='XXX-00110011-RKO' />}
           </form.AppField>
-
           <form.AppField name='detalle_entrada.recibido_por_id'>
             {(field) => (
               <field.NumberSelectField
@@ -350,6 +358,7 @@ function MovementForm({
                   value: user.id,
                   label: user.full_name,
                 }))}
+                disabled
               />
             )}
           </form.AppField>
@@ -390,3 +399,9 @@ function MovementForm({
     </form>
   );
 }
+
+/*
+- id de prefactura
+- multi sucursal
+- ligar correo ????
+*/

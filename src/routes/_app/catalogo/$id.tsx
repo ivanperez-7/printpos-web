@@ -56,13 +56,13 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number }>[] = [
   {
     accessorKey: 'creado',
     header: 'Fecha',
-    cell: ({ row }) => <span>{humanDate(row.getValue('creado'))}</span>,
+    cell: ({ row }) => humanDate(row.getValue('creado')),
   },
   {
     id: 'hora',
     accessorKey: 'creado',
     header: 'Hora',
-    cell: ({ row }) => <span>{humanTime(row.getValue('creado'))}</span>,
+    cell: ({ row }) => humanTime(row.getValue('creado')),
   },
   {
     id: 'tipo',
@@ -81,7 +81,7 @@ const columns: ColumnDef<MovimientoResponse & { cantidad: number }>[] = [
           'font-semibold'
         )}
       >
-        {row.getValue('cantidad')}
+        {row.original.cantidad.toLocaleString('es-MX')}
       </span>
     ),
   },
@@ -103,12 +103,16 @@ const lotesColumns: ColumnDef<LoteResponse>[] = [
   {
     accessorKey: 'cantidad_inicial',
     header: 'Cantidad inicial',
-    cell: ({ row }) => <span>{row.getValue('cantidad_inicial')} unidades</span>,
+    cell: ({ row }) => plural('unidad', row.getValue('cantidad_inicial')),
   },
   {
     accessorKey: 'cantidad_restante',
     header: 'Cantidad restante',
-    cell: ({ row }) => <span>{row.getValue('cantidad_restante')} unidades</span>,
+    cell: ({ row }) => (
+      <span className={cn(row.original.cantidad_restante <= 0 && 'text-muted-foreground')}>
+        {plural('unidad', row.getValue('cantidad_restante'))}
+      </span>
+    ),
   },
   {
     accessorKey: 'fecha_entrada',

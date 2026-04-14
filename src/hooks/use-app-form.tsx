@@ -45,11 +45,13 @@ function NumberSelectField({
   placeholder,
   options,
   onValueChange,
+  disabled,
 }: {
   label?: string;
   placeholder: string;
   options: { key: Key; value: number; label: string }[];
   onValueChange?: (v: string) => void;
+  disabled?: boolean;
 }) {
   const field = useFieldContext<number>();
   return (
@@ -61,6 +63,7 @@ function NumberSelectField({
           field.handleChange(Number(v));
           if (onValueChange) onValueChange(v);
         }}
+        disabled={disabled}
       >
         <SelectTrigger id={field.name}>
           <SelectValue placeholder={placeholder} />

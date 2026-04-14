@@ -12,7 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 
 import { API_BASE, ENDPOINTS } from '@/api/endpoints';
+import { withAuth } from '@/lib/auth';
 import { authActions } from '@/stores/authStore';
+import { userActions } from '@/stores/userStore';
 
 const loginSchema = z.object({
   username: z.string().min(3),
@@ -63,22 +65,18 @@ function LoginForm() {
     },
     onSubmit: async ({ value }) => {
       try {
-        const res = await axios.post(ENDPOINTS.auth.login, value, {
-          baseURL: API_BASE,
-          withCredentials: true,
-        });
-        const { access, username, email, avatar } = res.data;
+        await axios
+          .post(ENDPOINTS.auth.login, value, { baseURL: API_BASE, withCredentials: true })
+          .then((res) => authActions.setAccessToken(res.data.access));
 
-        authActions.setAccessToken(access);
-        localStorage.setItem('username', username);
-        localStorage.setItem('email', email);
-        localStorage.setItem('avatar', avatar);
+        // Obtener información del usuario después de iniciar sesión
+        await withAuth.get(ENDPOINTS.auth.me).then((res) => userActions.setUserInfo(res.data));
 
         if (redirect) router.history.replace(redirect);
         else router.navigate({ to: '/dashboard' });
       } catch (error: any) {
         toast.error(
-          error.response ? error.response.data.detail || 'Error' : 'No se pudo conectar al servidor',
+          error.response ? error.response.data.detail || 'Error' : 'No se pudo conectar al servidor'
         );
       }
     },

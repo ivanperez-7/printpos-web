@@ -70,8 +70,13 @@ const movementsColumns: ColumnDef<MovimientoResponse>[] = [
 ];
 
 const equiposColumns: ColumnDef<UsoEquipo>[] = [
+  { header: 'Alias', accessorKey: 'alias' },
   { header: 'Equipo', accessorKey: 'equipo__nombre' },
-  { header: 'Contador', accessorKey: 'contador_uso' },
+  {
+    header: 'Contador',
+    accessorKey: 'contador_uso',
+    cell: ({ row }) => row.original.contador_uso.toLocaleString('es-MX'),
+  },
   {
     id: 'actions',
     cell: ({ row }) => (
@@ -262,6 +267,7 @@ function AssignEquipoPopover({ clienteId, onSuccess }: { clienteId: number; onSu
 
   const form = useAppForm({
     defaultValues: {
+      alias: '',
       equipoId: 0,
       contadorUso: 0,
     },
@@ -315,6 +321,10 @@ function AssignEquipoPopover({ clienteId, onSuccess }: { clienteId: number; onSu
             }}
           >
             {(field) => <field.InputField label='Contador de uso' placeholder='1500' />}
+          </form.AppField>
+
+          <form.AppField name='alias'>
+            {(field) => <field.InputField label='Alias' placeholder='Alias del equipo' />}
           </form.AppField>
 
           <form.AppForm>
