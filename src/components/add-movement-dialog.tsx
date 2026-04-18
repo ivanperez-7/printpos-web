@@ -27,6 +27,7 @@ import { useCatalogs } from '@/hooks/use-catalogs';
 import { withAuth } from '@/lib/auth';
 import {
   movimientoCreateSchema,
+  type LoteResponse,
   type MovimientoResponse,
   type ProductoResponse,
   type UsoEquipo,
@@ -79,6 +80,11 @@ export function AddMovementDialog({
   );
 }
 
+type ProductosMap = Record<
+  number,
+  Pick<ProductoResponse, 'id' | 'codigo_interno' | 'descripcion' | 'equipos'>
+>;
+
 function MovementForm({
   movimiento,
   onSuccess,
@@ -88,7 +94,7 @@ function MovementForm({
 }) {
   const [scanCode, setScanCode] = useState('');
   const [searching, setSearching] = useState(false);
-  const [productosMap, setProductosMap] = useState<Record<number, ProductoResponse>>({});
+  const [productosMap, setProductosMap] = useState<ProductosMap>({});
 
   const [clientEquipos, setClientEquipos] = useState<UsoEquipo[]>([]); // info de los equipos ligados al cliente selecc.
   const [loadingClientEquipos, setLoadingClientEquipos] = useState(false);
@@ -142,18 +148,35 @@ function MovementForm({
     if (!scanCode.trim()) return;
     setSearching(true);
 
-    const codigoBusqueda = tipo == 'entrada' ? 'sku' : 'lotes__codigo_lote';
+    (tipo === 'entrada'
+      ? withAuth
+          .get(ENDPOINTS.products.list, { params: { sku: scanCode } })
+          .then((res) => res.data as ProductoResponse[])
+          .then((data) => {
+            if (!data.length) throw new Error('No se encontró ningún producto con este código');
 
-    withAuth
-      .get(ENDPOINTS.products.list, { params: { [codigoBusqueda]: scanCode } })
-      .then((res) => res.data as ProductoResponse[])
-      .then((data) => {
-        if (!data.length) throw new Error('No se encontró ningún producto con este código');
+            const [producto] = data;
+            setProductosMap((prev) => ({ ...prev, [producto.id]: producto }));
+            form.pushFieldValue('items', { producto_id: producto.id, cantidad: 1 });
+          })
+      : withAuth
+          .get(ENDPOINTS.lotes.list, { params: { codigo_lote: scanCode } })
+          .then((res) => res.data as LoteResponse[])
+          .then((data) => {
+            if (!data.length) throw new Error('No se encontró ningún lote con este código');
 
-        const [producto] = data;
-        setProductosMap((prev) => ({ ...prev, [producto.id]: producto }));
-        form.pushFieldValue('items', { producto_id: producto.id, cantidad: 1, equipo_id: undefined });
-      })
+            const [lote] = data;
+            if (lote.cantidad_restante <= 0)
+              throw new Error('Este lote no tiene cantidad disponible para salida');
+
+            setProductosMap((prev) => ({ ...prev, [lote.producto.id]: lote.producto }));
+            form.pushFieldValue('items', {
+              producto_id: lote.producto.id,
+              cantidad: 1,
+              lote_id: lote.id,
+            });
+          })
+    )
       .catch((error) => toast.error(error.message))
       .finally(() => {
         setSearching(false);

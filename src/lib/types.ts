@@ -112,6 +112,12 @@ export const loteResponseSchema = loteCreateSchema.extend({
   id: z.number(),
   creado: z.iso.datetime(),
   actualizado: z.iso.datetime(),
+  producto: productoResponseSchema.pick({
+    id: true,
+    codigo_interno: true,
+    descripcion: true,
+    equipos: true,
+  }),
 });
 
 export type LoteCreate = z.infer<typeof loteCreateSchema>;
@@ -153,6 +159,7 @@ export type PerfilUsuarioResponse = z.infer<typeof perfilUsuarioResponseSchema>;
 export const movimientoItemCreateSchema = z.object({
   producto_id: z.number(),
   cantidad: z.number().min(1),
+  lote_id: z.number().optional(),
   equipo_id: z.number().optional(),
 });
 export const movimientoItemResponseSchema = movimientoItemCreateSchema.extend({
@@ -231,4 +238,11 @@ export type UsoEquipo = {
   equipo__id: number;
   equipo__nombre: string;
   alias: string;
+};
+
+export type SucursalResponse = {
+  id: number;
+  nombre: string;
+  direccion: string;
+  activo: boolean;
 };

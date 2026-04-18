@@ -1,5 +1,6 @@
 import { redirect } from '@tanstack/react-router';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 import { API_BASE, ENDPOINTS } from '@/api/endpoints';
 import { authActions, authStore } from '@/stores/authStore';
@@ -65,7 +66,9 @@ export const withAuth = axios.create({
 
 withAuth.interceptors.request.use((config) => {
   const token = authStore.state.accessToken;
+  const branch = Cookies.get('branch');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (branch) config.headers['x-branch-id'] = branch;
   return config;
 });
 

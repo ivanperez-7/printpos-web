@@ -49,4 +49,8 @@ export const ENDPOINTS = {
     list: '/system/configuracion/',
     detail: (id: IdLike) => `/system/configuracion/${id}/`,
   },
+  sucursales: {
+    list: '/organizacion/sucursales/',
+    detail: (id: IdLike) => `/organizacion/sucursales/${id}/`,
+  },
 } as const;

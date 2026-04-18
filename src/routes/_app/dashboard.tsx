@@ -37,7 +37,7 @@ const lowStockColumns = [
     header: 'Categoría',
   },
   {
-    accessorKey: 'stock',
+    accessorKey: 'cantidad_disponible',
     header: 'Stock',
   },
 ];
@@ -119,7 +119,7 @@ function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Entradas en los últimos 30 días</CardTitle>
+            <CardTitle>Salidas en los últimos 30 días</CardTitle>
           </CardHeader>
           <CardContent className='h-[300px]'>
             <ResponsiveContainer width='100%' height='100%'>

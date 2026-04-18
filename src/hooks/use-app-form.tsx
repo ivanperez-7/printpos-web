@@ -46,12 +46,14 @@ function NumberSelectField({
   options,
   onValueChange,
   disabled,
+  hideErrors
 }: {
   label?: string;
   placeholder: string;
   options: { key: Key; value: number; label: string }[];
   onValueChange?: (v: string) => void;
   disabled?: boolean;
+  hideErrors?: boolean;
 }) {
   const field = useFieldContext<number>();
   return (
@@ -80,7 +82,7 @@ function NumberSelectField({
           )}
         </SelectContent>
       </Select>
-      <FieldError errors={field.state.meta.errors} />
+      <FieldError hidden={hideErrors} errors={field.state.meta.errors} />
     </Field>
   );
 }

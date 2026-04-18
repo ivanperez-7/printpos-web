@@ -1,6 +1,6 @@
-import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { PackageOpen } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import z from 'zod';
@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 
 import { API_BASE, ENDPOINTS } from '@/api/endpoints';
+import { getSucursales } from '@/api/organizacion';
+import { useAppForm } from '@/hooks/use-app-form';
 import { withAuth } from '@/lib/auth';
 import { authActions } from '@/stores/authStore';
 import { userActions } from '@/stores/userStore';
@@ -19,9 +21,11 @@ import { userActions } from '@/stores/userStore';
 const loginSchema = z.object({
   username: z.string().min(3),
   password: z.string().min(3),
+  branch: z.number().gt(0),
 });
 
 export const Route = createFileRoute('/login')({
+  loader: async () => await getSucursales(),
   validateSearch: ({ redirect }) => ({
     redirect: (redirect as string) || undefined,
   }),
@@ -52,12 +56,14 @@ function LoginPage() {
 
 function LoginForm() {
   const { redirect } = Route.useSearch();
+  const sucursales = Route.useLoaderData();
   const router = useRouter();
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       username: '',
       password: '',
+      branch: 0,
     },
     validators: {
       onSubmit: loginSchema,
@@ -131,6 +137,22 @@ function LoginForm() {
             </Field>
           )}
         </form.Field>
+
+        <form.AppField name='branch'>
+          {(Field) => (
+            <Field.NumberSelectField
+              label='Sucursal'
+              placeholder='Pensiones'
+              hideErrors
+              options={sucursales.map((sucursal) => ({
+                key: sucursal.id.toString(),
+                value: sucursal.id,
+                label: sucursal.nombre,
+              }))}
+              onValueChange={(v) => Cookies.set('branch', v, { path: '/' })}
+            />
+          )}
+        </form.AppField>
 
         <form.Subscribe selector={(state) => [state.isSubmitting, state.canSubmit]}>
           {([isSubmitting, canSubmit]) => (
