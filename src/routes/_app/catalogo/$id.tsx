@@ -10,7 +10,7 @@ import {
   PackageOpen,
   Trash,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 // COMPONENTES DEL PROYECTO
 import { AddMovementDialog } from '@/components/add-movement-dialog';
@@ -30,7 +30,9 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
 // OTRAS UTILIDADES
@@ -281,33 +283,46 @@ const ProductProviderCard = ({ proveedor }: { proveedor?: ProveedorResponse }) =
     </Card>
   );
 
-const ProductBatchesCard = ({ lotes }: { lotes: LoteResponse[] }) => (
-  <Card className='mb-6'>
-    <CardHeader className='grid items-center md:flex md:justify-between'>
-      <CardTitle className='text-lg'>Lotes en el almacén</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <DataTable
-        data={lotes}
-        columns={lotesColumns}
-        transparent
-        emptyComponent={
-          <Empty className='my-0 py-0'>
-            <EmptyHeader>
-              <EmptyMedia variant='icon'>
-                <PackageOpen />
-              </EmptyMedia>
-              <EmptyTitle>No se ha registrado ningún lote</EmptyTitle>
-              <EmptyDescription>
-                Comienza registrando un lote por medio de una entrada
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        }
-      />
-    </CardContent>
-  </Card>
-);
+const ProductBatchesCard = ({ lotes }: { lotes: LoteResponse[] }) => {
+  const [showEmpty, setShowEmpty] = useState(false);
+
+  const filteredLotes = useMemo(
+    () => (showEmpty ? lotes : lotes.filter((lote) => lote.cantidad_restante > 0)),
+    [showEmpty, lotes]
+  );
+
+  return (
+    <Card className='mb-6'>
+      <CardHeader className='grid items-center md:flex md:justify-between'>
+        <CardTitle className='text-lg'>Lotes en el almacén</CardTitle>
+        <div className='flex items-center gap-3'>
+          <Checkbox id='checkbox' checked={showEmpty} onCheckedChange={(val) => setShowEmpty(!!val)} />
+          <Label htmlFor='checkbox'>Mostrar lotes agotados</Label>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          data={filteredLotes}
+          columns={lotesColumns}
+          transparent
+          emptyComponent={
+            <Empty className='my-0 py-0'>
+              <EmptyHeader>
+                <EmptyMedia variant='icon'>
+                  <PackageOpen />
+                </EmptyMedia>
+                <EmptyTitle>No se ha registrado ningún lote</EmptyTitle>
+                <EmptyDescription>
+                  Comienza registrando un lote por medio de una entrada
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          }
+        />
+      </CardContent>
+    </Card>
+  );
+};
 
 const ProductMovementsCard = ({ movimientos }: { movimientos: MovimientoResponse[] }) => {
   const { producto } = Route.useLoaderData();

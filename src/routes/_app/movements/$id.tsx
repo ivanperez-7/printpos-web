@@ -42,6 +42,7 @@ const itemsColumns: ColumnDef<MovimientoItemResponse>[] = [
       </Link>
     ),
   },
+  { accessorKey: 'lote.codigo_lote', header: 'Código de lote' },
   { accessorKey: 'producto.descripcion', header: 'Descripción' },
   {
     accessorKey: 'cantidad',

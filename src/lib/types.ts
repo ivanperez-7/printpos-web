@@ -80,7 +80,7 @@ export const productoCreateSchema = z.object({
   proveedor_id: z.number().nullable(),
   sku: z.string().min(1, 'El SKU es obligatorio'),
 
-  status: z.enum(['activo', 'inactivo', 'descontinuado']),
+  status: z.enum(['activo', 'inactivo']),
 });
 
 export const productoResponseSchema = productoCreateSchema.extend({
@@ -164,7 +164,8 @@ export const movimientoItemCreateSchema = z.object({
 });
 export const movimientoItemResponseSchema = movimientoItemCreateSchema.extend({
   id: z.number(),
-  producto: z.object({ id: z.number(), codigo_interno: z.string(), descripcion: z.string() }),
+  producto: productoResponseSchema.pick({ id: true, codigo_interno: true, descripcion: true }),
+  lote: loteResponseSchema.pick({ id: true, codigo_lote: true, fecha_entrada: true }).optional(),
 });
 
 export type MovimientoItemCreate = z.infer<typeof movimientoItemCreateSchema>;
